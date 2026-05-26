@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Un Poème pour Toi 📜</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --rose: #e8637a;
+    --cream: #fdf6ee;
+    --deep: #2a1a2e;
+    --gold: #d4a853;
+    --text: #3d2a35;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--cream);
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: radial-gradient(circle, rgba(212,168,83,0.12) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+  }
+
+  .nav {
+    padding: 20px 32px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .back-btn {
+    text-decoration: none;
+    color: var(--rose);
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+  }
+
+  .back-btn:hover { opacity: 1; }
+
+  .page-wrap {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 16px 32px 80px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .page-header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  .page-header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 5vw, 2.8rem);
+    color: var(--deep);
+    line-height: 1.15;
+  }
+
+  .page-header p {
+    margin-top: 10px;
+    color: #9b7a88;
+    font-size: 0.95rem;
+    font-style: italic;
+  }
+
+  /* POEM CARD */
+  .poem-card {
+    background: white;
+    border-radius: 24px;
+    padding: 48px 48px 40px;
+    border: 1.5px solid rgba(212,168,83,0.3);
+    box-shadow: 0 8px 40px rgba(42,26,46,0.08);
+    position: relative;
+    min-height: 300px;
+    transition: opacity 0.4s;
+  }
+
+  .poem-card::before, .poem-card::after {
+    content: '"';
+    font-family: 'Playfair Display', serif;
+    font-size: 8rem;
+    color: rgba(232,99,122,0.08);
+    position: absolute;
+    line-height: 1;
+  }
+
+  .poem-card::before { top: 8px; left: 20px; }
+  .poem-card::after  { content: '"'; bottom: -10px; right: 24px; }
+
+  .poem-lang {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(232,99,122,0.1);
+    color: var(--rose);
+    padding: 4px 14px;
+    border-radius: 100px;
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+
+  .poem-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    font-style: italic;
+    color: var(--deep);
+    margin-bottom: 6px;
+  }
+
+  .poem-author {
+    font-size: 0.85rem;
+    color: var(--gold);
+    font-weight: 500;
+    margin-bottom: 28px;
+    letter-spacing: 0.03em;
+  }
+
+  .poem-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.05rem;
+    line-height: 1.9;
+    color: #4a3040;
+    white-space: pre-line;
+  }
+
+  .poem-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 32px;
+    flex-wrap: wrap;
+  }
+
+  .btn-spin {
+    padding: 13px 32px;
+    background: var(--rose);
+    color: white;
+    border: none;
+    border-radius: 100px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 16px rgba(232,99,122,0.3);
+  }
+
+  .btn-spin:hover { background: #d4526a; transform: translateY(-2px); }
+
+  .btn-outline {
+    padding: 13px 24px;
+    background: transparent;
+    color: var(--rose);
+    border: 1.5px solid rgba(232,99,122,0.35);
+    border-radius: 100px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-outline:hover { background: rgba(232,99,122,0.07); }
+
+  .poem-counter {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 0.82rem;
+    color: #b899a6;
+    letter-spacing: 0.04em;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .poem-card.animating { animation: fadeIn 0.5s ease forwards; }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="index.html" class="back-btn">← Retour à la roue</a>
+</nav>
+
+<main class="page-wrap">
+  <div class="page-header">
+    <h1>Un Poème pour Toi</h1>
+    <p>français ou brésilien, tiré au sort avec amour</p>
+  </div>
+
+  <div class="poem-card" id="poem-card">
+    <div class="poem-lang" id="poem-lang">🇫🇷 Français</div>
+    <div class="poem-title" id="poem-title">Chargement…</div>
+    <div class="poem-author" id="poem-author"></div>
+    <div class="poem-text" id="poem-text"></div>
+    <div class="poem-actions">
+      <button class="btn-spin" onclick="newPoem()">Autre poème ✨</button>
+      <button class="btn-outline" onclick="toggleFav()" id="fav-btn">☆ Garder</button>
+    </div>
+  </div>
+
+  <div class="poem-counter" id="poem-counter"></div>
+</main>
+
+<script>
+// =====================================================
+// POEMS — AJOUTE / MODIFIE ICI TES 15 POÈMES
+// Chaque poème : { lang: "fr" | "pt", flag: "🇫🇷"|"🇧🇷", title, author, text }
+// =====================================================
+const POEMS = [
+  {
+    lang: "fr", flag: "🇫🇷",
+    title: "Demain, dès l'aube…",
+    author: "Victor Hugo",
+    text: `Demain, dès l'aube, à l'heure où blanchit la campagne,
+Je partirai. Vois-tu, je sais que tu m'attends.
+J'irai par la forêt, j'irai par la montagne.
+Je ne puis demeurer loin de toi plus longtemps.`
+  },
+  {
+    lang: "fr", flag: "🇫🇷",
+    title: "La Vie antérieure",
+    author: "Charles Baudelaire",
+    text: `J'ai longtemps habité sous de vastes portiques
+Que les soleils marins teignaient de mille feux,
+Et que leurs grands piliers, droits et majestueux,
+Rendaient pareils, le soir, aux grottes basaltiques.`
+  },
+  {
+    lang: "fr", flag: "🇫🇷",
+    title: "Le Bonheur",
+    author: "Paul Verlaine",
+    text: `Le ciel est, par-dessus le toit,
+Si bleu, si calme !
+Un arbre, par-dessus le toit,
+Berce sa palme.
+
+La cloche, dans le ciel qu'on voit,
+Doucement tinte.
+Un oiseau sur l'arbre qu'on voit
+Chante sa plainte.`
+  },
+  {
+    lang: "fr", flag: "🇫🇷",
+    title: "À ma vie",
+    author: "Louise Labé",
+    text: `Baise m'encor, rebaise-moi et baise ;
+Donne m'en un de tes plus savoureux,
+Donne m'en un de tes plus amoureux :
+Je t'en rendrai quatre plus chauds que braise.`
+  },
+  {
+    lang: "fr", flag: "🇫🇷",
+    title: "Liberté",
+    author: "Paul Éluard",
+    text: `Sur mes cahiers d'écolier
+Sur mon pupitre et les arbres
+Sur le sable sur la neige
+J'écris ton nom.
+
+Sur toutes les pages lues
+Sur toutes les pages blanches
+Pierre sang papier ou cendre
+J'écris ton nom.`
+  },
+  {
+    lang: "pt", flag: "🇧🇷",
+    title: "Soneto de Fidelidade",
+    author: "Vinícius de Moraes",
+    text: `De tudo ao meu amor serei atento
+Antes, e com tal zelo, e sempre, e tanto
+Que mesmo em face do maior encanto
+Dele se encante mais meu pensamento.
+
+Quero vivê-lo em cada vão momento
+E em seu louvor hei de espalhar meu canto
+E rir meu riso e derramar meu pranto
+Ao seu pesar ou seu contentamento.`
+  },
+  {
+    lang: "pt", flag: "🇧🇷",
+    title: "Amor é Fogo",
+    author: "Luís de Camões",
+    text: `Amor é fogo que arde sem se ver;
+É ferida que dói e não se sente;
+É um contentamento descontente;
+É dor que desatina sem doer.`
+  },
+  {
+    lang: "pt", flag: "🇧🇷",
+    title: "Quadrilha",
+    author: "Carlos Drummond de Andrade",
+    text: `João amava Teresa que amava Raimundo
+que amava Maria que amava Joaquim que amava Lili
+que não amava ninguém.
+
+João foi para os Estados Unidos, Teresa para o convento,
+Raimundo morreu de desastre, Maria ficou para tia,
+Joaquim suicidou-se e Lili casou com J. Pinto Fernandes
+que não tinha entrado na história.`
+  },
+  {
+    lang: "fr", flag: "🇫🇷",
+    title: "Ma Bohème",
+    author: "Arthur Rimbaud",
+    text: `Je m'en allais, les poings dans mes poches crevées ;
+Mon paletot aussi devenait idéal ;
+J'allais sous le ciel, Muse ! et j'étais ton féal ;
+Oh ! là ! là ! que d'amours splendides j'ai rêvées !`
+  },
+  {
+    lang: "pt", flag: "🇧🇷",
+    title: "Canção do Exílio",
+    author: "Gonçalves Dias",
+    text: `Minha terra tem palmeiras,
+Onde canta o Sabiá;
+As aves, que aqui gorjeiam,
+Não gorjeiam como lá.
+
+Nosso céu tem mais estrelas,
+Nossas várzeas têm mais flores,
+Nossos bosques têm mais vida,
+Nossa vida mais amores.`
+  },
+  {
+    lang: "fr", flag: "🇫🇷",
+    title: "Green",
+    author: "Paul Verlaine",
+    text: `Voici des fruits, des fleurs, des feuilles et des branches,
+Et puis voici mon cœur, qui ne bat que pour vous.
+Ne le déchirez pas avec vos deux mains blanches
+Et qu'à vos yeux si beaux l'humble présent soit doux.`
+  },
+  {
+    lang: "pt", flag: "🇧🇷",
+    title: "Receita de Mulher",
+    author: "Vinícius de Moraes",
+    text: `As muito feias que me perdoem
+mas beleza é fundamental.
+É preciso que haja qualquer coisa de flor
+em tudo isso,
+não sei…`
+  },
+  {
+    lang: "fr", flag: "🇫🇷",
+    title: "Vous qui m'aimez",
+    author: "Poème à remplacer",
+    text: `[Remplace ce texte par l'un de tes poèmes préférés.
+Tu peux copier-coller n'importe quel poème ici
+dans le fichier poeme.html, section POEMS.]`
+  },
+  {
+    lang: "pt", flag: "🇧🇷",
+    title: "Poema a ser substituído",
+    author: "Poème à remplacer",
+    text: `[Substitua este texto por um de seus poemas favoritos.
+Você pode copiar e colar qualquer poema aqui
+no arquivo poeme.html, seção POEMS.]`
+  },
+  {
+    lang: "fr", flag: "🇫🇷",
+    title: "À remplacer",
+    author: "Poème à remplacer",
+    text: `[Encore un emplacement libre !
+Ajoute le poème de ton choix ici
+dans le tableau POEMS du fichier poeme.html.]`
+  },
+];
+
+let lastIndex = -1;
+let favs = JSON.parse(localStorage.getItem('poem-favs') || '[]');
+
+function newPoem() {
+  let idx;
+  do { idx = Math.floor(Math.random() * POEMS.length); } while (idx === lastIndex && POEMS.length > 1);
+  lastIndex = idx;
+  showPoem(idx);
+}
+
+function showPoem(idx) {
+  const p = POEMS[idx];
+  const card = document.getElementById('poem-card');
+  card.classList.remove('animating');
+  void card.offsetWidth;
+  card.classList.add('animating');
+
+  document.getElementById('poem-lang').textContent = `${p.flag} ${p.lang === 'fr' ? 'Français' : 'Portugais'}`;
+  document.getElementById('poem-title').textContent = p.title;
+  document.getElementById('poem-author').textContent = `— ${p.author}`;
+  document.getElementById('poem-text').textContent = p.text;
+  document.getElementById('poem-counter').textContent = `poème ${idx + 1} sur ${POEMS.length}`;
+
+  const favBtn = document.getElementById('fav-btn');
+  favBtn.textContent = favs.includes(idx) ? '★ Mémorisé' : '☆ Garder';
+  favBtn.dataset.idx = idx;
+}
+
+function toggleFav() {
+  const idx = parseInt(document.getElementById('fav-btn').dataset.idx);
+  const pos = favs.indexOf(idx);
+  if (pos === -1) favs.push(idx); else favs.splice(pos, 1);
+  localStorage.setItem('poem-favs', JSON.stringify(favs));
+  document.getElementById('fav-btn').textContent = favs.includes(idx) ? '★ Mémorisé' : '☆ Garder';
+}
+
+// Start with a random poem
+newPoem();
+</script>
+</body>
+</html>

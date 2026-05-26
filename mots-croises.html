@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mots Croisés 🔤</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root { --rose:#e8637a; --cream:#fdf6ee; --deep:#2a1a2e; --gold:#d4a853; --text:#3d2a35; --green:#4a9e6e; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--cream); font-family:'DM Sans',sans-serif; color:var(--text); min-height:100vh; }
+  body::before { content:''; position:fixed; inset:0; background-image:radial-gradient(circle,rgba(212,168,83,.1) 1px,transparent 1px); background-size:60px 60px; pointer-events:none; }
+  .nav { padding:20px 32px; display:flex; align-items:center; justify-content:space-between; position:relative; z-index:1; }
+  .back-btn { text-decoration:none; color:var(--rose); font-size:.9rem; opacity:.8; transition:opacity .2s; }
+  .back-btn:hover { opacity:1; }
+  .score-badge { background:white; border:1.5px solid var(--gold); border-radius:100px; padding:6px 16px; font-size:.85rem; font-weight:500; color:var(--gold); }
+  .page-wrap { max-width:720px; margin:0 auto; padding:8px 20px 80px; position:relative; z-index:1; }
+  .page-header { text-align:center; margin-bottom:24px; }
+  .page-header h1 { font-family:'Playfair Display',serif; font-size:clamp(1.8rem,5vw,2.4rem); color:var(--deep); }
+  .page-header p { margin-top:8px; color:#9b7a88; font-size:.9rem; font-style:italic; }
+
+  /* GRID selector */
+  .grid-selector { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-bottom:24px; }
+  .grid-tab { padding:8px 20px; border-radius:100px; border:1.5px solid rgba(201,184,216,.5); background:white; font-family:'DM Sans',sans-serif; font-size:.85rem; cursor:pointer; transition:all .18s; color:var(--text); }
+  .grid-tab.active { background:var(--rose); color:white; border-color:var(--rose); }
+  .grid-tab:hover:not(.active) { border-color:var(--rose); }
+
+  /* CROSSWORD */
+  .crossword-wrap { display:flex; gap:24px; flex-wrap:wrap; justify-content:center; }
+  .grid-box { overflow-x:auto; }
+  table.crossword { border-collapse:collapse; }
+  table.crossword td {
+    width:38px; height:38px; border:1px solid rgba(42,26,46,.15);
+    position:relative; text-align:center;
+  }
+  table.crossword td.black { background:var(--deep); border-color:var(--deep); }
+  table.crossword td input {
+    width:100%; height:100%; border:none; background:transparent;
+    text-align:center; font-family:'DM Sans',sans-serif; font-size:1rem;
+    font-weight:500; color:var(--deep); text-transform:uppercase; outline:none; cursor:pointer;
+  }
+  table.crossword td input:focus { background:rgba(232,99,122,.12); }
+  table.crossword td input.correct { background:#e8f8ef !important; color:var(--green); }
+  table.crossword td input.wrong   { background:#fceaea !important; color:#c94a4a; }
+  .cell-num {
+    position:absolute; top:2px; left:3px; font-size:9px; font-weight:500;
+    color:#9b7a88; line-height:1; pointer-events:none;
+  }
+
+  /* CLUES */
+  .clues-box { min-width:220px; max-width:260px; }
+  .clues-box h3 { font-family:'Playfair Display',serif; font-size:1rem; margin-bottom:10px; color:var(--deep); }
+  .clue-list { list-style:none; font-size:.85rem; }
+  .clue-list li { padding:5px 0; border-bottom:1px solid rgba(201,184,216,.25); display:flex; gap:8px; }
+  .clue-list li span:first-child { font-weight:500; color:var(--rose); min-width:22px; }
+
+  .btn-check { margin-top:20px; padding:12px 32px; background:var(--rose); color:white; border:none; border-radius:100px; font-family:'DM Sans',sans-serif; font-size:.95rem; font-weight:500; cursor:pointer; transition:all .2s; box-shadow:0 4px 16px rgba(232,99,122,.3); }
+  .btn-check:hover { background:#d4526a; transform:translateY(-2px); }
+  .btn-reset { margin-top:10px; margin-left:10px; padding:12px 24px; background:transparent; color:var(--rose); border:1.5px solid rgba(232,99,122,.35); border-radius:100px; font-family:'DM Sans',sans-serif; font-size:.95rem; cursor:pointer; transition:all .2s; }
+  .btn-reset:hover { background:rgba(232,99,122,.07); }
+
+  .result-msg { margin-top:16px; padding:14px 20px; border-radius:12px; font-size:.92rem; display:none; }
+  .result-msg.show { display:block; }
+  .result-msg.perfect { background:#e8f8ef; color:#2d7a52; }
+  .result-msg.partial { background:#fdf3e3; color:#7a5a1a; }
+</style>
+</head>
+<body>
+<nav class="nav">
+  <a href="index.html" class="back-btn">← Retour</a>
+  <div class="score-badge" id="score-badge">Score : 0 pts</div>
+</nav>
+<main class="page-wrap">
+  <div class="page-header">
+    <h1>Mots Croisés 🔤</h1>
+    <p>choisis une grille et complète-la</p>
+  </div>
+
+  <div class="grid-selector" id="grid-selector"></div>
+  <div class="crossword-wrap" id="crossword-wrap"></div>
+  <div style="margin-top:16px;display:flex;flex-wrap:wrap;gap:0">
+    <button class="btn-check" onclick="checkGrid()">Vérifier ✓</button>
+    <button class="btn-reset" onclick="resetGrid()">Effacer</button>
+  </div>
+  <div class="result-msg" id="result-msg"></div>
+</main>
+
+<script>
+// =====================================================
+// GRILLES — COMMENT EN AJOUTER UNE NOUVELLE :
+// 1. Crée un objet dans le tableau GRIDS ci-dessous
+// 2. "title" : nom affiché
+// 3. "grid" : tableau 2D de chaînes. Mets une lettre pour une case active, '#' pour une case noire
+// 4. "clues" : { across: [{num, clue}], down: [{num, clue}] }
+// La grille est automatiquement numérotée selon les indices "num".
+// =====================================================
+const GRIDS = [
+  {
+    title: "Amour",
+    // 7×7 grid — '#' = black cell
+    grid: [
+      ['A','M','O','U','R','#','#'],
+      ['#','#','O','#','O','#','#'],
+      ['B','A','I','S','E','R','#'],
+      ['#','#','#','#','#','#','#'],
+      ['#','C','O','E','U','R','#'],
+      ['#','#','#','#','#','#','#'],
+      ['#','B','A','I','S','E','R'],
+    ],
+    clues: {
+      across: [
+        { num:1, clue:"Le sentiment qui unit deux personnes" },
+        { num:3, clue:"Geste tendre sur les lèvres" },
+        { num:5, clue:"Organe qui bat pour toi" },
+      ],
+      down: [
+        { num:1, clue:"Mouvement doux de la bouche (infinitif)" },
+        { num:2, clue:"Donne des papillons dans le ventre" },
+      ]
+    }
+  },
+  {
+    title: "Voyage",
+    grid: [
+      ['P','A','R','I','S','#','#'],
+      ['#','#','#','#','A','#','#'],
+      ['#','B','R','E','S','I','L'],
+      ['#','#','#','#','I','#','#'],
+      ['#','A','V','I','O','N','#'],
+      ['#','#','#','#','N','#','#'],
+      ['#','#','#','#','#','#','#'],
+    ],
+    clues: {
+      across: [
+        { num:1, clue:"Capitale de la France" },
+        { num:3, clue:"Grand pays d'Amérique du Sud" },
+        { num:5, clue:"Moyen de transport pour voyager loin" },
+      ],
+      down: [
+        { num:2, clue:"Passion, désir intense" },
+        { num:4, clue:"Ce qu'on ressent avec toi (4 lettres)" },
+      ]
+    }
+  },
+  {
+    title: "Nature",
+    grid: [
+      ['F','L','E','U','R','#','#'],
+      ['#','#','#','#','O','#','#'],
+      ['#','S','O','L','E','I','L'],
+      ['#','#','#','#','#','#','#'],
+      ['#','M','E','R','#','#','#'],
+      ['#','#','#','#','#','#','#'],
+      ['#','#','E','T','O','I','L'],
+    ],
+    clues: {
+      across: [
+        { num:1, clue:"Belle plante qu'on offre à la personne aimée" },
+        { num:3, clue:"Astre du jour" },
+        { num:5, clue:"Grande étendue d'eau salée" },
+        { num:7, clue:"Point brillant dans le ciel nocturne" },
+      ],
+      down: [
+        { num:2, clue:"Couleur de tes yeux (peut-être)" },
+        { num:4, clue:"… douce de la nuit" },
+      ]
+    }
+  },
+];
+
+// Score storage
+let totalScore = parseInt(localStorage.getItem('mots-croises-score') || '0');
+let completedGrids = JSON.parse(localStorage.getItem('mots-croises-done') || '[]');
+let currentGrid = 0;
+
+function updateScoreBadge() {
+  document.getElementById('score-badge').textContent = `Score : ${totalScore} pts`;
+}
+
+// Build grid selector tabs
+const tabsEl = document.getElementById('grid-selector');
+GRIDS.forEach((g, i) => {
+  const btn = document.createElement('button');
+  btn.className = 'grid-tab' + (i === 0 ? ' active' : '');
+  btn.textContent = (completedGrids.includes(i) ? '✓ ' : '') + g.title;
+  btn.onclick = () => { currentGrid = i; loadGrid(i); document.querySelectorAll('.grid-tab').forEach((b,j) => b.classList.toggle('active', j===i)); };
+  tabsEl.appendChild(btn);
+});
+
+function loadGrid(idx) {
+  const g = GRIDS[idx];
+  const wrap = document.getElementById('crossword-wrap');
+  wrap.innerHTML = '';
+
+  // Build table
+  const gridBox = document.createElement('div');
+  gridBox.className = 'grid-box';
+  const table = document.createElement('table');
+  table.className = 'crossword';
+
+  // Number assignment: standard crossword numbering
+  const rows = g.grid.length, cols = g.grid[0].length;
+  const nums = Array.from({length:rows}, () => Array(cols).fill(0));
+  let n = 1;
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      if (g.grid[r][c] === '#') continue;
+      const acrossStart = (c===0 || g.grid[r][c-1]==='#') && c+1<cols && g.grid[r][c+1]!=='#';
+      const downStart   = (r===0 || g.grid[r-1][c]==='#') && r+1<rows && g.grid[r+1][c]!=='#';
+      if (acrossStart || downStart) { nums[r][c] = n++; }
+    }
+  }
+
+  const inputs = [];
+  for (let r = 0; r < rows; r++) {
+    const tr = document.createElement('tr');
+    for (let c = 0; c < cols; c++) {
+      const td = document.createElement('td');
+      if (g.grid[r][c] === '#') {
+        td.className = 'black';
+      } else {
+        if (nums[r][c]) {
+          const span = document.createElement('span');
+          span.className = 'cell-num';
+          span.textContent = nums[r][c];
+          td.appendChild(span);
+        }
+        const inp = document.createElement('input');
+        inp.type = 'text';
+        inp.maxLength = 1;
+        inp.dataset.r = r;
+        inp.dataset.c = c;
+        inp.dataset.answer = g.grid[r][c];
+        inp.addEventListener('input', e => {
+          e.target.value = e.target.value.toUpperCase().slice(-1);
+          e.target.classList.remove('correct','wrong');
+        });
+        inp.addEventListener('keydown', e => {
+          if (e.key==='ArrowRight') focusNext(inputs,r,c,0,1);
+          if (e.key==='ArrowLeft')  focusNext(inputs,r,c,0,-1);
+          if (e.key==='ArrowDown')  focusNext(inputs,r,c,1,0);
+          if (e.key==='ArrowUp')    focusNext(inputs,r,c,-1,0);
+        });
+        td.appendChild(inp);
+        if (!inputs[r]) inputs[r] = [];
+        inputs[r][c] = inp;
+      }
+      tr.appendChild(td);
+    }
+    table.appendChild(tr);
+  }
+  gridBox.appendChild(table);
+
+  // Clues
+  const cluesBox = document.createElement('div');
+  cluesBox.className = 'clues-box';
+  ['across','down'].forEach(dir => {
+    const h3 = document.createElement('h3');
+    h3.textContent = dir === 'across' ? '→ Horizontalement' : '↓ Verticalement';
+    h3.style.marginTop = dir==='down' ? '16px' : '0';
+    cluesBox.appendChild(h3);
+    const ul = document.createElement('ul');
+    ul.className = 'clue-list';
+    (g.clues[dir] || []).forEach(cl => {
+      const li = document.createElement('li');
+      li.innerHTML = `<span>${cl.num}.</span><span>${cl.clue}</span>`;
+      ul.appendChild(li);
+    });
+    cluesBox.appendChild(ul);
+  });
+
+  wrap.appendChild(gridBox);
+  wrap.appendChild(cluesBox);
+
+  document.getElementById('result-msg').classList.remove('show');
+}
+
+function focusNext(inputs, r, c, dr, dc) {
+  const nr = r+dr, nc = c+dc;
+  if (inputs[nr] && inputs[nr][nc]) inputs[nr][nc].focus();
+}
+
+function checkGrid() {
+  const inps = document.querySelectorAll('input[data-answer]');
+  let correct = 0, total = 0;
+  inps.forEach(inp => {
+    total++;
+    if (inp.value.toUpperCase() === inp.dataset.answer) { inp.classList.add('correct'); inp.classList.remove('wrong'); correct++; }
+    else if (inp.value) { inp.classList.add('wrong'); inp.classList.remove('correct'); }
+  });
+
+  const msg = document.getElementById('result-msg');
+  const perfect = correct === total;
+  msg.className = 'result-msg show ' + (perfect ? 'perfect' : 'partial');
+  msg.textContent = perfect
+    ? `🎉 Parfait ! Grille complétée ! +10 points`
+    : `${correct}/${total} lettres correctes. Continue !`;
+
+  if (perfect && !completedGrids.includes(currentGrid)) {
+    completedGrids.push(currentGrid);
+    localStorage.setItem('mots-croises-done', JSON.stringify(completedGrids));
+    totalScore += 10;
+    localStorage.setItem('mots-croises-score', totalScore);
+    updateScoreBadge();
+    // Update tab label
+    document.querySelectorAll('.grid-tab')[currentGrid].textContent = '✓ ' + GRIDS[currentGrid].title;
+  }
+}
+
+function resetGrid() {
+  document.querySelectorAll('input[data-answer]').forEach(inp => {
+    inp.value = '';
+    inp.classList.remove('correct','wrong');
+  });
+  document.getElementById('result-msg').classList.remove('show');
+}
+
+updateScoreBadge();
+loadGrid(0);
+</script>
+</body>
+</html>

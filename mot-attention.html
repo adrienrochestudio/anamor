@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Un Mot pour Toi 💌</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=DM+Sans:wght@300;400;500&family=Dancing+Script:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root { --rose:#e8637a; --cream:#fdf6ee; --deep:#2a1a2e; --gold:#d4a853; --text:#3d2a35; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--cream); font-family:'DM Sans',sans-serif; color:var(--text); min-height:100vh; display:flex; flex-direction:column; }
+  body::before { content:''; position:fixed; inset:0; background-image:radial-gradient(circle,rgba(232,99,122,.08) 1px,transparent 1px); background-size:48px 48px; pointer-events:none; }
+  .nav { padding:20px 32px; position:relative; z-index:1; }
+  .back-btn { text-decoration:none; color:var(--rose); font-size:.9rem; opacity:.8; transition:opacity .2s; }
+  .back-btn:hover { opacity:1; }
+  .page-wrap { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:16px 28px 64px; position:relative; z-index:1; }
+  .page-header { text-align:center; margin-bottom:40px; }
+  .page-header h1 { font-family:'Playfair Display',serif; font-size:clamp(1.8rem,5vw,2.6rem); color:var(--deep); }
+  .page-header p { margin-top:8px; color:#9b7a88; font-size:.92rem; font-style:italic; }
+
+  /* LETTER CARD */
+  .letter-card {
+    background:white;
+    border-radius:24px;
+    padding:48px 52px;
+    max-width:520px;
+    width:100%;
+    border:1.5px solid rgba(212,168,83,.3);
+    box-shadow:0 8px 48px rgba(42,26,46,.1);
+    position:relative;
+    text-align:center;
+  }
+
+  .letter-card::before {
+    content:'';
+    position:absolute;
+    inset:0;
+    border-radius:24px;
+    background:linear-gradient(135deg, rgba(232,99,122,.04) 0%, rgba(212,168,83,.04) 100%);
+    pointer-events:none;
+  }
+
+  .letter-lang {
+    font-size:.75rem;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--gold);
+    font-weight:500;
+    margin-bottom:20px;
+  }
+
+  .letter-text {
+    font-family:'Dancing Script', cursive;
+    font-size:1.45rem;
+    line-height:1.75;
+    color:#4a3040;
+    white-space:pre-line;
+    position:relative;
+    z-index:1;
+  }
+
+  .letter-signature {
+    margin-top:24px;
+    font-family:'Playfair Display',serif;
+    font-style:italic;
+    font-size:1rem;
+    color:var(--rose);
+  }
+
+  /* Heart rain */
+  .hearts { position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; overflow:hidden; z-index:0; }
+  .heart {
+    position:absolute;
+    top:-30px;
+    font-size:1.2rem;
+    animation: fall linear infinite;
+    opacity:0;
+  }
+  @keyframes fall {
+    0%   { transform:translateY(0) rotate(0deg); opacity:.7; }
+    100% { transform:translateY(105vh) rotate(360deg); opacity:0; }
+  }
+
+  .action-row { display:flex; gap:12px; margin-top:32px; justify-content:center; flex-wrap:wrap; }
+  .btn-new { padding:13px 32px; background:var(--rose); color:white; border:none; border-radius:100px; font-family:'DM Sans',sans-serif; font-size:.95rem; font-weight:500; cursor:pointer; transition:all .2s; box-shadow:0 4px 16px rgba(232,99,122,.3); }
+  .btn-new:hover { background:#d4526a; transform:translateY(-2px); }
+  .btn-fr  { padding:13px 20px; border-radius:100px; border:1.5px solid rgba(201,184,216,.5); background:white; cursor:pointer; font-family:'DM Sans',sans-serif; font-size:.88rem; transition:all .18s; color:var(--text); }
+  .btn-fr:hover { border-color:var(--rose); }
+
+  @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+  .letter-card { animation: fadeIn .5s ease; }
+</style>
+</head>
+<body>
+<div class="hearts" id="hearts"></div>
+<nav class="nav"><a href="index.html" class="back-btn">← Retour</a></nav>
+<main class="page-wrap">
+  <div class="page-header">
+    <h1>Un Mot pour Toi 💌</h1>
+    <p>une attention rien que pour toi, en français ou en portugais</p>
+  </div>
+
+  <div class="letter-card" id="letter-card">
+    <div class="letter-lang" id="letter-lang"></div>
+    <div class="letter-text" id="letter-text"></div>
+    <div class="letter-signature" id="letter-sig"></div>
+    <div class="action-row">
+      <button class="btn-new" onclick="newMessage()">Un autre ✨</button>
+      <button class="btn-fr" onclick="filterLang('fr')">🇫🇷 Français</button>
+      <button class="btn-fr" onclick="filterLang('pt')">🇧🇷 Português</button>
+      <button class="btn-fr" onclick="filterLang('all')">Tous</button>
+    </div>
+  </div>
+</main>
+
+<script>
+// =====================================================
+// PETITS MOTS D'ATTENTION — ajoute les tiens ici !
+// lang: "fr" ou "pt"
+// sig: signature optionnelle
+// =====================================================
+const MESSAGES = [
+  { lang:'fr', text:`Même à des milliers de kilomètres,\ntu remplies chaque pièce\nque j'habite.`, sig:'— ton petit cœur de loin' },
+  { lang:'fr', text:`Tu es la meilleure partie\nde mes journées les plus ordinaires.`, sig:'— avec tout mon amour' },
+  { lang:'fr', text:`J'aime la façon dont tu ris.\nGarde-la pour moi.`, sig:'— moi' },
+  { lang:'fr', text:`La distance n'est que du temps.\nEt le temps, on en gagne chaque jour.`, sig:'— bientôt là' },
+  { lang:'fr', text:`Ce soir je pense à toi\ncomme chaque soir\ncomme tous les matins aussi.`, sig:'💛' },
+  { lang:'fr', text:`Tu mérites du soleil,\nde la douceur,\net des croissants chauds le dimanche matin.`, sig:'— ton admirateur discret' },
+  { lang:'fr', text:`Merci d'exister exactement\ncomme tu es.`, sig:'— vraiment' },
+  { lang:'fr', text:`Bientôt je vais pouvoir\nte tenir la main pour de vrai.\nJ'ai hâte.`, sig:'— à toute vitesse vers toi' },
+
+  { lang:'pt', text:`Você é minha parte favorita\ndo dia — qualquer dia.`, sig:'— com amor' },
+  { lang:'pt', text:`A distância é só uma mentira\nque o tempo vai desfazer.`, sig:'— logo logo aí' },
+  { lang:'pt', text:`Penso em você\ncomo se pensar fosse\numa forma de te abraçar.`, sig:'💛' },
+  { lang:'pt', text:`Você merece flores,\nrisos,\ne alguém que te olhe como você merece.`, sig:'— esse alguém sou eu' },
+  { lang:'pt', text:`Gosto de imaginar\no que você está fazendo agora.`, sig:'— sempre aqui' },
+  { lang:'pt', text:`Saudade de você\né o meu estado mais frequente.`, sig:'— com saudade mesmo' },
+  { lang:'pt', text:`Não sei quem inventou a distância,\nmas eu adorava poder reclamar.`, sig:'— rsrs, com amor' },
+];
+
+let currentFilter = 'all', lastIdx = -1;
+
+function filterLang(lang) {
+  currentFilter = lang;
+  newMessage();
+}
+
+function getPool() {
+  return currentFilter === 'all' ? MESSAGES : MESSAGES.filter(m => m.lang === currentFilter);
+}
+
+function newMessage() {
+  const pool = getPool();
+  if (!pool.length) return;
+  let idx;
+  do { idx = Math.floor(Math.random() * pool.length); } while (idx === lastIdx && pool.length > 1);
+  lastIdx = idx;
+  const m = pool[idx];
+
+  const card = document.getElementById('letter-card');
+  card.style.animation = 'none'; void card.offsetWidth; card.style.animation = 'fadeIn .4s ease';
+
+  document.getElementById('letter-lang').textContent = m.lang === 'fr' ? '🇫🇷 Français' : '🇧🇷 Português';
+  document.getElementById('letter-text').textContent = m.text;
+  document.getElementById('letter-sig').textContent = m.sig || '';
+
+  spawnHearts();
+}
+
+function spawnHearts() {
+  const container = document.getElementById('hearts');
+  container.innerHTML = '';
+  const emojis = ['💛','🌸','✨','💌','🌼','🫶'];
+  for (let i = 0; i < 14; i++) {
+    const el = document.createElement('div');
+    el.className = 'heart';
+    el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    el.style.left = (Math.random() * 100) + 'vw';
+    el.style.animationDuration = (3 + Math.random() * 4) + 's';
+    el.style.animationDelay = (Math.random() * 2) + 's';
+    el.style.fontSize = (0.8 + Math.random() * 1) + 'rem';
+    container.appendChild(el);
+  }
+  setTimeout(() => container.innerHTML = '', 7000);
+}
+
+newMessage();
+</script>
+</body>
+</html>

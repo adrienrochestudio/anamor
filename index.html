@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Notre Petit Univers 🌙</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --rose: #e8637a;
+    --rose-light: #f5a8b5;
+    --cream: #fdf6ee;
+    --deep: #2a1a2e;
+    --gold: #d4a853;
+    --lilac: #c9b8d8;
+    --text: #3d2a35;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--cream);
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Stars background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(circle, rgba(212,168,83,0.15) 1px, transparent 1px),
+      radial-gradient(circle, rgba(232,99,122,0.1) 1px, transparent 1px);
+    background-size: 80px 80px, 120px 120px;
+    background-position: 0 0, 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  header {
+    text-align: center;
+    padding: 48px 24px 16px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .title-main {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 6vw, 3.5rem);
+    color: var(--deep);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+
+  .title-sub {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: clamp(1rem, 3vw, 1.4rem);
+    color: var(--rose);
+    margin-top: 8px;
+    letter-spacing: 0.05em;
+  }
+
+  /* WHEEL SECTION */
+  .wheel-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 32px 24px 48px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .wheel-container {
+    position: relative;
+    width: 360px;
+    height: 360px;
+    max-width: 90vw;
+    max-height: 90vw;
+  }
+
+  #wheel-canvas {
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 8px 32px rgba(42,26,46,0.18));
+    transition: transform 0.1s;
+  }
+
+  .wheel-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    background: var(--cream);
+    border: 4px solid var(--gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.6rem;
+    box-shadow: 0 2px 16px rgba(212,168,83,0.3);
+    z-index: 5;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    user-select: none;
+    overflow: hidden;
+  }
+
+  .wheel-center:hover {
+    transform: translate(-50%, -50%) scale(1.06);
+    box-shadow: 0 4px 24px rgba(212,168,83,0.45);
+  }
+
+  .wheel-center img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    display: none;
+  }
+
+  .wheel-center .emoji-fallback { font-size: 2.6rem; }
+
+  /* Arrow pointer */
+  .wheel-pointer {
+    position: absolute;
+    top: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 14px solid transparent;
+    border-right: 14px solid transparent;
+    border-top: 28px solid var(--rose);
+    z-index: 6;
+    filter: drop-shadow(0 2px 4px rgba(232,99,122,0.4));
+  }
+
+  .spin-btn {
+    margin-top: 28px;
+    padding: 14px 48px;
+    background: var(--rose);
+    color: white;
+    border: none;
+    border-radius: 100px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    letter-spacing: 0.04em;
+    transition: all 0.2s;
+    box-shadow: 0 4px 20px rgba(232,99,122,0.35);
+  }
+
+  .spin-btn:hover:not(:disabled) {
+    background: #d4526a;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 28px rgba(232,99,122,0.45);
+  }
+
+  .spin-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* RESULT MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(42,26,46,0.55);
+    backdrop-filter: blur(4px);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .modal-overlay.active { display: flex; }
+
+  .modal {
+    background: var(--cream);
+    border-radius: 24px;
+    padding: 40px 36px 32px;
+    max-width: 380px;
+    width: 100%;
+    text-align: center;
+    border: 2px solid var(--gold);
+    box-shadow: 0 24px 80px rgba(42,26,46,0.25);
+    animation: popIn 0.35s cubic-bezier(0.34,1.56,0.64,1);
+    position: relative;
+  }
+
+  @keyframes popIn {
+    from { transform: scale(0.7); opacity: 0; }
+    to   { transform: scale(1); opacity: 1; }
+  }
+
+  .modal-emoji { font-size: 3.5rem; margin-bottom: 12px; }
+  .modal-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    color: var(--deep);
+    margin-bottom: 8px;
+  }
+  .modal-desc {
+    font-size: 0.92rem;
+    color: #6b5060;
+    margin-bottom: 28px;
+    line-height: 1.6;
+  }
+
+  .modal-btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+
+  .btn-primary {
+    padding: 12px 28px;
+    background: var(--rose);
+    color: white;
+    border: none;
+    border-radius: 100px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s;
+    text-decoration: none;
+    display: inline-block;
+  }
+
+  .btn-primary:hover { background: #d4526a; transform: translateY(-1px); }
+
+  .btn-secondary {
+    padding: 12px 24px;
+    background: transparent;
+    color: var(--rose);
+    border: 1.5px solid var(--rose-light);
+    border-radius: 100px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-secondary:hover { background: rgba(232,99,122,0.07); }
+
+  /* SECTIONS GRID (decorative) */
+  .sections-hint {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 0 24px 64px;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+  }
+
+  .sections-hint h2 {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1.1rem;
+    color: #9b7a88;
+    margin-bottom: 24px;
+  }
+
+  .mini-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+  }
+
+  .mini-card {
+    background: white;
+    border-radius: 16px;
+    padding: 18px 12px;
+    text-decoration: none;
+    color: var(--text);
+    border: 1.5px solid rgba(201,184,216,0.4);
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .mini-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--rose-light);
+    box-shadow: 0 6px 24px rgba(232,99,122,0.12);
+  }
+
+  .mini-card .card-icon { font-size: 1.8rem; }
+  .mini-card .card-name { font-size: 0.8rem; font-weight: 500; text-align: center; color: #5a3d4a; }
+
+  footer {
+    text-align: center;
+    padding: 24px;
+    font-size: 0.8rem;
+    color: #b899a6;
+    position: relative;
+    z-index: 1;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title-main">Notre Petit Univers</div>
+  <div class="title-sub">tourne la roue &amp; découvre quelque chose</div>
+</header>
+
+<section class="wheel-section">
+  <div class="wheel-container">
+    <div class="wheel-pointer"></div>
+    <canvas id="wheel-canvas" width="360" height="360"></canvas>
+    <div class="wheel-center" id="wheel-center" title="Cliquer pour faire tourner">
+      <span class="emoji-fallback">🫀</span>
+    </div>
+  </div>
+  <button class="spin-btn" id="spin-btn" onclick="spinWheel()">Tourner !</button>
+</section>
+
+<!-- Modal result -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-emoji" id="modal-emoji">🎲</div>
+    <div class="modal-title" id="modal-title">Titre</div>
+    <div class="modal-desc" id="modal-desc">Description</div>
+    <div class="modal-btns">
+      <a href="#" class="btn-primary" id="modal-go">Y aller ✨</a>
+      <button class="btn-secondary" onclick="closeModal()">Retourner</button>
+    </div>
+  </div>
+</div>
+
+<section class="sections-hint">
+  <h2>ou accède directement à une activité</h2>
+  <div class="mini-grid" id="mini-grid"></div>
+</section>
+
+<footer>fait avec 💛 pour toi</footer>
+
+<script>
+const SECTIONS = [
+  { label: "Poème", emoji: "📜", color: "#e8637a", light: "#fdeef1", url: "poeme.html",     desc: "Un poème d'amour tiré au sort, français ou brésilien." },
+  { label: "Metro-doku", emoji: "🎮", color: "#9b72cf", light: "#f3eeff", url: "https://metrodoku.fr/", desc: "Notre jeu de sudoku préféré. Bonne chance !" },
+  { label: "Quiz Histoire", emoji: "🏛️", color: "#d4a853", light: "#fdf3e3", url: "quiz-histoire.html", desc: "France & Brésil mélangés — qui en sait le plus ?" },
+  { label: "Mots croisés", emoji: "🔤", color: "#4a9e8a", light: "#e8f8f5", url: "mots-croises.html", desc: "Des grilles à remplir, avec score mémorisé." },
+  { label: "Mot doux", emoji: "💌", color: "#e86363", light: "#feeaea", url: "mot-attention.html",  desc: "Un petit mot d'amour rien que pour toi." },
+  { label: "Quiz Nous", emoji: "🫶", color: "#c97eaa", light: "#fdeef7", url: "quiz-nous.html",     desc: "Est-ce que tu nous connais vraiment bien ?" },
+  { label: "Broderies", emoji: "🧵", color: "#7a9e4a", light: "#f0f8e8", url: "broderies.html",    desc: "Des idées de broderies stylées pour t-shirts." },
+];
+
+// Build mini grid
+const grid = document.getElementById('mini-grid');
+SECTIONS.forEach(s => {
+  const a = document.createElement('a');
+  a.href = s.url;
+  a.className = 'mini-card';
+  if (s.url.startsWith('http')) a.target = '_blank';
+  a.innerHTML = `<span class="card-icon">${s.emoji}</span><span class="card-name">${s.label}</span>`;
+  grid.appendChild(a);
+});
+
+// --- WHEEL ---
+const canvas = document.getElementById('wheel-canvas');
+const ctx = canvas.getContext('2d');
+const N = SECTIONS.length;
+const ARC = (2 * Math.PI) / N;
+let currentAngle = 0;
+let spinning = false;
+
+function drawWheel(angle) {
+  const cx = canvas.width / 2, cy = canvas.height / 2, r = cx - 8;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  SECTIONS.forEach((s, i) => {
+    const start = angle + i * ARC - Math.PI / 2;
+    const end = start + ARC;
+
+    // Slice fill
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, r, start, end);
+    ctx.closePath();
+    ctx.fillStyle = i % 2 === 0 ? s.color : s.light;
+    ctx.fill();
+    ctx.strokeStyle = 'white';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Emoji
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(start + ARC / 2);
+    ctx.textAlign = 'right';
+    ctx.font = '22px serif';
+    ctx.fillText(s.emoji, r - 16, 7);
+    ctx.restore();
+
+    // Label
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(start + ARC / 2);
+    ctx.textAlign = 'right';
+    ctx.fillStyle = i % 2 === 0 ? 'white' : '#3d2a35';
+    ctx.font = '500 11px "DM Sans", sans-serif';
+    ctx.fillText(s.label, r - 44, 7);
+    ctx.restore();
+  });
+
+  // Outer ring
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, 2 * Math.PI);
+  ctx.strokeStyle = 'rgba(212,168,83,0.6)';
+  ctx.lineWidth = 4;
+  ctx.stroke();
+}
+
+drawWheel(currentAngle);
+
+function spinWheel() {
+  if (spinning) return;
+  spinning = true;
+  document.getElementById('spin-btn').disabled = true;
+
+  const extra = 2 * Math.PI * (6 + Math.random() * 6);
+  const finalAngle = currentAngle + extra;
+  const duration = 3500 + Math.random() * 1500;
+  const start = performance.now();
+  const startAngle = currentAngle;
+
+  function easeOut(t) { return 1 - Math.pow(1 - t, 4); }
+
+  function frame(now) {
+    const elapsed = now - start;
+    const t = Math.min(elapsed / duration, 1);
+    currentAngle = startAngle + extra * easeOut(t);
+    drawWheel(currentAngle);
+
+    if (t < 1) {
+      requestAnimationFrame(frame);
+    } else {
+      spinning = false;
+      document.getElementById('spin-btn').disabled = false;
+      showResult();
+    }
+  }
+
+  requestAnimationFrame(frame);
+}
+
+function showResult() {
+  // Which section is at the top (pointer is at -π/2 = top)
+  const normalized = (((-currentAngle) % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+  const index = Math.floor(normalized / ARC) % N;
+  const section = SECTIONS[index];
+
+  document.getElementById('modal-emoji').textContent = section.emoji;
+  document.getElementById('modal-title').textContent = section.label;
+  document.getElementById('modal-desc').textContent = section.desc;
+  const link = document.getElementById('modal-go');
+  link.href = section.url;
+  if (section.url.startsWith('http')) link.target = '_blank'; else link.target = '';
+
+  document.getElementById('modal').classList.add('active');
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('active');
+}
+
+document.getElementById('modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+// Also allow center click to spin
+document.getElementById('wheel-center').addEventListener('click', spinWheel);
+</script>
+</body>
+</html>
