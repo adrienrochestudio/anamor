@@ -87,21 +87,12 @@
     position: relative;
   }
 
-  .mot-label {
-    font-size: 0.65rem;
-    letter-spacing: 0.24em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 14px;
-  }
-
   .mot-text {
     font-size: clamp(1.05rem, 2.5vw, 1.25rem);
     font-style: italic;
     font-weight: 300;
     color: var(--sienna-d);
     line-height: 1.7;
-    transition: opacity 0.4s;
   }
 
   .mot-author {
@@ -111,23 +102,6 @@
     letter-spacing: 0.1em;
     color: var(--muted);
   }
-
-  .mot-btn {
-    margin-top: 14px;
-    background: none;
-    border: none;
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 0.72rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--vert);
-    cursor: pointer;
-    padding: 4px 0;
-    border-bottom: 1px solid var(--vert);
-    transition: opacity 0.2s;
-  }
-
-  .mot-btn:hover { opacity: 0.6; }
 
   /* ── WHEEL ── */
   .wheel-section {
@@ -406,10 +380,8 @@
 
 <!-- MOT D'AMOUR -->
 <div class="mot-wrap">
-  <div class="mot-label">Citation du moment</div>
   <div class="mot-text" id="mot-text"></div>
   <div class="mot-author" id="mot-author"></div>
-  <button class="mot-btn" onclick="nextMot()">autre citation</button>
 </div>
 
 <div class="divider-line"></div>
@@ -467,20 +439,18 @@ const MOTS = [
   { text: "Aimer, c'est trouver sa richesse hors de soi.", author: "Alain" },
 ];
 
-let lastMotIdx = -1;
-function nextMot() {
-  const el = document.getElementById('mot-text');
-  el.style.opacity = 0;
-  setTimeout(() => {
-    let idx;
-    do { idx = Math.floor(Math.random() * MOTS.length); } while (idx === lastMotIdx);
-    lastMotIdx = idx;
-    document.getElementById('mot-text').textContent   = '\u201c' + MOTS[idx].text + '\u201d';
-    document.getElementById('mot-author').textContent = '— ' + MOTS[idx].author;
-    el.style.opacity = 1;
-  }, 280);
+function showDailyMot() {
+  // Bascule à 2h du matin : on soustrait 2h avant de calculer le "jour"
+  const now    = new Date();
+  const shifted = new Date(now.getTime() - 2 * 60 * 60 * 1000);
+  const dayKey  = shifted.getFullYear() * 10000
+                + (shifted.getMonth() + 1) * 100
+                + shifted.getDate();
+  const idx = dayKey % MOTS.length;
+  document.getElementById('mot-text').textContent   = '\u201c' + MOTS[idx].text + '\u201d';
+  document.getElementById('mot-author').textContent = '\u2014 ' + MOTS[idx].author;
 }
-nextMot();
+showDailyMot();
 
 // ── ACTIVITÉS ─────────────────────────────────────────
 const SECTIONS = [
@@ -489,7 +459,7 @@ const SECTIONS = [
   { label: "Trivia",       url: "quiz-histoire.html",    desc: "France & Brésil mélangés — qui en sait le plus ?" },
   { label: "Mots croisés", url: "mots-croises.html",     desc: "Des grilles à remplir, score mémorisé." },
   { label: "Nous",         url: "quiz-nous.html",        desc: "Est-ce qu'on se connaît vraiment ?" },
-  { label: "Todo",         url: "notes://",              desc: "Ouvrir l'application Notes Apple." },
+  { label: "Todo",         url: "https://www.icloud.com/notes/038_LgyD3tTC4I2XbACKHyCzA#To_do_AA", desc: "Notre liste partagée." },
 ];
 
 const grid = document.getElementById('mini-grid');
