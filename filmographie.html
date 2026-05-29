@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Filmographie — Ana & Adrien</title>
+<title>filmografia — Ana & Adrien</title>
 <link rel="stylesheet" href="style.css">
 <style>
   .nav { position:sticky; top:0; background:var(--blanc); z-index:10; border-bottom:var(--trait) solid var(--bord-l); }
@@ -48,17 +48,17 @@
 <body>
 
 <nav class="nav">
-  <a href="index.html" class="back-btn">← Retour</a>
-  <div class="nav-title">Filmographie</div>
-  <button class="btn-add" onclick="openModal()">+ Ajouter</button>
+  <a href="home.html" class="back-btn">← back</a>
+  <div class="nav-title">filmografia</div>
+  <button class="btn-add" onclick="openModal()">+ add</button>
 </nav>
 
 <div class="toolbar">
   <div class="search-wrap">
-    <input type="text" id="search" placeholder="Rechercher un film ou un réalisateur…" oninput="applyFilters()">
+    <input type="text" id="search" placeholder="search a film or director..." oninput="applyFilters()">
   </div>
-  <button class="filter-btn active" id="f-all"   onclick="setFilter('all')">Tous</button>
-  <button class="filter-btn"        id="f-added" onclick="setFilter('added')">Ajoutés</button>
+  <button class="filter-btn active" id="f-all"   onclick="setFilter('all')">all</button>
+  <button class="filter-btn"        id="f-added" onclick="setFilter('added')">added</button>
   <div class="stats" id="stats"></div>
 </div>
 
@@ -69,31 +69,31 @@
 <!-- MODAL -->
 <div class="modal-overlay" id="modal">
   <div class="modal">
-    <div class="modal-title">Ajouter un film</div>
+    <div class="modal-title">add a film</div>
     <div class="field">
-      <label>Prénom du réalisateur</label>
+      <label>director first name</label>
       <input type="text" id="f-firstname" placeholder="ex : David">
     </div>
     <div class="field">
-      <label>Nom du réalisateur</label>
+      <label>director last name</label>
       <input type="text" id="f-lastname" placeholder="ex : Fincher">
     </div>
     <div class="field">
-      <label>Titre du film</label>
+      <label>title</label>
       <input type="text" id="f-title" placeholder="ex : Fight Club">
     </div>
     <div class="field">
-      <label>Année</label>
+      <label>year</label>
       <input type="text" id="f-year" placeholder="ex : 1999" maxlength="4">
     </div>
     <div class="field">
-      <label>Lien IMDb (optionnel)</label>
+      <label>IMDb link (optional)</label>
       <input type="text" id="f-imdb" placeholder="ex : https://www.imdb.com/title/tt0137523/">
     </div>
-    <div class="modal-note">Le film sera intégré à la liste dans l'ordre alphabétique du réalisateur, avec une teinte distincte.</div>
+    <div class="modal-note">the film will appear in the list, sorted by director. added films get a little different look, bah.</div>
     <div class="modal-btns">
-      <button class="btn-confirm" onclick="addFilm()">Ajouter</button>
-      <button class="btn-cancel"  onclick="closeModal()">Annuler</button>
+      <button class="btn-confirm" onclick="addFilm()">add</button>
+      <button class="btn-cancel"  onclick="closeModal()">cancel</button>
     </div>
   </div>
 </div>
@@ -400,7 +400,7 @@ function render() {
   }
 
   if (pool.length === 0) {
-    list.innerHTML = '<div class="empty">Aucun film trouvé.</div>';
+    list.innerHTML = '<div class="empty">nenhum filme encontrado.</div>';
     updateStats(0, 0);
     return;
   }
@@ -466,7 +466,7 @@ function render() {
           `<span class="film-title">${film.title}</span>` +
           `<span class="film-year">${film.year}</span>` +
           `<span class="film-imdb">IMDb</span>` +
-          (film.added ? `<span class="added-badge">ajouté</span>` : '');
+          (film.added ? `<span class="added-badge">added</span>` : '');
         filmsCell.appendChild(a);
       });
 
@@ -482,7 +482,7 @@ function render() {
 function updateStats(visible, added) {
   document.getElementById('stats').textContent =
     visible + ' film' + (visible > 1 ? 's' : '') +
-    (added > 0 ? '  ·  ' + added + ' ajouté' + (added > 1 ? 's' : '') : '');
+    (added > 0 ? '  ·  ' + added + ' added' : '');
 }
 
 // ═══════════════════════════════════════════════════════════════
