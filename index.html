@@ -6,244 +6,453 @@
 <title>Ana & Adrien</title>
 <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet">
 <style>
-  :root { --blanc:#FAF8F4; --bord:#8B1A2B; }
   * { margin:0; padding:0; box-sizing:border-box; }
-  html, body { width:100%; height:100%; overflow:hidden; background:var(--bord); font-family:'Patrick Hand',cursive; cursor:none; }
-
-  .cursor {
-    position:fixed; width:32px; height:32px;
-    border:2px solid rgba(250,248,244,0.6);
-    border-radius:50%; pointer-events:none; z-index:9999;
-    transform:translate(-50%,-50%);
-    transition:width .2s, height .2s;
+  html, body {
+    width:100%; height:100%;
+    overflow:hidden;
+    font-family: 'Patrick Hand', cursive;
+    cursor: none;
   }
-  .cursor.click { width:16px; height:16px; }
 
+  /* ── CURSEUR ── */
+  .cursor {
+    position:fixed;
+    width:28px; height:28px;
+    border:2px solid currentColor;
+    border-radius:50%;
+    pointer-events:none;
+    z-index:9999;
+    transform:translate(-50%,-50%);
+    transition:width .15s, height .15s;
+    mix-blend-mode:multiply;
+  }
+  .cursor.click { width:14px; height:14px; }
+
+  /* ── SLIDES ── */
   .slide {
     position:fixed; inset:0;
-    display:flex; flex-direction:column;
-    align-items:center; justify-content:center;
     opacity:0;
-    transition:opacity 1.2s ease;
+    transition: opacity 1s ease;
     pointer-events:none;
+    display:flex;
   }
-  .slide.active { opacity:1; pointer-events:all; }
-  .slide.out    { opacity:0; pointer-events:none; }
+  .slide.active  { opacity:1; pointer-events:all; }
+  .slide.out     { opacity:0; pointer-events:none; }
 
+  /* ── HINT ── */
   .hint {
-    position:fixed; bottom:36px; left:50%; transform:translateX(-50%);
-    font-size:0.85rem; color:rgba(250,248,244,0.35);
-    letter-spacing:0.08em; z-index:50; pointer-events:none;
-    animation:pulse 2.5s ease-in-out infinite;
+    position:fixed; bottom:32px; left:50%;
+    transform:translateX(-50%);
+    font-size:0.9rem;
+    z-index:200; pointer-events:none;
+    animation: blink 2.4s ease-in-out infinite;
+    letter-spacing:0.04em;
   }
-  @keyframes pulse { 0%,100%{opacity:.35} 50%{opacity:.7} }
+  @keyframes blink { 0%,100%{opacity:.3} 50%{opacity:.8} }
 
+  /* ── COUNTER ── */
   .counter {
-    position:fixed; top:28px; right:32px;
-    font-size:0.85rem; color:rgba(250,248,244,0.25); z-index:50;
+    position:fixed; top:24px; right:28px;
+    font-size:0.85rem; z-index:200;
+    opacity:0.3;
   }
 
-  /* SLIDE 1 — fond bordeaux, grand texte outline blanc */
-  #s1 { background:var(--bord); }
-  .s1-big {
-    font-size:clamp(5rem,20vw,18rem);
-    color:transparent;
-    -webkit-text-stroke:2px rgba(250,248,244,0.2);
-    line-height:1; letter-spacing:-0.02em;
-    position:absolute; top:50%; left:50%;
-    transform:translate(-50%,-52%);
-    user-select:none; pointer-events:none;
-  }
-  .s1-word {
-    font-size:clamp(1rem,2.2vw,1.3rem);
-    color:rgba(250,248,244,0.55);
-    letter-spacing:0.06em; z-index:1;
-    margin-top:6vw;
-  }
-
-  /* SLIDE 2 — blanc cassé, texte bordeaux épais */
-  #s2 { background:var(--blanc); }
-  .s2-text {
-    font-size:clamp(2rem,7vw,5.5rem);
-    color:var(--bord); line-height:1.05;
-    text-align:center; padding:0 40px;
-  }
-  .s2-line {
-    position:absolute; left:0; right:0; height:2px;
-    background:rgba(139,26,43,0.07);
-  }
-
-  /* SLIDE 3 — bordeaux, cercles blancs */
-  #s3 { background:var(--bord); }
-  .s3-ring {
-    position:absolute; border-radius:50%;
-    border:2px solid rgba(250,248,244,0.12);
-    top:50%; left:50%; transform:translate(-50%,-50%);
-  }
-  .s3-text {
-    font-size:clamp(0.9rem,2vw,1.2rem);
-    color:rgba(250,248,244,0.55);
-    letter-spacing:0.16em; text-transform:uppercase;
-    z-index:1; text-align:center;
-  }
-
-  /* SLIDE 4 — blanc, citation manuscrite */
-  #s4 { background:var(--blanc); }
-  .s4-quote {
-    font-size:clamp(1.3rem,3.5vw,2.6rem);
-    color:var(--bord); text-align:center;
-    line-height:1.55; max-width:680px;
-    padding:0 48px; z-index:1;
-  }
-  .s4-author {
-    margin-top:20px; font-size:0.9rem;
-    color:rgba(139,26,43,0.45); z-index:1;
-  }
-  /* Trait épais horizontal décoratif */
-  .s4-trait {
-    position:absolute; left:10%; right:10%;
-    height:2px; background:rgba(139,26,43,0.08);
-  }
-
-  /* SLIDE 5 — bordeaux, A&A en négatif */
-  #s5 { background:var(--bord); }
-  .s5-text {
-    font-size:clamp(4rem,18vw,16rem);
-    color:var(--blanc); line-height:1;
-    letter-spacing:0.04em; z-index:1;
-  }
-  .s5-sub {
-    font-size:clamp(0.85rem,1.8vw,1.1rem);
-    color:rgba(250,248,244,0.35);
-    letter-spacing:0.22em; text-transform:uppercase;
-    z-index:1; margin-top:8px;
-  }
-
-  /* SLIDE 6 — blanc, invitation finale */
-  #s6 { background:var(--blanc); }
-  .s6-title {
-    font-size:clamp(3rem,10vw,8rem);
-    color:var(--bord); line-height:1;
-    text-align:center; z-index:1;
-  }
-  .s6-enter {
-    margin-top:32px; font-size:0.9rem;
-    color:rgba(139,26,43,0.35);
-    letter-spacing:0.18em; text-transform:uppercase;
-    border-bottom:2px solid rgba(139,26,43,0.25);
-    padding-bottom:3px; z-index:1;
-    animation:pulse 2s ease-in-out infinite;
-  }
-  /* Cadre en traits épais */
-  .s6-frame {
-    position:absolute;
-    top:40px; left:40px; right:40px; bottom:40px;
-    border:2px solid rgba(139,26,43,0.08);
-    pointer-events:none;
-  }
-
+  /* ── FADE COVER ── */
   .fade-cover {
-    position:fixed; inset:0;
-    background:var(--blanc); z-index:200;
+    position:fixed; inset:0; z-index:500;
     opacity:0; pointer-events:none;
-    transition:opacity .7s ease;
+    transition:opacity .6s ease;
   }
   .fade-cover.on { opacity:1; pointer-events:all; }
+
+  /* ════════════════════════════════════════
+     LAYOUT COMMUN
+     Chaque slide = deux colonnes ou libre
+  ════════════════════════════════════════ */
+
+  /* Fond BORDEAUX */
+  .bg-bord { background:#8B1A2B; color:#FAF8F4; }
+  .bg-bord .hint    { color:#FAF8F4; }
+  .bg-bord .counter { color:#FAF8F4; }
+  .bg-bord .cursor  { color:#FAF8F4; border-color:#FAF8F4; }
+
+  /* Fond BLANC */
+  .bg-blanc { background:#FAF8F4; color:#8B1A2B; }
+  .bg-blanc .hint    { color:#8B1A2B; }
+  .bg-blanc .counter { color:#8B1A2B; }
+  .bg-blanc .cursor  { color:#8B1A2B; border-color:#8B1A2B; }
+
+  /* Split layout : image | texte */
+  .split {
+    width:100%; height:100%;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    align-items:stretch;
+  }
+  @media(max-width:600px) {
+    .split { grid-template-columns:1fr; grid-template-rows:1fr 1fr; }
+  }
+
+  /* Plein écran centré */
+  .full {
+    width:100%; height:100%;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding:40px;
+  }
+
+  /* Texte libre positionné */
+  .abs { position:absolute; }
+
+  /* ── ZONE IMAGE ── */
+  .img-zone {
+    position:relative;
+    display:flex; align-items:center; justify-content:center;
+    overflow:hidden;
+  }
+
+  /* Placeholder : cadre en pointillés + label */
+  .img-placeholder {
+    width:calc(100% - 48px);
+    height:calc(100% - 48px);
+    max-width:380px; max-height:380px;
+    border:2px dashed currentColor;
+    opacity:0.25;
+    display:flex; align-items:center; justify-content:center;
+    font-size:0.8rem; letter-spacing:0.1em;
+    text-align:center; padding:20px;
+    flex-direction:column; gap:10px;
+  }
+
+  /* Image réelle — quand tu en ajoutes une */
+  .img-zone img {
+    width:100%; height:100%;
+    object-fit:cover;
+    display:block;
+  }
+
+  /* ── ZONE TEXTE ── */
+  .txt-zone {
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    padding:48px 52px;
+    position:relative;
+  }
+
+  /* Trait de séparation dans les splits */
+  .split .img-zone + .txt-zone {
+    border-left:2px solid currentColor;
+  }
+  .split .txt-zone + .img-zone {
+    border-left:2px solid currentColor;
+  }
+
+  /* Texte principal */
+  .big-txt {
+    font-size:clamp(1.6rem,4.5vw,3.2rem);
+    line-height:1.25;
+    letter-spacing:-0.01em;
+  }
+
+  /* Texte secondaire (plus petit, décalé) */
+  .small-txt {
+    font-size:clamp(1rem,2.5vw,1.6rem);
+    line-height:1.4;
+    margin-top:24px;
+    opacity:0.7;
+  }
+
+  /* Texte centré grand écran plein */
+  .hero-txt {
+    font-size:clamp(2.5rem,8vw,6rem);
+    line-height:1.05;
+    text-align:center;
+    letter-spacing:-0.02em;
+  }
+
+  /* Texte dans un coin */
+  .corner-txt {
+    font-size:clamp(0.9rem,2vw,1.3rem);
+    line-height:1.5;
+    opacity:0.65;
+  }
+
+  /* ── SLIDE 3 : texte multi-zones ── */
+  #s3 { position:relative; }
+  .s3-main {
+    position:absolute;
+    top:50%; left:50%;
+    transform:translate(-50%,-50%);
+    text-align:center;
+    width:100%;
+    padding:0 40px;
+  }
+  .s3-corner {
+    position:absolute;
+    bottom:52px; right:52px;
+    text-align:right;
+    font-size:clamp(0.85rem,2vw,1.25rem);
+    line-height:1.5;
+    opacity:0.65;
+  }
+
+  /* ── SLIDE 6 : texte multi-zones ── */
+  #s6 { position:relative; }
+  .s6-main {
+    position:absolute;
+    top:50%; left:50%;
+    transform:translate(-50%,-50%);
+    text-align:center;
+    width:100%; padding:0 40px;
+  }
+  .s6-corner {
+    position:absolute;
+    bottom:52px; right:52px;
+    text-align:right;
+    font-size:clamp(0.85rem,2vw,1.25rem);
+    line-height:1.5;
+    opacity:0.65;
+  }
+
+  /* ── SLIDE 7 : YOU ! ── */
+  .s7-you {
+    font-size:clamp(5rem,20vw,14rem);
+    line-height:1;
+    letter-spacing:-0.02em;
+    text-align:center;
+  }
+
+  /* ── SLIDE 8 : entrée finale ── */
+  .s8-title {
+    font-size:clamp(2.5rem,9vw,7rem);
+    line-height:1;
+    text-align:center;
+    letter-spacing:-0.02em;
+  }
+  .s8-enter {
+    margin-top:28px;
+    font-size:0.9rem;
+    letter-spacing:0.1em;
+    opacity:0.4;
+    border-bottom:2px solid currentColor;
+    padding-bottom:2px;
+    animation:blink 2s ease-in-out infinite;
+  }
+  /* Cadre intérieur */
+  .s8-frame {
+    position:absolute;
+    top:28px; left:28px; right:28px; bottom:28px;
+    border:2px solid currentColor;
+    opacity:0.1;
+    pointer-events:none;
+  }
 </style>
 </head>
 <body>
 
 <div class="cursor" id="cursor"></div>
-<div class="counter" id="counter">01 / 06</div>
-<div class="hint" id="hint">cliquer pour continuer</div>
-<div class="fade-cover" id="fade"></div>
+<div class="counter" id="counter">1 / 8</div>
+<div class="hint"    id="hint">cliquer pour continuer</div>
+<div class="fade-cover bg-blanc" id="fade"></div>
 
-<!-- S1 -->
-<div class="slide" id="s1">
-  <div class="s1-big">A</div>
-  <div class="s1-word">quelque chose commence</div>
+<!-- ══════════════════════════════════════
+     SLIDE 1 — bordeaux — "uuh..."
+     image GAUCHE, texte DROITE
+══════════════════════════════════════ -->
+<div class="slide bg-bord" id="s1">
+  <div class="split">
+    <div class="img-zone">
+      <!-- Remplace le div ci-dessous par : <img src="ton-image-1.jpg" alt=""> -->
+      <div class="img-placeholder">
+        <span>image 1</span>
+        <span style="font-size:.7rem;opacity:.7">remplace par&nbsp;:<br>&lt;img src="img1.jpg"&gt;</span>
+      </div>
+    </div>
+    <div class="txt-zone">
+      <div class="big-txt">uuh...</div>
+    </div>
+  </div>
 </div>
 
-<!-- S2 -->
-<div class="slide" id="s2">
-  <div id="s2-lines"></div>
-  <div class="s2-text">entre Paris<br>et São Paulo</div>
+<!-- ══════════════════════════════════════
+     SLIDE 2 — blanc — "hello, uh i guess"
+     texte GAUCHE, image DROITE
+══════════════════════════════════════ -->
+<div class="slide bg-blanc" id="s2">
+  <div class="split">
+    <div class="txt-zone">
+      <div class="big-txt">hello,<br>uh i guess</div>
+    </div>
+    <div class="img-zone">
+      <div class="img-placeholder">
+        <span>image 2</span>
+        <span style="font-size:.7rem;opacity:.7">remplace par&nbsp;:<br>&lt;img src="img2.jpg"&gt;</span>
+      </div>
+    </div>
+  </div>
 </div>
 
-<!-- S3 -->
-<div class="slide" id="s3">
-  <div class="s3-ring" style="width:72vmin;height:72vmin"></div>
-  <div class="s3-ring" style="width:52vmin;height:52vmin;border-color:rgba(250,248,244,0.08)"></div>
-  <div class="s3-ring" style="width:32vmin;height:32vmin;border-color:rgba(250,248,244,0.06)"></div>
-  <div class="s3-text">la distance<br>n'est que du temps</div>
+<!-- ══════════════════════════════════════
+     SLIDE 3 — bordeaux — deux textes
+     image plein fond + textes positionnés
+══════════════════════════════════════ -->
+<div class="slide bg-bord" id="s3">
+  <div class="img-zone" style="position:absolute;inset:0;opacity:0.18;">
+    <!-- image 3 en fond semi-transparent : <img src="img3.jpg" alt="" style="width:100%;height:100%;object-fit:cover"> -->
+  </div>
+  <div class="full" style="position:relative;z-index:1;">
+    <div class="big-txt" style="text-align:center;">what is you doing here</div>
+    <div class="small-txt" style="text-align:center;margin-top:32px;">you come see me ?</div>
+  </div>
 </div>
 
-<!-- S4 -->
-<div class="slide" id="s4">
-  <div class="s4-trait" style="top:30%"></div>
-  <div class="s4-trait" style="bottom:30%"></div>
-  <div class="s4-quote">« Aimer, ce n'est pas se regarder l'un l'autre, c'est regarder ensemble dans la même direction. »</div>
-  <div class="s4-author">Antoine de Saint-Exupéry</div>
+<!-- ══════════════════════════════════════
+     SLIDE 4 — blanc — "cool i guess..."
+     image DROITE, texte GAUCHE
+══════════════════════════════════════ -->
+<div class="slide bg-blanc" id="s4">
+  <div class="split">
+    <div class="txt-zone">
+      <div class="big-txt">cool i guess</div>
+      <div class="small-txt">i was feelin<br>a little loneley</div>
+    </div>
+    <div class="img-zone">
+      <div class="img-placeholder">
+        <span>image 4</span>
+        <span style="font-size:.7rem;opacity:.7">remplace par&nbsp;:<br>&lt;img src="img4.jpg"&gt;</span>
+      </div>
+    </div>
+  </div>
 </div>
 
-<!-- S5 -->
-<div class="slide" id="s5">
-  <div class="s5-text">A&A</div>
-  <div class="s5-sub">Ana &amp; Adrien</div>
+<!-- ══════════════════════════════════════
+     SLIDE 5 — bordeaux — "i thought hey..."
+     image GAUCHE, texte DROITE
+══════════════════════════════════════ -->
+<div class="slide bg-bord" id="s5">
+  <div class="split">
+    <div class="img-zone">
+      <div class="img-placeholder">
+        <span>image 5</span>
+        <span style="font-size:.7rem;opacity:.7">remplace par&nbsp;:<br>&lt;img src="img5.jpg"&gt;</span>
+      </div>
+    </div>
+    <div class="txt-zone">
+      <div class="big-txt">i thought hey</div>
+      <div class="small-txt">i can create<br>the kompiuter<br>and have friend</div>
+    </div>
+  </div>
 </div>
 
-<!-- S6 -->
-<div class="slide" id="s6">
-  <div class="s6-frame"></div>
-  <div class="s6-title">Ana & Adrien</div>
-  <div class="s6-enter">entrer</div>
+<!-- ══════════════════════════════════════
+     SLIDE 6 — blanc — deux textes
+     image fond + texte principal + coin
+══════════════════════════════════════ -->
+<div class="slide bg-blanc" id="s6">
+  <div class="img-zone" style="position:absolute;inset:0;opacity:0.1;">
+    <!-- image 6 en fond : <img src="img6.jpg" alt="" style="width:100%;height:100%;object-fit:cover"> -->
+  </div>
+  <div class="full" style="position:relative;z-index:1;">
+    <div class="big-txt" style="text-align:center;">so i create<br>the kompiuter</div>
+    <div class="small-txt" style="text-align:center;margin-top:32px;">and now i have the friend !</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SLIDE 7 — bordeaux — "you !"
+     plein écran, image GAUCHE énorme
+══════════════════════════════════════ -->
+<div class="slide bg-bord" id="s7">
+  <div class="split">
+    <div class="img-zone">
+      <div class="img-placeholder">
+        <span>image 7</span>
+        <span style="font-size:.7rem;opacity:.7">remplace par&nbsp;:<br>&lt;img src="img7.jpg"&gt;</span>
+      </div>
+    </div>
+    <div class="txt-zone" style="align-items:center;justify-content:center;">
+      <div class="s7-you">you !</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SLIDE 8 — blanc — entrée finale
+══════════════════════════════════════ -->
+<div class="slide bg-blanc" id="s8">
+  <div class="s8-frame"></div>
+  <div class="full">
+    <div class="s8-title">Ana & Adrien</div>
+    <div class="s8-enter">entrer</div>
+  </div>
 </div>
 
 <script>
-if (sessionStorage.getItem('intro-seen')==='1') {
+// Skip si déjà vu
+if (sessionStorage.getItem('intro-seen') === '1') {
   window.location.replace('home.html');
 }
 
 // Curseur
 const cur = document.getElementById('cursor');
-document.addEventListener('mousemove', e => { cur.style.left=e.clientX+'px'; cur.style.top=e.clientY+'px'; });
-document.addEventListener('mousedown', ()=>cur.classList.add('click'));
-document.addEventListener('mouseup',   ()=>cur.classList.remove('click'));
-
-// Lignes S2
-const lw = document.getElementById('s2-lines');
-for(let i=0;i<20;i++){ const d=document.createElement('div'); d.className='s2-line'; d.style.top=(i*5.2)+'%'; lw.appendChild(d); }
+document.addEventListener('mousemove', e => {
+  cur.style.left = e.clientX + 'px';
+  cur.style.top  = e.clientY + 'px';
+  // Couleur du curseur selon le fond actif
+  const slide = document.querySelector('.slide.active');
+  if (slide) {
+    cur.style.borderColor = slide.classList.contains('bg-bord') ? '#FAF8F4' : '#8B1A2B';
+  }
+});
+document.addEventListener('mousedown', () => cur.classList.add('click'));
+document.addEventListener('mouseup',   () => cur.classList.remove('click'));
 
 // Slides
 const slides = document.querySelectorAll('.slide');
 const N = slides.length;
-let cur2 = 0, locked = false;
+let current = 0, locked = false;
 
 function show(i) {
   slides[i].classList.add('active');
-  document.getElementById('counter').textContent = String(i+1).padStart(2,'0')+' / '+String(N).padStart(2,'0');
+  document.getElementById('counter').textContent = (i+1) + ' / ' + N;
+  // Adapter hint et counter à la couleur du slide
+  const isBord = slides[i].classList.contains('bg-bord');
+  document.getElementById('hint').style.color    = isBord ? '#FAF8F4' : '#8B1A2B';
+  document.getElementById('counter').style.color = isBord ? 'rgba(250,248,244,0.35)' : 'rgba(139,26,43,0.35)';
 }
 
 function next() {
   if (locked) return;
   locked = true;
-  document.getElementById('hint').style.opacity='0';
 
-  if (cur2===N-1) {
-    document.getElementById('fade').classList.add('on');
-    setTimeout(()=>{ sessionStorage.setItem('intro-seen','1'); window.location.href='home.html'; }, 750);
+  // Masquer le hint après le 1er clic
+  document.getElementById('hint').style.opacity = '0';
+
+  if (current === N - 1) {
+    // Dernier slide → fade et redirect
+    const isWhite = slides[current].classList.contains('bg-blanc');
+    const fade = document.getElementById('fade');
+    fade.style.background = isWhite ? '#FAF8F4' : '#8B1A2B';
+    fade.classList.add('on');
+    setTimeout(() => {
+      sessionStorage.setItem('intro-seen', '1');
+      window.location.href = 'home.html';
+    }, 700);
     return;
   }
 
-  slides[cur2].classList.add('out');
-  slides[cur2].classList.remove('active');
-  cur2++;
-  setTimeout(()=>{ show(cur2); locked=false; }, 400);
+  slides[current].classList.add('out');
+  slides[current].classList.remove('active');
+  current++;
+  setTimeout(() => { show(current); locked = false; }, 350);
 }
 
-document.addEventListener('click',   next);
-document.addEventListener('touchend', e=>{ e.preventDefault(); next(); }, {passive:false});
-document.addEventListener('keydown',  e=>{ if(e.key===' '||e.key==='Enter'||e.key==='ArrowRight') next(); });
+document.addEventListener('click',    next);
+document.addEventListener('touchend', e => { e.preventDefault(); next(); }, { passive:false });
+document.addEventListener('keydown',  e => { if(e.key===' '||e.key==='Enter'||e.key==='ArrowRight') next(); });
 
 show(0);
 </script>
