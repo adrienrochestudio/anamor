@@ -46,6 +46,7 @@
 
   .grid-col {
     display:flex; flex-direction:column; align-items:center;
+    overflow-x:auto;
   }
 
   .grid-title {
@@ -55,7 +56,7 @@
 
   .cw-table { border-collapse:collapse; }
   .cw-table td {
-    width:40px; height:40px;
+    width:var(--cw-cell, 40px); height:var(--cw-cell, 40px);
     border:var(--trait) solid var(--bord-l);
     position:relative; text-align:center; padding:0;
   }
@@ -156,7 +157,7 @@
   .sol-grid-wrap { overflow:auto; max-width:88vw; max-height:60vh; }
   .sol-grid-wrap table { border-collapse:collapse; }
   .sol-grid-wrap td {
-    width:34px; height:34px;
+    width:var(--sol-cell, 34px); height:var(--sol-cell, 34px);
     border:var(--trait) solid var(--bord-l);
     text-align:center;
     font-family:'Patrick Hand',cursive; font-size:.95rem; font-weight:bold;
@@ -241,34 +242,51 @@
 var GRIDS = [
 {
   name:"clichés", diff:1,
-  theme:"Paris & Brasil — the clichés",
+  theme:"Paris & Brasil — clichés, revisited",
   grid:[
-    ['#','B','E','R','E','T','#','#','#','#','#','#','#'],
-    ['#','A','#','#','#','#','#','#','#','#','#','#','#'],
-    ['#','G','O','U','R','M','E','T','#','#','#','#','#'],
-    ['#','U','#','#','#','#','#','#','#','#','#','#','#'],
-    ['#','F','U','T','E','B','O','L','#','#','#','#','#'],
-    ['#','E','#','#','#','#','#','#','#','#','#','#','#'],
-    ['C','A','I','P','I','R','I','N','H','A','#','#','#'],
-    ['#','U','#','#','#','#','#','#','#','#','#','#','#'],
-    ['S','A','M','B','A','#','#','#','#','#','#','#','#'],
-    ['#','X','#','#','#','#','#','#','#','#','#','#','#'],
-    ['C','H','A','M','P','A','G','N','E','#','#','#','#'],
-    ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
-    ['#','#','#','#','#','#','#','#','#','#','#','#','#']
+    ['#','#','#','I','#','H','A','U','S','S','M','A','N','N','#','#','#','#','#','#'],
+    ['#','#','#','P','#','#','#','#','#','#','O','#','#','#','#','#','#','#','#','#'],
+    ['#','C','#','A','#','C','#','G','U','I','N','G','U','E','T','T','E','#','#','#'],
+    ['#','A','#','N','#','A','#','#','#','#','T','#','#','#','#','#','#','#','#','#'],
+    ['#','R','#','E','#','R','#','C','#','#','M','#','C','#','#','#','#','#','#','#'],
+    ['#','N','#','M','#','I','#','A','#','#','A','#','O','#','#','#','C','#','#','#'],
+    ['#','A','M','A','Z','O','N','I','E','#','R','#','P','#','#','#','A','#','#','#'],
+    ['#','V','#','#','#','C','#','P','#','#','T','#','A','#','A','#','P','#','#','#'],
+    ['F','A','V','E','L','A','#','I','#','#','R','#','C','#','C','#','O','#','#','#'],
+    ['#','L','#','#','#','#','#','R','I','V','E','G','A','U','C','H','E','#','#','#'],
+    ['#','#','#','#','#','#','#','I','#','#','#','#','B','#','O','#','I','#','#','#'],
+    ['C','R','O','I','S','S','A','N','T','#','#','#','A','#','R','#','R','#','#','#'],
+    ['#','#','#','#','#','#','#','H','#','#','#','#','N','#','D','#','A','#','#','#'],
+    ['#','B','O','U','L','E','V','A','R','D','#','#','A','#','E','#','#','F','#','#'],
+    ['#','#','#','#','#','#','#','#','#','#','#','#','#','#','O','#','#','L','#','#'],
+    ['#','#','#','#','#','#','#','#','#','B','O','S','S','A','N','O','V','A','#','#'],
+    ['#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','N','#','#'],
+    ['#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','E','#','#'],
+    ['#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','U','#','#'],
+    ['#','#','#','#','#','#','#','#','#','#','#','#','#','B','I','S','T','R','O','T']
   ],
   clues:{
     across:[
-      {num:1,  clue:"Le couvre-chef du Français stéréotypé"},
-      {num:3,  clue:"Il mange bien, le Français — il est ___"},
-      {num:4,  clue:"Sport national du Brésil"},
-      {num:5,  clue:"Cocktail brésilien, cachaça et citron vert"},
-      {num:6,  clue:"Rythme de Rio, carnaval"},
-      {num:7,  clue:"Bulles françaises pour fêter"}
+      {num:2,  clue:"Baron qui redessina Paris sous Napoléon III"},
+      {num:6,  clue:"Bal populaire au bord de l’eau, associé aux dimanches parisiens"},
+      {num:10, clue:"Grande forêt brésilienne, souvent réduite à un cliché exotique"},
+      {num:12, clue:"Quartier populaire brésilien, souvent caricaturé depuis l’étranger"},
+      {num:13, clue:"Moitié sud de Paris, associée aux intellectuels et aux cafés"},
+      {num:14, clue:"Viennoiserie emblématique du petit déjeuner parisien"},
+      {num:15, clue:"Grande avenue urbaine, signature du Paris haussmannien"},
+      {num:17, clue:"Genre musical brésilien né entre samba et jazz"},
+      {num:18, clue:"Petit café-restaurant parisien, souvent écrit à l’ancienne"}
     ],
     down:[
-      {num:2,  clue:"Pain long et croustillant, symbole de Paris"},
-      {num:8,  clue:"Instrument de musique brésilien — berimbau ou ___"}
+      {num:1,  clue:"Plage de Rio popularisée par une chanson célèbre"},
+      {num:3,  clue:"Butte parisienne des peintres, du Sacré-Cœur et des cabarets"},
+      {num:4,  clue:"Fête brésilienne spectaculaire, devenue image mondiale de Rio"},
+      {num:5,  clue:"Habitant de Rio, ou style associé à la ville"},
+      {num:7,  clue:"Cocktail brésilien à base de cachaça, citron vert et sucre"},
+      {num:8,  clue:"Plage mythique de Rio, entre carte postale et imaginaire touristique"},
+      {num:9,  clue:"Art martial afro-brésilien mêlant combat, danse et musique"},
+      {num:11, clue:"Instrument associé au Paris populaire et à la chanson française"},
+      {num:16, clue:"Promeneur urbain, figure littéraire du Paris moderne"}
     ]
   }
 },
@@ -627,6 +645,10 @@ function buildGrid(idx) {
   var g=GRIDS[idx], grid=g.grid;
   var rows=grid.length, cols=grid[0].length;
   var nums=computeNums(grid);
+
+  var cellSize = cols > 18 ? 30 : (cols > 15 ? 34 : 40);
+  document.documentElement.style.setProperty('--cw-cell', cellSize + 'px');
+  document.documentElement.style.setProperty('--sol-cell', Math.max(24, cellSize - 6) + 'px');
 
   document.getElementById('grid-title').textContent = g.theme;
   document.getElementById('result-msg').textContent = '';
