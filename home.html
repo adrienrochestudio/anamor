@@ -150,6 +150,46 @@
   .modal-title-text { font-size:1.6rem; color:var(--bord); margin-bottom:10px; }
   .modal-desc { font-size:1rem; color:var(--muted); line-height:1.65; margin-bottom:28px; }
   .modal-btns { display:flex; gap:10px; flex-wrap:wrap; }
+
+  /* ── REPLAY INTRO ── */
+  .replay-link {
+    display: block;
+    text-align: center;
+    margin: 0 auto 8px;
+    font-size: 0.82rem;
+    color: var(--muted);
+    cursor: pointer;
+    background: none;
+    border: none;
+    font-family: 'Patrick Hand', cursive;
+    text-decoration: none;
+    transition: color .18s;
+    padding: 0;
+  }
+  .replay-link:hover { color: var(--bord); }
+
+  /* ── GEOGUESSR ── */
+  .geo-wrap {
+    text-align: center;
+    padding: 0 40px 24px;
+  }
+  .geo-link {
+    display: inline-block;
+    font-size: 1.05rem;
+    color: var(--bord);
+    text-decoration: none;
+    border-bottom: var(--trait) solid var(--bord);
+    padding-bottom: 1px;
+    transition: opacity .18s;
+  }
+  .geo-link:hover { opacity: .6; }
+  .geo-aside {
+    display: block;
+    margin-top: 6px;
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+
 </style>
 </head>
 <body>
@@ -193,6 +233,13 @@
     </div>
   </div>
 </div>
+
+<div class="geo-wrap">
+  <a href="https://www.worldguessr.com/" target="_blank" class="geo-link">geoguessr</a>
+  <span class="geo-aside">mais the free version i am a rats uh ratatouille</span>
+</div>
+
+<button class="replay-link" onclick="replayIntro()">see the little animation encore</button>
 
 <footer>Ana & Adrien — the kompiuter</footer>
 
@@ -355,6 +402,11 @@ document.getElementById('modal').addEventListener('click', e => {
   if (e.target === document.getElementById('modal')) closeModal();
 });
 document.getElementById('wheel-center').addEventListener('click', spinWheel);
+
+function replayIntro() {
+  sessionStorage.removeItem('intro-seen');
+  window.location.href = 'index.html';
+}
 </script>
 </body>
 </html>
