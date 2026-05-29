@@ -128,6 +128,7 @@
   .modal-bar        { width:32px; height:var(--trait); background:var(--bord); margin-bottom:20px; }
   .modal-title-text { font-size:1.6rem; color:var(--bord); margin-bottom:10px; }
   .modal-desc       { font-size:1rem; color:var(--muted); line-height:1.65; margin-bottom:28px; }
+  .modal-warning    { display:none; font-size:0.82rem; color:var(--bord); opacity:0.6; border-left:2px solid var(--bord); padding-left:10px; margin-bottom:20px; line-height:1.5; }
   .modal-btns       { display:flex; gap:10px; flex-wrap:wrap; }
 
   .replay-link {
@@ -182,6 +183,7 @@
     <div class="modal-bar"></div>
     <div class="modal-title-text" id="modal-title"></div>
     <div class="modal-desc"       id="modal-desc"></div>
+    <div class="modal-warning"    id="modal-warning"></div>
     <div class="modal-btns">
       <a href="#" class="btn btn-full" id="modal-go">let's go</a>
       <button class="btn" onclick="closeModal()">nah</button>
@@ -229,7 +231,7 @@ const SECTIONS = [
   { label:"us",         url:"quiz-nous.html",       desc:"Do we really know each other ? let's see..." },
   { label:"cinema",     url:"filmographie.html",    desc:"Adrien's films, sorted by director." },
   { label:"geoguessr",  url:"https://www.worldguessr.com/", desc:"Guess where we are — mais the free version, i am a rats uh ratatouille.", external:true },
-  { label:"todo",       url:"https://www.icloud.com/notes/038_LgyD3tTC4I2XbACKHyCzA#To_do_AA", desc:"Our shared list. the important stuff.", external:true },
+  { label:"todo",       url:"https://www.icloud.com/notes/038_LgyD3tTC4I2XbACKHyCzA#To_do_AA", desc:"Our shared list. the important stuff.", external:true, warning:"if you are not ana or adrien it will not work — cherche pas. otherwise have fun !" },
 ];
 
 const wrap = document.getElementById('cards-wrap');
@@ -330,6 +332,9 @@ function showResult() {
   const s    = SECTIONS[idx];
   document.getElementById('modal-title').textContent = s.label;
   document.getElementById('modal-desc').textContent  = s.desc;
+  const warnEl = document.getElementById('modal-warning');
+  if (s.warning) { warnEl.textContent = s.warning; warnEl.style.display = 'block'; }
+  else           { warnEl.textContent = '';          warnEl.style.display = 'none';  }
   const lnk  = document.getElementById('modal-go');
   lnk.href   = s.url;
   lnk.target = s.external ? '_blank' : '';
