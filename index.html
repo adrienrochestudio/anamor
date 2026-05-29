@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ana & Adrien</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  /* ── HEADER ── */
+  header {
+    padding: 64px 40px 40px;
+    border-bottom: var(--trait) solid var(--bord-l);
+  }
+
+  .title-main {
+    font-size: clamp(3.2rem, 10vw, 7rem);
+    color: var(--bord);
+    line-height: 1;
+    letter-spacing: -0.01em;
+  }
+
+  .title-sub {
+    margin-top: 12px;
+    font-size: 1rem;
+    color: var(--muted);
+  }
+
+  /* ── CITATION ── */
+  .citation-wrap {
+    padding: 40px 40px;
+    max-width: 620px;
+    border-bottom: var(--trait) solid var(--bord-l);
+  }
+
+  .citation-text {
+    font-size: 1.15rem;
+    color: var(--text);
+    line-height: 1.7;
+  }
+
+  .citation-author {
+    margin-top: 10px;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+
+  /* ── ROUE ── */
+  .wheel-section {
+    padding: 56px 40px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap: 28px;
+    border-bottom: var(--trait) solid var(--bord-l);
+  }
+
+  .wheel-container {
+    position:relative;
+    width: 320px; height: 320px;
+    max-width: 82vw; max-height: 82vw;
+  }
+
+  #wheel-canvas { width:100%; height:100%; }
+
+  /* Pointeur — trait épais bordeaux */
+  .wheel-pointer {
+    position:absolute;
+    top:-18px; left:50%;
+    transform:translateX(-50%);
+    width:0; height:0;
+    border-left:10px solid transparent;
+    border-right:10px solid transparent;
+    border-top:22px solid var(--bord);
+    z-index:6;
+  }
+
+  .wheel-center {
+    position:absolute;
+    top:50%; left:50%;
+    transform:translate(-50%,-50%);
+    width:68px; height:68px;
+    border-radius:50%;
+    background:var(--blanc);
+    border: var(--trait) solid var(--bord);
+    display:flex; align-items:center; justify-content:center;
+    z-index:5; cursor:pointer;
+    font-size:1rem;
+    color:var(--bord);
+    transition:background .18s, color .18s;
+    overflow:hidden;
+  }
+
+  .wheel-center:hover {
+    background:var(--bord);
+    color:var(--blanc);
+  }
+
+  .wheel-center img {
+    width:100%; height:100%;
+    object-fit:cover; border-radius:50%;
+    display:none;
+  }
+
+  /* ── GRILLE ACTIVITÉS ── */
+  .activities {
+    padding: 40px;
+  }
+
+  .activities-label {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+
+  .mini-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: var(--trait);
+    border: var(--trait) solid var(--bord-l);
+  }
+
+  .mini-card {
+    padding: 22px 18px;
+    border: none;
+    background: transparent;
+    text-decoration: none;
+    color: var(--text);
+    font-family: 'Patrick Hand', cursive;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background .18s, color .18s;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    text-align: left;
+    border-right: var(--trait) solid var(--bord-l);
+    border-bottom: var(--trait) solid var(--bord-l);
+  }
+
+  .mini-card:hover {
+    background: var(--bord);
+    color: var(--blanc);
+  }
+
+  .mini-card:hover .card-num { color: rgba(250,248,244,0.4); }
+
+  .card-num {
+    font-size: 0.75rem;
+    color: var(--muted);
+    transition: color .18s;
+  }
+
+  /* ── MODAL ── */
+  .modal-bar {
+    width:32px; height:var(--trait);
+    background:var(--bord);
+    margin-bottom:20px;
+  }
+
+  .modal-title-text {
+    font-size: 1.6rem;
+    color: var(--bord);
+    margin-bottom: 10px;
+  }
+
+  .modal-desc {
+    font-size:1rem;
+    color:var(--muted);
+    line-height:1.65;
+    margin-bottom:28px;
+  }
+
+  .modal-btns { display:flex; gap:10px; flex-wrap:wrap; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title-main">Ana & Adrien</div>
+  <div class="title-sub">tourne la roue</div>
+</header>
+
+<!-- Citation du jour -->
+<div class="citation-wrap">
+  <div class="citation-text" id="cit-text"></div>
+  <div class="citation-author" id="cit-author"></div>
+</div>
+
+<!-- Roue -->
+<section class="wheel-section">
+  <div class="wheel-container">
+    <div class="wheel-pointer"></div>
+    <canvas id="wheel-canvas" width="320" height="320"></canvas>
+    <div class="wheel-center" id="wheel-center" onclick="spinWheel()">
+      <span id="wheel-initials">A&A</span>
+      <img id="wheel-img" src="" alt="">
+    </div>
+  </div>
+  <button class="btn btn-full" onclick="spinWheel()" id="spin-btn">tourner</button>
+</section>
+
+<!-- Grille -->
+<section class="activities">
+  <div class="activities-label">ou choisir directement</div>
+  <div class="mini-grid" id="mini-grid"></div>
+</section>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-bar"></div>
+    <div class="modal-title-text" id="modal-title"></div>
+    <div class="modal-desc" id="modal-desc"></div>
+    <div class="modal-btns">
+      <a href="#" class="btn btn-full" id="modal-go">y aller</a>
+      <button class="btn" onclick="closeModal()">retour</button>
+    </div>
+  </div>
+</div>
+
+<footer>Ana & Adrien</footer>
+
+<script>
+const MOTS = [
+  { text:"Aimer, ce n'est pas se regarder l'un l'autre, c'est regarder ensemble dans la même direction.", author:"Antoine de Saint-Exupéry" },
+  { text:"O amor é uma força que une dois corações e os faz bater como um só.", author:"Drummond de Andrade" },
+  { text:"Il n'y a qu'un bonheur dans la vie, c'est d'aimer et d'être aimé.", author:"George Sand" },
+  { text:"Amar é encontrar na felicidade do outro a própria felicidade.", author:"Gottfried Leibniz" },
+  { text:"Le cœur a ses raisons que la raison ne connaît point.", author:"Blaise Pascal" },
+  { text:"De tudo, ao meu amor serei atento antes, e com tal zelo, e sempre, e tanto.", author:"Vinícius de Moraes" },
+  { text:"Un seul être vous manque, et tout est dépeuplé.", author:"Alphonse de Lamartine" },
+  { text:"Amar é dar ao outro o poder de te destruir, e confiar que não o fará.", author:"C. S. Lewis" },
+  { text:"On ne voit bien qu'avec le cœur. L'essentiel est invisible pour les yeux.", author:"Antoine de Saint-Exupéry" },
+  { text:"O amor não olha a distância, porque o coração não tem fronteiras.", author:"Rubem Alves" },
+  { text:"Là où tu vas, j'irai. Là où tu mourras, je mourrai.", author:"Livre de Ruth" },
+  { text:"Amar é a única coisa que cresce quanto mais se divide.", author:"Paulo Coelho" },
+  { text:"L'amour est la poésie des sens.", author:"Honoré de Balzac" },
+  { text:"Quem ama não calcula, não mede, não pesa — apenas ama.", author:"Fernando Pessoa" },
+  { text:"Aimer, c'est trouver sa richesse hors de soi.", author:"Alain" },
+];
+
+(function() {
+  const now = new Date();
+  const sh  = new Date(now.getTime() - 2*3600*1000);
+  const key = sh.getFullYear()*10000+(sh.getMonth()+1)*100+sh.getDate();
+  const m   = MOTS[key % MOTS.length];
+  document.getElementById('cit-text').textContent   = '\u201c' + m.text + '\u201d';
+  document.getElementById('cit-author').textContent = '— ' + m.author;
+})();
+
+const SECTIONS = [
+  { label:"Poème",        url:"poeme.html",            desc:"Un poème d'amour tiré au sort, français ou brésilien." },
+  { label:"Metrodoku",    url:"https://metrodoku.fr/", desc:"Notre jeu de sudoku préféré." },
+  { label:"Trivia",       url:"quiz-histoire.html",    desc:"France & Brésil — qui en sait le plus ?" },
+  { label:"Mots croisés", url:"mots-croises.html",     desc:"Des grilles à remplir, score mémorisé." },
+  { label:"Nous",         url:"quiz-nous.html",        desc:"Est-ce qu'on se connaît vraiment ?" },
+  { label:"Cinéma",       url:"filmographie.html",     desc:"La filmographie d'Adrien, classée par réalisateur." },
+  { label:"Todo",         url:"https://www.icloud.com/notes/038_LgyD3tTC4I2XbACKHyCzA#To_do_AA", desc:"Notre liste partagée." },
+];
+
+const grid = document.getElementById('mini-grid');
+SECTIONS.forEach((s,i) => {
+  const a = document.createElement('a');
+  a.href = s.url;
+  a.className = 'mini-card';
+  if (s.url.startsWith('http')) a.target='_blank';
+  a.innerHTML = `<span class="card-num">${String(i+1).padStart(2,'0')}</span><span>${s.label}</span>`;
+  grid.appendChild(a);
+});
+
+/* ── ROUE ── */
+const canvas = document.getElementById('wheel-canvas');
+const ctx    = canvas.getContext('2d');
+const N      = SECTIONS.length;
+const ARC    = (2*Math.PI)/N;
+let angle    = 0, spinning = false;
+const BORD   = '#8B1A2B';
+const BLANC  = '#FAF8F4';
+
+function drawWheel(a) {
+  const cx = canvas.width/2, cy = canvas.height/2, r = cx-4;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  for (let i=0;i<N;i++) {
+    const s0 = a + i*ARC - Math.PI/2;
+    const s1 = s0 + ARC;
+    const even = i%2===0;
+
+    ctx.beginPath();
+    ctx.moveTo(cx,cy);
+    ctx.arc(cx,cy,r,s0,s1);
+    ctx.closePath();
+    ctx.fillStyle = even ? BORD : BLANC;
+    ctx.fill();
+    ctx.strokeStyle = BORD;
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    ctx.save();
+    ctx.translate(cx,cy);
+    ctx.rotate(s0+ARC/2);
+    ctx.textAlign = 'right';
+    ctx.fillStyle = even ? BLANC : BORD;
+    ctx.font = '15px "Patrick Hand", cursive';
+    ctx.fillText(SECTIONS[i].label, r-16, 5);
+    ctx.restore();
+  }
+
+  // Cercle extérieur épais
+  ctx.beginPath();
+  ctx.arc(cx,cy,r,0,2*Math.PI);
+  ctx.strokeStyle = BORD;
+  ctx.lineWidth = 3;
+  ctx.stroke();
+}
+
+drawWheel(angle);
+
+function spinWheel() {
+  if (spinning) return;
+  spinning = true;
+  document.getElementById('spin-btn').disabled = true;
+
+  const extra = 2*Math.PI*(7+Math.random()*6);
+  const dur   = 3600+Math.random()*1200;
+  const t0    = performance.now();
+  const a0    = angle;
+  function ease(t) { return 1-Math.pow(1-t,4); }
+
+  function frame(now) {
+    const t = Math.min((now-t0)/dur,1);
+    angle = a0+extra*ease(t);
+    drawWheel(angle);
+    if (t<1) { requestAnimationFrame(frame); return; }
+    spinning = false;
+    document.getElementById('spin-btn').disabled = false;
+    showResult();
+  }
+  requestAnimationFrame(frame);
+}
+
+function showResult() {
+  const norm = (((-angle)%(2*Math.PI))+(2*Math.PI))%(2*Math.PI);
+  const idx  = Math.floor(norm/ARC)%N;
+  const s    = SECTIONS[idx];
+  document.getElementById('modal-title').textContent = s.label;
+  document.getElementById('modal-desc').textContent  = s.desc;
+  const lnk = document.getElementById('modal-go');
+  lnk.href  = s.url;
+  lnk.target = s.url.startsWith('http') ? '_blank' : '';
+  document.getElementById('modal').classList.add('active');
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('active');
+}
+
+document.getElementById('modal').addEventListener('click', e => {
+  if (e.target===document.getElementById('modal')) closeModal();
+});
+document.getElementById('wheel-center').addEventListener('click', spinWheel);
+</script>
+</body>
+</html>

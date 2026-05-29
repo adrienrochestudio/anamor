@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Filmographie — Ana & Adrien</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .nav { position:sticky; top:0; background:var(--blanc); z-index:10; border-bottom:var(--trait) solid var(--bord-l); }
+  .toolbar { max-width:960px; margin:0 auto; padding:20px 40px 0; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .search-wrap { flex:1; min-width:160px; }
+  .filter-btn { padding:8px 18px; border:var(--trait) solid var(--bord-l); background:transparent; font-family:'Patrick Hand',cursive; font-size:0.85rem; cursor:pointer; color:var(--muted); transition:all .15s; white-space:nowrap; }
+  .filter-btn.active, .filter-btn:hover { background:var(--bord); color:var(--blanc); border-color:var(--bord); }
+  .stats { font-size:0.8rem; color:var(--muted); white-space:nowrap; }
+  .film-list { max-width:960px; margin:0 auto; padding:28px 40px 100px; }
+  .letter-sep { font-size:1.4rem; color:var(--bord); padding:20px 0 8px; border-bottom:var(--trait) solid var(--bord); margin-bottom:2px; }
+  .director-group { margin-bottom:2px; }
+  .director-row { display:grid; grid-template-columns:200px 1fr; }
+  @media(max-width:600px){ .director-row{grid-template-columns:1fr;} }
+  .director-cell { background:rgba(139,26,43,0.04); padding:16px 18px; border-right:var(--trait) solid var(--bord-l); border-bottom:var(--trait) solid var(--bord-l); }
+  .dir-name { font-size:0.92rem; color:var(--bord); line-height:1.35; }
+  .dir-name .last  { font-size:1rem; display:block; }
+  .dir-name .first { font-size:0.82rem; color:var(--muted); display:block; }
+  .films-cell { border-bottom:var(--trait) solid var(--bord-l); }
+  .film-row { display:flex; align-items:baseline; padding:9px 18px; border-bottom:1px solid var(--bord-l); text-decoration:none; color:inherit; transition:background .14s; cursor:pointer; }
+  .film-row:last-child { border-bottom:none; }
+  .film-row:hover { background:var(--bord); }
+  .film-row:hover .film-title { color:var(--blanc); }
+  .film-row:hover .film-year  { color:rgba(250,248,244,0.45); }
+  .film-row:hover .film-imdb  { color:rgba(250,248,244,0.6); opacity:1; }
+  .film-row.added { background:rgba(139,26,43,0.04); }
+  .film-row.added .film-title { color:var(--bord); }
+  .film-row.added:hover .film-title { color:var(--blanc); }
+  .film-title { font-size:0.95rem; flex:1; line-height:1.4; transition:color .14s; }
+  .film-year  { font-size:0.78rem; color:var(--muted); margin-left:10px; flex-shrink:0; transition:color .14s; }
+  .film-imdb  { font-size:0.65rem; color:var(--muted); margin-left:12px; opacity:0; transition:opacity .14s,color .14s; flex-shrink:0; letter-spacing:0.08em; }
+  .added-badge { font-size:0.65rem; color:var(--bord); margin-left:8px; opacity:0.6; flex-shrink:0; }
+  .film-row:hover .added-badge { color:rgba(250,248,244,0.5); }
+  .empty { text-align:center; padding:60px; color:var(--muted); font-size:1rem; }
+  .btn-add { background:var(--bord); color:var(--blanc); border:var(--trait) solid var(--bord); font-family:'Patrick Hand',cursive; font-size:0.85rem; letter-spacing:0.06em; padding:9px 20px; cursor:pointer; transition:opacity .18s; }
+  .btn-add:hover { opacity:.8; }
+  .modal-title { font-size:1.4rem; color:var(--bord); margin-bottom:24px; }
+  .field { margin-bottom:18px; }
+  .field label { display:block; font-size:0.8rem; color:var(--muted); margin-bottom:6px; }
+  .modal-note { font-size:0.85rem; color:var(--muted); margin-bottom:20px; line-height:1.6; }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="index.html" class="back-btn">← Retour</a>
+  <div class="nav-title">Filmographie</div>
+  <button class="btn-add" onclick="openModal()">+ Ajouter</button>
+</nav>
+
+<div class="toolbar">
+  <div class="search-wrap">
+    <input type="text" id="search" placeholder="Rechercher un film ou un réalisateur…" oninput="applyFilters()">
+  </div>
+  <button class="filter-btn active" id="f-all"   onclick="setFilter('all')">Tous</button>
+  <button class="filter-btn"        id="f-added" onclick="setFilter('added')">Ajoutés</button>
+  <div class="stats" id="stats"></div>
+</div>
+
+<div class="film-list" id="film-list"></div>
+
+<footer>Ana &amp; Adrien</footer>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-title">Ajouter un film</div>
+    <div class="field">
+      <label>Prénom du réalisateur</label>
+      <input type="text" id="f-firstname" placeholder="ex : David">
+    </div>
+    <div class="field">
+      <label>Nom du réalisateur</label>
+      <input type="text" id="f-lastname" placeholder="ex : Fincher">
+    </div>
+    <div class="field">
+      <label>Titre du film</label>
+      <input type="text" id="f-title" placeholder="ex : Fight Club">
+    </div>
+    <div class="field">
+      <label>Année</label>
+      <input type="text" id="f-year" placeholder="ex : 1999" maxlength="4">
+    </div>
+    <div class="field">
+      <label>Lien IMDb (optionnel)</label>
+      <input type="text" id="f-imdb" placeholder="ex : https://www.imdb.com/title/tt0137523/">
+    </div>
+    <div class="modal-note">Le film sera intégré à la liste dans l'ordre alphabétique du réalisateur, avec une teinte distincte.</div>
+    <div class="modal-btns">
+      <button class="btn-confirm" onclick="addFilm()">Ajouter</button>
+      <button class="btn-cancel"  onclick="closeModal()">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+//  BASE DE DONNÉES
+// ═══════════════════════════════════════════════════════════════
+const BASE_FILMS = [
+  { dir:"Akerman, Chantal",    first:"Chantal",   last:"Akerman",    title:"Jeanne Dielman, 23, quai du Commerce, 1080 Bruxelles", year:"1976" },
+  { dir:"Almodovar, Pedro",    first:"Pedro",     last:"Almodovar",   title:"La Loi du désir",          year:"1987" },
+  { dir:"Almodovar, Pedro",    first:"Pedro",     last:"Almodovar",   title:"Femmes au bord de la crise de nerf", year:"1988" },
+  { dir:"Almodovar, Pedro",    first:"Pedro",     last:"Almodovar",   title:"Tout sur ma mère",         year:"1999" },
+  { dir:"Almodovar, Pedro",    first:"Pedro",     last:"Almodovar",   title:"Parle avec elle",          year:"2002" },
+  { dir:"Almodovar, Pedro",    first:"Pedro",     last:"Almodovar",   title:"Volver",                   year:"2006" },
+  { dir:"Almodovar, Pedro",    first:"Pedro",     last:"Almodovar",   title:"Pain and Glory",           year:"2019" },
+  { dir:"Anderson, Paul T.",   first:"Paul T.",   last:"Anderson",    title:"Boogie Nights",            year:"1997" },
+  { dir:"Anderson, Paul T.",   first:"Paul T.",   last:"Anderson",    title:"Magnolia",                 year:"1999" },
+  { dir:"Anderson, Wes",       first:"Wes",       last:"Anderson",    title:"Rushmore",                 year:"1998" },
+  { dir:"Anderson, Wes",       first:"Wes",       last:"Anderson",    title:"La Famille Tenenbaum",     year:"2001" },
+  { dir:"Anderson, Wes",       first:"Wes",       last:"Anderson",    title:"La vie aquatique",         year:"2003" },
+  { dir:"Anderson, Wes",       first:"Wes",       last:"Anderson",    title:"Hôtel Chevalier",          year:"2007" },
+  { dir:"Anderson, Wes",       first:"Wes",       last:"Anderson",    title:"The Grand Budapest Hotel", year:"2013" },
+  { dir:"Apatow, Judd",        first:"Judd",      last:"Apatow",      title:"Supergrave",               year:"2007" },
+  { dir:"Apatow, Judd",        first:"Judd",      last:"Apatow",      title:"Funny People",             year:"2009" },
+  { dir:"Apatow, Judd",        first:"Judd",      last:"Apatow",      title:"The King of Staten Island",year:"2020" },
+  { dir:"Aronofsky, Darren",   first:"Darren",    last:"Aronofsky",   title:"The Whale",                year:"2022" },
+  { dir:"Bresson, Robert",     first:"Robert",    last:"Bresson",     title:"Un condamné à mort s'est échappé", year:"1956" },
+  { dir:"Bresson, Robert",     first:"Robert",    last:"Bresson",     title:"Pickpocket",               year:"1959" },
+  { dir:"Bresson, Robert",     first:"Robert",    last:"Bresson",     title:"Au hasard Balthazar",      year:"1966" },
+  { dir:"Bresson, Robert",     first:"Robert",    last:"Bresson",     title:"Le Diable probablement",   year:"1977" },
+  { dir:"Bresson, Robert",     first:"Robert",    last:"Bresson",     title:"L'Argent",                 year:"1982" },
+  { dir:"Buñuel, Luis",        first:"Luis",      last:"Buñuel",      title:"Un chien andalou",         year:"1928" },
+  { dir:"Buñuel, Luis",        first:"Luis",      last:"Buñuel",      title:"L'Âge d'or",              year:"1930" },
+  { dir:"Buñuel, Luis",        first:"Luis",      last:"Buñuel",      title:"Los Olvidados",            year:"1950" },
+  { dir:"Buñuel, Luis",        first:"Luis",      last:"Buñuel",      title:"Belle de jour",            year:"1967" },
+  { dir:"Burton, Tim",         first:"Tim",       last:"Burton",      title:"Vincent",                  year:"1982" },
+  { dir:"Burton, Tim",         first:"Tim",       last:"Burton",      title:"Edward aux mains d'argent",year:"1990" },
+  { dir:"Burton, Tim",         first:"Tim",       last:"Burton",      title:"Ed Wood",                  year:"1994" },
+  { dir:"Cahill, Mike",        first:"Mike",      last:"Cahill",      title:"I Origins",                year:"2014" },
+  { dir:"Campion, Jane",       first:"Jane",      last:"Campion",     title:"Un ange à ma table",       year:"1990" },
+  { dir:"Campion, Jane",       first:"Jane",      last:"Campion",     title:"La leçon de piano",        year:"1993" },
+  { dir:"Capra, Frank",        first:"Frank",     last:"Capra",       title:"New-York-Miami",           year:"1935" },
+  { dir:"Capra, Frank",        first:"Frank",     last:"Capra",       title:"Mr Smith goes to Washington", year:"1939" },
+  { dir:"Capra, Frank",        first:"Frank",     last:"Capra",       title:"La vie est belle",         year:"1946" },
+  { dir:"Chabat, Alain",       first:"Alain",     last:"Chabat",      title:"La cité de la peur",       year:"1994" },
+  { dir:"Chabat, Alain",       first:"Alain",     last:"Chabat",      title:"Astérix et Obélix : Mission Cléopâtre", year:"2002" },
+  { dir:"Chan-wook, Park",     first:"Park",      last:"Chan-wook",   title:"Oldboy",                   year:"2003" },
+  { dir:"Chan-wook, Park",     first:"Park",      last:"Chan-wook",   title:"Mademoiselle",             year:"2016" },
+  { dir:"Charlet, Nicolas / Lavaine, Bruno", first:"Nicolas / Bruno", last:"Charlet / Lavaine", title:"La personne aux deux personnes", year:"2009" },
+  { dir:"Chazelle, Damien",    first:"Damien",    last:"Chazelle",    title:"Whiplash",                 year:"2014" },
+  { dir:"Chazelle, Damien",    first:"Damien",    last:"Chazelle",    title:"La la land",               year:"2016" },
+  { dir:"Clark, Larry",        first:"Larry",     last:"Clark",       title:"Kids",                     year:"1995" },
+  { dir:"Clark, Larry",        first:"Larry",     last:"Clark",       title:"Ken Park",                 year:"2002" },
+  { dir:"Coen, Joel & Ethan",  first:"Joel & Ethan", last:"Coen",    title:"Barton Fink",              year:"1991" },
+  { dir:"Coen, Joel & Ethan",  first:"Joel & Ethan", last:"Coen",    title:"Fargo",                    year:"1996" },
+  { dir:"Coen, Joel & Ethan",  first:"Joel & Ethan", last:"Coen",    title:"The Big Lebowski",         year:"1998" },
+  { dir:"Coen, Joel & Ethan",  first:"Joel & Ethan", last:"Coen",    title:"No Country for Old Men",   year:"2007" },
+  { dir:"Coppola, Francis Ford", first:"Francis Ford", last:"Coppola", title:"Le Parrain",             year:"1972" },
+  { dir:"Coppola, Francis Ford", first:"Francis Ford", last:"Coppola", title:"Le Parrain II",          year:"1974" },
+  { dir:"Coppola, Francis Ford", first:"Francis Ford", last:"Coppola", title:"Le Parrain III",         year:"1990" },
+  { dir:"Coppola, Sofia",      first:"Sofia",     last:"Coppola",     title:"Lost in Translation",      year:"2003" },
+  { dir:"Curtiz, Michael",     first:"Michael",   last:"Curtiz",      title:"Casablanca",               year:"1942" },
+  { dir:"Dante, Joe",          first:"Joe",       last:"Dante",       title:"Hurlements",               year:"1981" },
+  { dir:"Dante, Joe",          first:"Joe",       last:"Dante",       title:"Gremlins",                 year:"1984" },
+  { dir:"Dante, Joe",          first:"Joe",       last:"Dante",       title:"Les Banlieusards",         year:"1989" },
+  { dir:"De Broca, Philippe",  first:"Philippe",  last:"De Broca",    title:"L'homme de Rio",           year:"1964" },
+  { dir:"De Broca, Philippe",  first:"Philippe",  last:"De Broca",    title:"Les tribulations d'un chinois en Chine", year:"1965" },
+  { dir:"De Sica, Vittorio",   first:"Vittorio",  last:"De Sica",     title:"Le Voleur de bicyclette",  year:"1948" },
+  { dir:"Delaporte, Matthieu", first:"Matthieu",  last:"Delaporte",   title:"Le Prénom",                year:"2011" },
+  { dir:"Demy, Jacques",       first:"Jacques",   last:"Demy",        title:"Lola",                     year:"1961" },
+  { dir:"Demy, Jacques",       first:"Jacques",   last:"Demy",        title:"La Baie des anges",        year:"1963" },
+  { dir:"Demy, Jacques",       first:"Jacques",   last:"Demy",        title:"Les Parapluies de Cherbourg", year:"1964" },
+  { dir:"Demy, Jacques",       first:"Jacques",   last:"Demy",        title:"Les Demoiselles de Rochefort", year:"1967" },
+  { dir:"Deray, Jacques",      first:"Jacques",   last:"Deray",       title:"La Piscine",               year:"1969" },
+  { dir:"Ducournau, Julia",    first:"Julia",     last:"Ducournau",   title:"Grave",                    year:"2016" },
+  { dir:"Dupontel, Albert",    first:"Albert",    last:"Dupontel",    title:"Bernie",                   year:"1996" },
+  { dir:"Dupontel, Albert",    first:"Albert",    last:"Dupontel",    title:"Au revoir là-haut",        year:"2017" },
+  { dir:"Ebrahimi, Zar Amir / Nattiv, Guy", first:"Zar Amir / Guy", last:"Ebrahimi / Nattiv", title:"Tatami", year:"2023" },
+  { dir:"Eisenstein, Sergueï", first:"Sergueï",   last:"Eisenstein",  title:"Le Cuirassé Potemkine",    year:"1925" },
+  { dir:"Eisenstein, Sergueï", first:"Sergueï",   last:"Eisenstein",  title:"Octobre",                  year:"1927" },
+  { dir:"Eisenstein, Sergueï", first:"Sergueï",   last:"Eisenstein",  title:"Alexandre Nevski",         year:"1938" },
+  { dir:"Eisenstein, Sergueï", first:"Sergueï",   last:"Eisenstein",  title:"Ivan le Terrible",         year:"1944" },
+  { dir:"Elliot, Adam",        first:"Adam",      last:"Elliot",      title:"Harvie Krumpet",           year:"2003" },
+  { dir:"Elliot, Adam",        first:"Adam",      last:"Elliot",      title:"Mary et Max",              year:"2009" },
+  { dir:"Forman, Miloš",       first:"Miloš",     last:"Forman",      title:"L'As de pique",            year:"1963" },
+  { dir:"Forman, Miloš",       first:"Miloš",     last:"Forman",      title:"Les amours d'une blonde",  year:"1965" },
+  { dir:"Forman, Miloš",       first:"Miloš",     last:"Forman",      title:"Vol au-dessus d'un nid de coucou", year:"1975" },
+  { dir:"Forman, Miloš",       first:"Miloš",     last:"Forman",      title:"Amadeus",                  year:"1985" },
+  { dir:"Forman, Miloš",       first:"Miloš",     last:"Forman",      title:"Man on the Moon",          year:"1999" },
+  { dir:"Gilliam, Terry",      first:"Terry",     last:"Gilliam",     title:"Brazil",                   year:"1985" },
+  { dir:"Gilliam, Terry",      first:"Terry",     last:"Gilliam",     title:"Las Vegas Parano",         year:"1998" },
+  { dir:"Girault, Jean",       first:"Jean",      last:"Girault",     title:"La soupe aux choux",       year:"1981" },
+  { dir:"Godard, Jean-Luc",    first:"Jean-Luc",  last:"Godard",      title:"À bout de souffle",        year:"1960" },
+  { dir:"Godard, Jean-Luc",    first:"Jean-Luc",  last:"Godard",      title:"Le Mépris",                year:"1963" },
+  { dir:"Godard, Jean-Luc",    first:"Jean-Luc",  last:"Godard",      title:"Pierrot le fou",           year:"1965" },
+  { dir:"Godard, Jean-Luc",    first:"Jean-Luc",  last:"Godard",      title:"Masculin féminin",         year:"1966" },
+  { dir:"Griffith, D. W.",     first:"D. W.",     last:"Griffith",    title:"À travers l'orage",        year:"1919" },
+  { dir:"Griffith, D. W.",     first:"D. W.",     last:"Griffith",    title:"Le Lys brisé",             year:"1920" },
+  { dir:"Hazanavicius, Michel",first:"Michel",    last:"Hazanavicius",title:"La Classe Américaine",      year:"1993" },
+  { dir:"Hazanavicius, Michel",first:"Michel",    last:"Hazanavicius",title:"OSS 117 : Le Caire, nid d'espions", year:"2006" },
+  { dir:"Hazanavicius, Michel",first:"Michel",    last:"Hazanavicius",title:"OSS 117 : Rio ne répond plus", year:"2008" },
+  { dir:"Herz, Juraj",         first:"Juraj",     last:"Herz",        title:"L'Incinérateur de cadavres",year:"1969" },
+  { dir:"Herz, Juraj",         first:"Juraj",     last:"Herz",        title:"Le Vampire de Ferat",      year:"1981" },
+  { dir:"Herzog, Werner",      first:"Werner",    last:"Herzog",      title:"Aguirre, la colère de Dieu",year:"1972" },
+  { dir:"Herzog, Werner",      first:"Werner",    last:"Herzog",      title:"Fitzcarraldo",             year:"1982" },
+  { dir:"Hess, Jared",         first:"Jared",     last:"Hess",        title:"Napoleon Dynamite",        year:"2004" },
+  { dir:"Hitchcock, Alfred",   first:"Alfred",    last:"Hitchcock",   title:"Les Oiseaux",              year:"1963" },
+  { dir:"Hitchcock, Alfred",   first:"Alfred",    last:"Hitchcock",   title:"Fenêtre sur cour",         year:"1954" },
+  { dir:"Hitchcock, Alfred",   first:"Alfred",    last:"Hitchcock",   title:"Vertigo",                  year:"1958" },
+  { dir:"Hitchcock, Alfred",   first:"Alfred",    last:"Hitchcock",   title:"La mort aux trousses",     year:"1959" },
+  { dir:"Hughes, John",        first:"John",      last:"Hughes",      title:"Breakfast Club",           year:"1985" },
+  { dir:"Hughes, John",        first:"John",      last:"Hughes",      title:"La folle journée de Ferris Bueller", year:"1986" },
+  { dir:"Jarmusch, Jim",       first:"Jim",       last:"Jarmusch",    title:"Stranger than Paradise",   year:"1984" },
+  { dir:"Jarmusch, Jim",       first:"Jim",       last:"Jarmusch",    title:"Down by Law",              year:"1986" },
+  { dir:"Jarmusch, Jim",       first:"Jim",       last:"Jarmusch",    title:"Only Lovers Left Alive",   year:"2013" },
+  { dir:"Jasný, Vojtěch",      first:"Vojtěch",   last:"Jasný",       title:"Désir",                    year:"1958" },
+  { dir:"Jasný, Vojtěch",      first:"Vojtěch",   last:"Jasný",       title:"Un jour, un chat",         year:"1963" },
+  { dir:"Joon-ho, Bong",       first:"Bong",      last:"Joon-ho",     title:"Memories of Murder",       year:"2003" },
+  { dir:"Joon-ho, Bong",       first:"Bong",      last:"Joon-ho",     title:"The Host",                 year:"2006" },
+  { dir:"Joon-ho, Bong",       first:"Bong",      last:"Joon-ho",     title:"Parasite",                 year:"2019" },
+  { dir:"Kadár, Ján / Klos, Elmar", first:"Ján / Elmar", last:"Kadár / Klos", title:"Le Miroir aux alouettes", year:"1965" },
+  { dir:"Kaurismäki, Aki",     first:"Aki",       last:"Kaurismäki",  title:"La Fille aux allumettes",  year:"1990" },
+  { dir:"Kaurismäki, Aki",     first:"Aki",       last:"Kaurismäki",  title:"Au loin s'en vont les nuages", year:"1996" },
+  { dir:"Keaton, Buster",      first:"Buster",    last:"Keaton",      title:"Sherlock Junior",          year:"1924" },
+  { dir:"Keaton, Buster",      first:"Buster",    last:"Keaton",      title:"Le Mécano de la Générale", year:"1926" },
+  { dir:"Keaton, Buster",      first:"Buster",    last:"Keaton",      title:"L'Opérateur",              year:"1928" },
+  { dir:"Kiarostami, Abbas",   first:"Abbas",     last:"Kiarostami",  title:"Le Goût de la cerise",     year:"1997" },
+  { dir:"Korber, Serge",       first:"Serge",     last:"Korber",      title:"Un idiot à Paris",         year:"1976" },
+  { dir:"Kore-eda, Hirokazu",  first:"Hirokazu",  last:"Kore-eda",    title:"Nobody Knows",             year:"2004" },
+  { dir:"Kore-eda, Hirokazu",  first:"Hirokazu",  last:"Kore-eda",    title:"Tel père, tel fils",       year:"2013" },
+  { dir:"Kore-eda, Hirokazu",  first:"Hirokazu",  last:"Kore-eda",    title:"Une affaire de famille",   year:"2018" },
+  { dir:"Kore-eda, Hirokazu",  first:"Hirokazu",  last:"Kore-eda",    title:"Les bonnes étoiles",       year:"2022" },
+  { dir:"Kubrick, Stanley",    first:"Stanley",   last:"Kubrick",     title:"Les sentiers de la gloire",year:"1957" },
+  { dir:"Kubrick, Stanley",    first:"Stanley",   last:"Kubrick",     title:"Docteur Folamour",         year:"1964" },
+  { dir:"Kubrick, Stanley",    first:"Stanley",   last:"Kubrick",     title:"2001 : L'Odyssée de l'espace", year:"1968" },
+  { dir:"Kubrick, Stanley",    first:"Stanley",   last:"Kubrick",     title:"Orange mécanique",         year:"1971" },
+  { dir:"Kubrick, Stanley",    first:"Stanley",   last:"Kubrick",     title:"Shining",                  year:"1980" },
+  { dir:"Kubrick, Stanley",    first:"Stanley",   last:"Kubrick",     title:"Full Metal Jacket",        year:"1987" },
+  { dir:"Kurosawa, Akira",     first:"Akira",     last:"Kurosawa",    title:"Rashomon",                 year:"1950" },
+  { dir:"Kurosawa, Akira",     first:"Akira",     last:"Kurosawa",    title:"Vivre",                    year:"1952" },
+  { dir:"Kurosawa, Akira",     first:"Akira",     last:"Kurosawa",    title:"Les Sept Samouraïs",       year:"1954" },
+  { dir:"Lang, Fritz",         first:"Fritz",     last:"Lang",        title:"Le Docteur Mabuse",        year:"1922" },
+  { dir:"Lang, Fritz",         first:"Fritz",     last:"Lang",        title:"Metropolis",               year:"1927" },
+  { dir:"Lang, Fritz",         first:"Fritz",     last:"Lang",        title:"M le Maudit",              year:"1931" },
+  { dir:"Lanthimos, Yorgos",   first:"Yorgos",    last:"Lanthimos",   title:"Canine",                   year:"2009" },
+  { dir:"Lanthimos, Yorgos",   first:"Yorgos",    last:"Lanthimos",   title:"The Lobster",              year:"2015" },
+  { dir:"Lanthimos, Yorgos",   first:"Yorgos",    last:"Lanthimos",   title:"Nimic",                    year:"2019" },
+  { dir:"Laughton, Charles",   first:"Charles",   last:"Laughton",    title:"La Nuit du chasseur",      year:"1955" },
+  { dir:"Lautner, Georges",    first:"Georges",   last:"Lautner",     title:"Les Tontons flingueurs",   year:"1963" },
+  { dir:"Lautner, Georges",    first:"Georges",   last:"Lautner",     title:"Le Professionnel",         year:"1981" },
+  { dir:"Lelouch, Claude",     first:"Claude",    last:"Lelouch",     title:"Un homme et une femme",    year:"1966" },
+  { dir:"Lelouch, Claude",     first:"Claude",    last:"Lelouch",     title:"C'était un rendez-vous",   year:"1976" },
+  { dir:"Lelouch, Claude",     first:"Claude",    last:"Lelouch",     title:"Itinéraire d'un enfant gâté", year:"1988" },
+  { dir:"Lumet, Sidney",       first:"Sidney",    last:"Lumet",       title:"Douze Hommes en colère",   year:"1957" },
+  { dir:"Lumet, Sidney",       first:"Sidney",    last:"Lumet",       title:"Serpico",                  year:"1973" },
+  { dir:"Menzel, Jiří",        first:"Jiří",      last:"Menzel",      title:"Trains étroitement surveillés", year:"1966" },
+  { dir:"Menzel, Jiří",        first:"Jiří",      last:"Menzel",      title:"Un été capricieux",        year:"1968" },
+  { dir:"Menzel, Jiří",        first:"Jiří",      last:"Menzel",      title:"Alouettes, le fil à la patte", year:"1969" },
+  { dir:"Milius, John",        first:"John",      last:"Milius",      title:"Conan le Barbare",         year:"1983" },
+  { dir:"Miyazaki, Hayao",     first:"Hayao",     last:"Miyazaki",    title:"Le Château de Cagliostro", year:"1979" },
+  { dir:"Miyazaki, Hayao",     first:"Hayao",     last:"Miyazaki",    title:"Nausicaä de la vallée du vent", year:"1984" },
+  { dir:"Miyazaki, Hayao",     first:"Hayao",     last:"Miyazaki",    title:"Le Château dans le ciel",  year:"1986" },
+  { dir:"Miyazaki, Hayao",     first:"Hayao",     last:"Miyazaki",    title:"Mon voisin Totoro",        year:"1988" },
+  { dir:"Miyazaki, Hayao",     first:"Hayao",     last:"Miyazaki",    title:"Porco Rosso",              year:"1992" },
+  { dir:"Miyazaki, Hayao",     first:"Hayao",     last:"Miyazaki",    title:"Princesse Mononoké",       year:"1997" },
+  { dir:"Miyazaki, Hayao",     first:"Hayao",     last:"Miyazaki",    title:"Le Château Ambulant",      year:"2004" },
+  { dir:"Miyazaki, Hayao",     first:"Hayao",     last:"Miyazaki",    title:"Ponyo sur la falaise",     year:"2008" },
+  { dir:"Miyazaki, Hayao",     first:"Hayao",     last:"Miyazaki",    title:"Le Vent se lève",          year:"2013" },
+  { dir:"Molinaro, Édouard",   first:"Édouard",   last:"Molinaro",    title:"L'Emmerdeur",              year:"1973" },
+  { dir:"Molinaro, Édouard",   first:"Édouard",   last:"Molinaro",    title:"La Cage aux folles",       year:"1978" },
+  { dir:"Murnau, F. W.",       first:"F. W.",     last:"Murnau",      title:"Nosferatu",                year:"1922" },
+  { dir:"Murnau, F. W.",       first:"F. W.",     last:"Murnau",      title:"Le Dernier des hommes",    year:"1924" },
+  { dir:"Murnau, F. W.",       first:"F. W.",     last:"Murnau",      title:"Tartuffe",                 year:"1926" },
+  { dir:"Murnau, F. W.",       first:"F. W.",     last:"Murnau",      title:"Faust",                    year:"1926" },
+  { dir:"Muyl, Philippe",      first:"Philippe",  last:"Muyl",        title:"Cuisine et dépendances",   year:"1993" },
+  { dir:"Němec, Jan",          first:"Jan",       last:"Němec",       title:"Les Diamants de la nuit",  year:"1964" },
+  { dir:"Němec, Jan",          first:"Jan",       last:"Němec",       title:"La Fête et les invités",   year:"1966" },
+  { dir:"Nichols, Mike",       first:"Mike",      last:"Nichols",     title:"The Graduate",             year:"1967" },
+  { dir:"Ophüls, Max",         first:"Max",       last:"Ophüls",      title:"Lettre d'une inconnue",    year:"1948" },
+  { dir:"Ophüls, Max",         first:"Max",       last:"Ophüls",      title:"La Ronde",                 year:"1950" },
+  { dir:"Ophüls, Max",         first:"Max",       last:"Ophüls",      title:"Le Plaisir",               year:"1952" },
+  { dir:"Otomo, Katsuhiro",    first:"Katsuhiro", last:"Otomo",       title:"Akira",                    year:"1988" },
+  { dir:"Ozu, Yasujirō",       first:"Yasujirō",  last:"Ozu",         title:"Voyage à Tokyo",           year:"1953" },
+  { dir:"Ozu, Yasujirō",       first:"Yasujirō",  last:"Ozu",         title:"Fleur d'équinoxe",         year:"1958" },
+  { dir:"Ozu, Yasujirō",       first:"Yasujirō",  last:"Ozu",         title:"Le Goût du saké",          year:"1962" },
+  { dir:"Pasolini, Pier Paolo",first:"Pier Paolo",last:"Pasolini",    title:"Mamma Roma",               year:"1962" },
+  { dir:"Pasolini, Pier Paolo",first:"Pier Paolo",last:"Pasolini",    title:"L'Évangile selon Saint Matthieu", year:"1964" },
+  { dir:"Pasolini, Pier Paolo",first:"Pier Paolo",last:"Pasolini",    title:"Oedipe Roi",               year:"1967" },
+  { dir:"Pasolini, Pier Paolo",first:"Pier Paolo",last:"Pasolini",    title:"Théorème",                 year:"1968" },
+  { dir:"Pawlikowski, Paweł",  first:"Paweł",     last:"Pawlikowski", title:"Ida",                      year:"2013" },
+  { dir:"Pawlikowski, Paweł",  first:"Paweł",     last:"Pawlikowski", title:"Cold War",                 year:"2018" },
+  { dir:"Poelvoorde, Benoît",  first:"Benoît",    last:"Poelvoorde",  title:"C'est arrivé près de chez vous", year:"1992" },
+  { dir:"Ray, Nicholas",       first:"Nicholas",  last:"Ray",         title:"La Fureur de vivre",       year:"1955" },
+  { dir:"Reed, Peyton",        first:"Peyton",    last:"Reed",        title:"Yes Man",                  year:"2009" },
+  { dir:"Refn, Nicolas Winding",first:"Nicolas Winding",last:"Refn", title:"Drive",                    year:"2011" },
+  { dir:"Requa, John / Ficarra, Glenn", first:"John / Glenn", last:"Requa / Ficarra", title:"Crazy Stupid Love", year:"2011" },
+  { dir:"Resnais, Alain",      first:"Alain",     last:"Resnais",     title:"Hiroshima mon amour",      year:"1959" },
+  { dir:"Richardson, Tony",    first:"Tony",      last:"Richardson",  title:"La Solitude du coureur de fond", year:"1962" },
+  { dir:"Rossellini, Roberto", first:"Roberto",   last:"Rossellini",  title:"Rome ville ouverte",       year:"1945" },
+  { dir:"Rossellini, Roberto", first:"Roberto",   last:"Rossellini",  title:"Allemagne année zéro",     year:"1948" },
+  { dir:"Rossellini, Roberto", first:"Roberto",   last:"Rossellini",  title:"Stromboli",                year:"1950" },
+  { dir:"Rossellini, Roberto", first:"Roberto",   last:"Rossellini",  title:"Onze fioretti de St François d'Assise", year:"1950" },
+  { dir:"Sant, Gus Van",       first:"Gus",       last:"Van Sant",    title:"Elephant",                 year:"2003" },
+  { dir:"Scorsese, Martin",    first:"Martin",    last:"Scorsese",    title:"Mean Streets",             year:"1973" },
+  { dir:"Scorsese, Martin",    first:"Martin",    last:"Scorsese",    title:"Taxi Driver",              year:"1976" },
+  { dir:"Scorsese, Martin",    first:"Martin",    last:"Scorsese",    title:"Raging Bull",              year:"1980" },
+  { dir:"Scorsese, Martin",    first:"Martin",    last:"Scorsese",    title:"Les Affranchis",           year:"1990" },
+  { dir:"Sheridan, Jim",       first:"Jim",       last:"Sheridan",    title:"Au nom du père",           year:"1993" },
+  { dir:"Sheridan, Jim",       first:"Jim",       last:"Sheridan",    title:"Brothers",                 year:"2009" },
+  { dir:"Smith, Kevin",        first:"Kevin",     last:"Smith",       title:"Clerks",                   year:"1994" },
+  { dir:"Stroheim, Erich von", first:"Erich",     last:"von Stroheim",title:"Les Rapaces",              year:"1925" },
+  { dir:"Takahata, Isao",      first:"Isao",      last:"Takahata",    title:"Le Tombeau des lucioles",  year:"1988" },
+  { dir:"Tarantino, Quentin",  first:"Quentin",   last:"Tarantino",   title:"Reservoir Dogs",           year:"1992" },
+  { dir:"Tarantino, Quentin",  first:"Quentin",   last:"Tarantino",   title:"Pulp Fiction",             year:"1994" },
+  { dir:"Tarantino, Quentin",  first:"Quentin",   last:"Tarantino",   title:"Kill Bill : Volume 1",     year:"2003" },
+  { dir:"Tarantino, Quentin",  first:"Quentin",   last:"Tarantino",   title:"Kill Bill : Volume 2",     year:"2004" },
+  { dir:"Tarantino, Quentin",  first:"Quentin",   last:"Tarantino",   title:"Les Huit Salopards",       year:"2015" },
+  { dir:"Tati, Jacques",       first:"Jacques",   last:"Tati",        title:"Jour de fête",             year:"1949" },
+  { dir:"Tati, Jacques",       first:"Jacques",   last:"Tati",        title:"Les Vacances de M. Hulot", year:"1953" },
+  { dir:"Tati, Jacques",       first:"Jacques",   last:"Tati",        title:"Mon oncle",                year:"1957" },
+  { dir:"Tati, Jacques",       first:"Jacques",   last:"Tati",        title:"Playtime",                 year:"1967" },
+  { dir:"Tarkovski, Andreï",   first:"Andreï",    last:"Tarkovski",   title:"L'Enfance d'Ivan",         year:"1962" },
+  { dir:"Tarkovski, Andreï",   first:"Andreï",    last:"Tarkovski",   title:"Andreï Roublev",           year:"1966" },
+  { dir:"Tarkovski, Andreï",   first:"Andreï",    last:"Tarkovski",   title:"Stalker",                  year:"1979" },
+  { dir:"Tarkovski, Andreï",   first:"Andreï",    last:"Tarkovski",   title:"Le Sacrifice",             year:"1986" },
+  { dir:"Tornatore, Giuseppe", first:"Giuseppe",  last:"Tornatore",   title:"Cinema Paradiso",          year:"1988" },
+  { dir:"Truffaut, François",  first:"François",  last:"Truffaut",    title:"Les 400 coups",            year:"1959" },
+  { dir:"Truffaut, François",  first:"François",  last:"Truffaut",    title:"Antoine et Colette",       year:"1962" },
+  { dir:"Truffaut, François",  first:"François",  last:"Truffaut",    title:"L'Enfant sauvage",         year:"1970" },
+  { dir:"Trumbo, Dalton",      first:"Dalton",    last:"Trumbo",      title:"Johnny s'en va-t-en guerre",year:"1971" },
+  { dir:"Veber, Francis",      first:"Francis",   last:"Veber",       title:"La Chèvre",                year:"1981" },
+  { dir:"Veber, Francis",      first:"Francis",   last:"Veber",       title:"Le Dîner de cons",         year:"1998" },
+  { dir:"Verneuil, Henri",     first:"Henri",     last:"Verneuil",    title:"Un singe en hiver",        year:"1962" },
+  { dir:"Verneuil, Henri",     first:"Henri",     last:"Verneuil",    title:"Le Clan des Siciliens",    year:"1969" },
+  { dir:"Vinterberg, Thomas",  first:"Thomas",    last:"Vinterberg",  title:"Festen",                   year:"1998" },
+  { dir:"Vinterberg, Thomas",  first:"Thomas",    last:"Vinterberg",  title:"La Chasse",                year:"2012" },
+  { dir:"Vinterberg, Thomas",  first:"Thomas",    last:"Vinterberg",  title:"Drunk",                    year:"2020" },
+  { dir:"Wai, Wong Kar",       first:"Wong Kar",  last:"Wai",         title:"As Tears Go By",           year:"1988" },
+  { dir:"Wai, Wong Kar",       first:"Wong Kar",  last:"Wai",         title:"Nos années sauvages",      year:"1990" },
+  { dir:"Wai, Wong Kar",       first:"Wong Kar",  last:"Wai",         title:"Chungking Express",        year:"1994" },
+  { dir:"Wai, Wong Kar",       first:"Wong Kar",  last:"Wai",         title:"Les Anges déchus",         year:"1995" },
+  { dir:"Wai, Wong Kar",       first:"Wong Kar",  last:"Wai",         title:"Happy Together",           year:"1997" },
+  { dir:"Wai, Wong Kar",       first:"Wong Kar",  last:"Wai",         title:"In the Mood for Love",     year:"2000" },
+  { dir:"Wai, Wong Kar",       first:"Wong Kar",  last:"Wai",         title:"2046",                     year:"2004" },
+  { dir:"Wang, Lulu",          first:"Lulu",      last:"Wang",        title:"The Farewell",             year:"2019" },
+  { dir:"Wegener, Paul",       first:"Paul",      last:"Wegener",     title:"L'Étudiant de Prague",     year:"1913" },
+  { dir:"Wegener, Paul",       first:"Paul",      last:"Wegener",     title:"Le Golem",                 year:"1920" },
+  { dir:"Welles, Orson",       first:"Orson",     last:"Welles",      title:"Citizen Kane",             year:"1941" },
+  { dir:"Wenders, Wim",        first:"Wim",       last:"Wenders",     title:"Paris, Texas",             year:"1984" },
+  { dir:"Wenders, Wim",        first:"Wim",       last:"Wenders",     title:"Les Ailes du désir",       year:"1987" },
+  { dir:"Wright, Edgar",       first:"Edgar",     last:"Wright",      title:"Shaun of the Dead",        year:"2004" },
+  { dir:"Wright, Edgar",       first:"Edgar",     last:"Wright",      title:"Hot Fuzz",                 year:"2007" },
+  { dir:"Wright, Edgar",       first:"Edgar",     last:"Wright",      title:"Scott Pilgrim",            year:"2010" },
+  { dir:"Wright, Joe",         first:"Joe",       last:"Wright",      title:"Orgueil et Préjugés",      year:"2005" },
+  { dir:"Wyler, William",      first:"William",   last:"Wyler",       title:"Les Hauts de Hurlevent",   year:"1939" },
+  { dir:"Wyler, William",      first:"William",   last:"Wyler",       title:"Vacances Romaines",        year:"1953" },
+  { dir:"Zeller, Florian",     first:"Florian",   last:"Zeller",      title:"The Father",               year:"2020" },
+  { dir:"Zeller, Florian",     first:"Florian",   last:"Zeller",      title:"The Son",                  year:"2022" },
+];
+
+// ═══════════════════════════════════════════════════════════════
+//  ÉTAT
+// ═══════════════════════════════════════════════════════════════
+let addedFilms = JSON.parse(localStorage.getItem('films-added') || '[]');
+let currentFilter = 'all';
+
+function allFilms() {
+  return [...BASE_FILMS, ...addedFilms];
+}
+
+function normalize(str) {
+  return str.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  RENDU
+// ═══════════════════════════════════════════════════════════════
+function buildImdbUrl(title, year) {
+  return 'https://www.imdb.com/find/?q=' + encodeURIComponent(title + ' ' + year) + '&s=tt&ttype=ft';
+}
+
+function render() {
+  const q   = normalize(document.getElementById('search').value.trim());
+  const list = document.getElementById('film-list');
+  list.innerHTML = '';
+
+  // Fusionner base + ajouts, marquer les ajouts
+  const films = [
+    ...BASE_FILMS.map(f => ({...f, added:false})),
+    ...addedFilms.map(f => ({...f, added:true})),
+  ];
+
+  // Filtre "ajoutés"
+  let pool = currentFilter === 'added' ? films.filter(f => f.added) : films;
+
+  // Filtre recherche
+  if (q) {
+    pool = pool.filter(f =>
+      normalize(f.title).includes(q) ||
+      normalize(f.last).includes(q) ||
+      normalize(f.first).includes(q)
+    );
+  }
+
+  if (pool.length === 0) {
+    list.innerHTML = '<div class="empty">Aucun film trouvé.</div>';
+    updateStats(0, 0);
+    return;
+  }
+
+  // Grouper par réalisateur (clé = dir)
+  const groups = {};
+  pool.forEach(f => {
+    if (!groups[f.dir]) groups[f.dir] = [];
+    groups[f.dir].push(f);
+  });
+
+  // Trier les groupes alphabétiquement (sur last name normalisé)
+  const sortedDirs = Object.keys(groups).sort((a, b) => {
+    const la = normalize(groups[a][0].last);
+    const lb = normalize(groups[b][0].last);
+    return la < lb ? -1 : la > lb ? 1 : 0;
+  });
+
+  // Séparateurs de lettre
+  let lastLetter = '';
+
+  sortedDirs.forEach(dir => {
+    const letter = normalize(groups[dir][0].last)[0].toUpperCase();
+    if (letter !== lastLetter) {
+      lastLetter = letter;
+      const sep = document.createElement('div');
+      sep.className = 'letter-sep';
+      sep.textContent = letter;
+      list.appendChild(sep);
+    }
+
+    const group = document.createElement('div');
+    group.className = 'director-group';
+
+    const row = document.createElement('div');
+    row.className = 'director-row';
+
+    // Cellule réalisateur
+    const dirCell = document.createElement('div');
+    dirCell.className = 'director-cell';
+    const f0 = groups[dir][0];
+    dirCell.innerHTML =
+      `<div class="dir-name">` +
+        `<span class="last">${f0.last}</span>` +
+        `<span class="first">${f0.first}</span>` +
+      `</div>`;
+
+    // Cellule films
+    const filmsCell = document.createElement('div');
+    filmsCell.className = 'films-cell';
+
+    // Trier les films du groupe par année
+    groups[dir]
+      .sort((a,b) => (parseInt(a.year)||0) - (parseInt(b.year)||0))
+      .forEach(film => {
+        const imdb = film.imdb || buildImdbUrl(film.title, film.year);
+        const a = document.createElement('a');
+        a.href    = imdb;
+        a.target  = '_blank';
+        a.rel     = 'noopener';
+        a.className = 'film-row' + (film.added ? ' added' : '');
+        a.innerHTML =
+          `<span class="film-title">${film.title}</span>` +
+          `<span class="film-year">${film.year}</span>` +
+          `<span class="film-imdb">IMDb</span>` +
+          (film.added ? `<span class="added-badge">ajouté</span>` : '');
+        filmsCell.appendChild(a);
+      });
+
+    row.appendChild(dirCell);
+    row.appendChild(filmsCell);
+    group.appendChild(row);
+    list.appendChild(group);
+  });
+
+  updateStats(pool.length, addedFilms.length);
+}
+
+function updateStats(visible, added) {
+  document.getElementById('stats').textContent =
+    visible + ' film' + (visible > 1 ? 's' : '') +
+    (added > 0 ? '  ·  ' + added + ' ajouté' + (added > 1 ? 's' : '') : '');
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  FILTRES
+// ═══════════════════════════════════════════════════════════════
+function setFilter(f) {
+  currentFilter = f;
+  document.getElementById('f-all').classList.toggle('active',   f === 'all');
+  document.getElementById('f-added').classList.toggle('active', f === 'added');
+  render();
+}
+
+function applyFilters() { render(); }
+
+// ═══════════════════════════════════════════════════════════════
+//  AJOUT
+// ═══════════════════════════════════════════════════════════════
+function openModal() {
+  document.getElementById('modal').classList.add('active');
+  document.getElementById('f-firstname').focus();
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('active');
+  ['f-firstname','f-lastname','f-title','f-year','f-imdb'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+}
+
+function addFilm() {
+  const first = document.getElementById('f-firstname').value.trim();
+  const last  = document.getElementById('f-lastname').value.trim();
+  const title = document.getElementById('f-title').value.trim();
+  const year  = document.getElementById('f-year').value.trim();
+  const imdb  = document.getElementById('f-imdb').value.trim();
+
+  if (!last || !title) {
+    document.getElementById('f-lastname').style.borderColor  = last  ? '' : 'var(--bord)';
+    document.getElementById('f-title').style.borderColor     = title ? '' : 'var(--bord)';
+    return;
+  }
+
+  const newFilm = {
+    dir:   last + (first ? ', ' + first : ''),
+    first: first,
+    last:  last,
+    title: title,
+    year:  year,
+    imdb:  imdb || buildImdbUrl(title, year),
+    added: true,
+  };
+
+  addedFilms.push(newFilm);
+  localStorage.setItem('films-added', JSON.stringify(addedFilms));
+  closeModal();
+  render();
+}
+
+// Fermer modal sur fond
+document.getElementById('modal').addEventListener('click', e => {
+  if (e.target === document.getElementById('modal')) closeModal();
+});
+
+// Enter dans le formulaire
+['f-firstname','f-lastname','f-title','f-year','f-imdb'].forEach(id => {
+  document.getElementById(id).addEventListener('keydown', e => {
+    if (e.key === 'Enter') addFilm();
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════════════
+render();
+</script>
+</body>
+</html>

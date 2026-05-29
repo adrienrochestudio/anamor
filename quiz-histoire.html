@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trivia — Ana & Adrien</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .page-header { padding:40px 40px 32px; border-bottom:var(--trait) solid var(--bord-l); }
+  .page-header h1 { font-size:2rem; color:var(--bord); }
+  .page-header p  { font-size:0.9rem; color:var(--muted); margin-top:6px; }
+
+  .quiz-wrap { max-width:600px; margin:0 auto; padding:40px 40px 80px; }
+
+  .progress { height:3px; background:var(--bord-l); margin-bottom:8px; }
+  .progress-fill { height:100%; background:var(--bord); transition:width .4s; }
+  .progress-label { font-size:0.8rem; color:var(--muted); margin-bottom:28px; }
+
+  .q-card { border:var(--trait) solid var(--bord-l); padding:28px; margin-bottom:20px; }
+  .q-flag { font-size:1.4rem; margin-bottom:10px; }
+  .q-text { font-size:1.15rem; color:var(--text); line-height:1.5; }
+
+  .choices { display:flex; flex-direction:column; gap:8px; margin-top:24px; }
+  .choice {
+    padding:13px 18px; border:var(--trait) solid var(--bord-l);
+    background:transparent; text-align:left;
+    font-family:'Patrick Hand',cursive; font-size:1rem;
+    cursor:pointer; color:var(--text); transition:all .15s;
+  }
+  .choice:hover:not(:disabled) { border-color:var(--bord); background:var(--bord-l); }
+  .choice.correct { background:var(--bord); color:var(--blanc); border-color:var(--bord); }
+  .choice.wrong   { background:var(--bord-l); color:var(--bord); border-color:var(--bord); text-decoration:line-through; }
+  .choice:disabled { cursor:default; }
+
+  .feedback { padding:14px 18px; border-left:var(--trait) solid var(--bord); font-size:0.95rem; color:var(--muted); margin-top:8px; display:none; line-height:1.6; }
+  .feedback.show { display:block; }
+
+  .btn-next { margin-top:20px; display:none; }
+  .btn-next.show { display:inline-block; }
+
+  /* Score */
+  .score-screen { display:none; text-align:center; padding:60px 40px; }
+  .score-screen.show { display:block; }
+  .score-num { font-size:5rem; color:var(--bord); line-height:1; }
+  .score-msg { font-size:1.1rem; color:var(--muted); margin:16px 0 32px; }
+</style>
+</head>
+<body>
+<nav class="nav">
+  <a href="index.html" class="back-btn">← retour</a>
+  <div class="nav-title">Trivia</div>
+  <div></div>
+</nav>
+<div class="page-header">
+  <h1>Trivia</h1>
+  <p>France & Brésil mélangés</p>
+</div>
+
+<div class="quiz-wrap">
+  <div id="quiz-section">
+    <div class="progress"><div class="progress-fill" id="pfill" style="width:0%"></div></div>
+    <div class="progress-label" id="plabel">Question 1 / 10</div>
+    <div class="q-card">
+      <div class="q-flag" id="qflag"></div>
+      <div class="q-text" id="qtext"></div>
+      <div class="choices" id="choices"></div>
+      <div class="feedback" id="feedback"></div>
+      <button class="btn btn-full btn-next" id="btn-next" onclick="nextQ()">suivant →</button>
+    </div>
+  </div>
+  <div class="score-screen" id="score-screen">
+    <div class="score-num" id="snum"></div>
+    <div class="score-msg" id="smsg"></div>
+    <button class="btn btn-full" onclick="startQuiz()">rejouer</button>
+  </div>
+</div>
+<footer>Ana & Adrien</footer>
+
+<script>
+const ALL=[
+  {flag:"🇫🇷",q:"En quelle année a eu lieu la Révolution française ?",choices:["1689","1776","1789","1815"],correct:2,expl:"La prise de la Bastille le 14 juillet 1789 marque le début de la Révolution."},
+  {flag:"🇫🇷",q:"Qui était le premier président de la Ve République ?",choices:["Georges Pompidou","Charles de Gaulle","François Mitterrand","Valéry Giscard d'Estaing"],correct:1,expl:"De Gaulle fut élu premier président de la Ve République en 1959."},
+  {flag:"🇫🇷",q:"Quel roi construisit le château de Versailles ?",choices:["Louis XIV","Louis XV","Henri IV","Napoléon Ier"],correct:0,expl:"Louis XIV, le Roi-Soleil, fit bâtir Versailles à partir de 1661."},
+  {flag:"🇫🇷",q:"En quelle année Napoléon fut-il exilé à Sainte-Hélène ?",choices:["1804","1812","1815","1821"],correct:2,expl:"Après Waterloo (1815), Napoléon fut exilé à Sainte-Hélène où il mourut en 1821."},
+  {flag:"🇫🇷",q:"Quel traité a mis fin à la Première Guerre mondiale ?",choices:["Traité de Paris","Traité de Versailles","Traité de Vienne","Accord d'Armistice"],correct:1,expl:"Le Traité de Versailles fut signé le 28 juin 1919."},
+  {flag:"🇫🇷",q:"En quelle année la Tour Eiffel fut-elle inaugurée ?",choices:["1867","1878","1889","1900"],correct:2,expl:"La Tour Eiffel fut érigée pour l'Exposition universelle de 1889."},
+  {flag:"🇫🇷",q:"Qui était Jeanne d'Arc ?",choices:["Une reine de France","Une héroïne qui leva le siège d'Orléans","Une poétesse médiévale","La femme de Charles VII"],correct:1,expl:"Jeanne d'Arc leva le siège d'Orléans en 1429 et fut brûlée vive en 1431."},
+  {flag:"🇫🇷",q:"Quel fleuve traverse Paris ?",choices:["La Loire","Le Rhône","La Seine","La Garonne"],correct:2,expl:"La Seine traverse Paris sur environ 13 kilomètres."},
+  {flag:"🇧🇷",q:"En quelle année le Brésil a-t-il proclamé son indépendance ?",choices:["1808","1822","1850","1889"],correct:1,expl:"Dom Pedro I proclama l'indépendance du Brésil le 7 septembre 1822."},
+  {flag:"🇧🇷",q:"Quelle est la capitale du Brésil ?",choices:["Rio de Janeiro","São Paulo","Salvador","Brasília"],correct:3,expl:"Brasília est la capitale depuis 1960, inaugurée par Juscelino Kubitschek."},
+  {flag:"🇧🇷",q:"Quel navigateur européen a découvert le Brésil en 1500 ?",choices:["Christophe Colomb","Vasco de Gama","Pedro Álvares Cabral","Ferdinand Magellan"],correct:2,expl:"Pedro Álvares Cabral débarqua au Brésil le 22 avril 1500."},
+  {flag:"🇧🇷",q:"En quelle année l'esclavage fut-il aboli au Brésil ?",choices:["1848","1865","1871","1888"],correct:3,expl:"La Loi Dorée (Lei Áurea) du 13 mai 1888 abolit l'esclavage au Brésil."},
+  {flag:"🇧🇷",q:"Qui était le premier président du Brésil républicain ?",choices:["Dom Pedro II","Deodoro da Fonseca","Getúlio Vargas","Ruy Barbosa"],correct:1,expl:"Marechal Deodoro da Fonseca fut le premier président après la proclamation de la République en 1889."},
+  {flag:"🇧🇷",q:"Quel architecte dessina les bâtiments principaux de Brasília ?",choices:["Renzo Piano","Le Corbusier","Oscar Niemeyer","Lúcio Costa"],correct:2,expl:"Oscar Niemeyer conçut le Congrès, le Palais de l'Aube et de nombreux bâtiments emblématiques."},
+  {flag:"🇧🇷",q:"Le Brésil fut colonie de quel pays européen ?",choices:["Espagne","France","Pays-Bas","Portugal"],correct:3,expl:"Le Brésil fut une colonie portugaise de 1500 à 1822."},
+  {flag:"🇧🇷",q:"Quel peuple indigène était le plus répandu à l'arrivée des Portugais ?",choices:["Les Guaranis","Les Tupis","Les Yanomamis","Les Kayapós"],correct:1,expl:"Les Tupis peuplaient la majeure partie de la côte brésilienne en 1500."},
+];
+let qs=[],cur=0,score=0;
+function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b;}
+function startQuiz(){qs=shuffle(ALL).slice(0,10);cur=0;score=0;document.getElementById('score-screen').classList.remove('show');document.getElementById('quiz-section').style.display='';showQ();}
+function showQ(){const q=qs[cur];document.getElementById('pfill').style.width=(cur/qs.length*100)+'%';document.getElementById('plabel').textContent='Question '+(cur+1)+' / '+qs.length;document.getElementById('qflag').textContent=q.flag;document.getElementById('qtext').textContent=q.q;const ch=document.getElementById('choices');ch.innerHTML='';q.choices.forEach((c,i)=>{const b=document.createElement('button');b.className='choice';b.textContent=c;b.onclick=()=>answer(i);ch.appendChild(b);});document.getElementById('feedback').classList.remove('show');document.getElementById('btn-next').classList.remove('show');}
+function answer(i){const q=qs[cur];const btns=document.querySelectorAll('.choice');btns.forEach(b=>b.disabled=true);const ok=i===q.correct;btns[i].classList.add(ok?'correct':'wrong');btns[q.correct].classList.add('correct');document.getElementById('feedback').textContent=(ok?'Bravo ! ':'Dommage. ')+q.expl;document.getElementById('feedback').classList.add('show');if(ok)score++;const bn=document.getElementById('btn-next');bn.textContent=cur+1<qs.length?'suivant →':'voir le résultat';bn.classList.add('show');}
+function nextQ(){cur++;if(cur<qs.length)showQ();else showScore();}
+function showScore(){document.getElementById('quiz-section').style.display='none';document.getElementById('score-screen').classList.add('show');document.getElementById('snum').textContent=score+'/'+qs.length;const p=score/qs.length;document.getElementById('smsg').textContent=p>=.9?'parfait !':p>=.7?'très bien':p>=.5?'pas mal':'on révise ?';}
+startQuiz();
+</script>
+</body>
+</html>

@@ -1,0 +1,148 @@
+/* ═══════════════════════════════════════════════════
+   ANAMOR — Style global
+   Police : Patrick Hand (écriture enfantine propre)
+   Palette : bordeaux #8B1A2B sur blanc cassé #FAF8F4
+═══════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap');
+
+:root {
+  --blanc:   #FAF8F4;
+  --bord:    #8B1A2B;
+  --bord-l:  rgba(139,26,43,0.12);
+  --bord-m:  rgba(139,26,43,0.35);
+  --text:    #1A1A1A;
+  --muted:   rgba(26,26,26,0.45);
+  --trait:   3px;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+html, body {
+  background: var(--blanc);
+  font-family: 'Patrick Hand', cursive;
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* ── LISERET HAUT ── */
+body::before {
+  content:'';
+  position:fixed; top:0; left:0; right:0;
+  height: var(--trait);
+  background: var(--bord);
+  z-index:100;
+}
+
+/* ── NAV ── */
+.nav {
+  padding: 28px 36px 20px;
+  display:flex; align-items:center; justify-content:space-between;
+}
+
+.back-btn {
+  text-decoration:none;
+  font-size:1rem;
+  color:var(--bord);
+  border-bottom:2px solid var(--bord);
+  padding-bottom:1px;
+  transition:opacity .18s;
+}
+.back-btn:hover { opacity:.6; }
+
+.nav-title {
+  font-size:1rem;
+  color:var(--muted);
+}
+
+/* ── DIVIDER ── */
+.rule {
+  border:none;
+  border-top: var(--trait) solid var(--bord-l);
+  margin: 0;
+}
+
+/* ── BOUTONS ── */
+.btn {
+  display:inline-block;
+  padding:10px 28px;
+  border: var(--trait) solid var(--bord);
+  background:transparent;
+  color:var(--bord);
+  font-family:'Patrick Hand',cursive;
+  font-size:1rem;
+  cursor:pointer;
+  text-decoration:none;
+  transition:background .18s, color .18s;
+}
+.btn:hover, .btn.active {
+  background:var(--bord);
+  color:var(--blanc);
+}
+
+.btn-full {
+  background:var(--bord);
+  color:var(--blanc);
+}
+.btn-full:hover { opacity:.85; }
+
+/* ── FOOTER ── */
+footer {
+  text-align:center;
+  padding:32px;
+  font-size:0.85rem;
+  color:var(--muted);
+  border-top: var(--trait) solid var(--bord-l);
+  margin-top:64px;
+}
+
+/* ── INPUT ── */
+input[type=text] {
+  font-family:'Patrick Hand',cursive;
+  font-size:1rem;
+  border:none;
+  border-bottom: var(--trait) solid var(--bord-l);
+  background:transparent;
+  color:var(--text);
+  padding:8px 0;
+  outline:none;
+  width:100%;
+  transition:border-color .18s;
+}
+input[type=text]:focus { border-color:var(--bord); }
+input[type=text]::placeholder { color:var(--muted); }
+
+/* ── MODAL ── */
+.modal-overlay {
+  display:none;
+  position:fixed; inset:0;
+  background:rgba(250,248,244,0.88);
+  backdrop-filter:blur(4px);
+  z-index:200;
+  align-items:center; justify-content:center;
+  padding:24px;
+}
+.modal-overlay.active { display:flex; }
+
+.modal {
+  background:var(--blanc);
+  border: var(--trait) solid var(--bord);
+  padding:48px 40px 40px;
+  max-width:420px; width:100%;
+  animation:popIn .22s ease;
+}
+
+@keyframes popIn {
+  from{transform:scale(.95);opacity:0}
+  to  {transform:scale(1);opacity:1}
+}
+
+.modal-title { font-size:1.5rem; color:var(--bord); margin-bottom:28px; }
+
+.field { margin-bottom:20px; }
+.field label {
+  display:block; font-size:0.8rem;
+  color:var(--muted); margin-bottom:6px;
+}
+
+.modal-btns { display:flex; gap:10px; margin-top:28px; }

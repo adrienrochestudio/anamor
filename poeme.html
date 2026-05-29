@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Poèmes — Ana & Adrien</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .layout { display:flex; min-height:100vh; }
+
+  .main { flex:1; min-width:0; }
+
+  /* Header */
+  .page-header {
+    padding:40px 40px 32px;
+    border-bottom: var(--trait) solid var(--bord-l);
+    display:flex; align-items:baseline; gap:24px;
+  }
+  .page-header h1 { font-size:2rem; color:var(--bord); }
+  .poem-counter { font-size:0.85rem; color:var(--muted); }
+
+  /* Poème */
+  .poem-wrap {
+    padding: 48px 40px 40px;
+    border-bottom: var(--trait) solid var(--bord-l);
+    max-width:680px;
+  }
+
+  .poem-lang {
+    font-size:0.8rem; color:var(--muted);
+    margin-bottom:6px;
+    text-transform:uppercase;
+    letter-spacing:0.1em;
+  }
+
+  .poem-title {
+    font-size:1.8rem; color:var(--bord);
+    margin-bottom:4px;
+    line-height:1.15;
+  }
+
+  .poem-author {
+    font-size:0.85rem; color:var(--muted);
+    margin-bottom:36px;
+  }
+
+  .poem-body {
+    font-size:1.05rem;
+    line-height:2;
+    color:var(--text);
+    white-space:pre-line;
+    border-left: var(--trait) solid var(--bord);
+    padding-left:24px;
+  }
+
+  /* Actions */
+  .poem-actions {
+    padding:28px 40px;
+    display:flex; gap:12px; flex-wrap:wrap;
+    border-bottom: var(--trait) solid var(--bord-l);
+  }
+
+  /* Liste */
+  .poem-list-wrap { padding:32px 40px 80px; }
+  .list-label { font-size:0.85rem; color:var(--muted); margin-bottom:16px; }
+
+  .poem-list {
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+    border: var(--trait) solid var(--bord-l);
+    gap:0;
+  }
+
+  .poem-item {
+    padding:16px 16px;
+    border-right: var(--trait) solid var(--bord-l);
+    border-bottom: var(--trait) solid var(--bord-l);
+    cursor:pointer; background:transparent;
+    font-family:'Patrick Hand',cursive;
+    font-size:0.95rem; text-align:left;
+    color:var(--text); transition:background .15s, color .15s;
+    display:flex; flex-direction:column; gap:3px;
+    border:none;
+    border-right: var(--trait) solid var(--bord-l);
+    border-bottom: var(--trait) solid var(--bord-l);
+  }
+
+  .poem-item:hover, .poem-item.active {
+    background:var(--bord); color:var(--blanc);
+  }
+  .poem-item:hover .pi-lang, .poem-item.active .pi-lang { color:rgba(250,248,244,0.5); }
+  .poem-item:hover .pi-author, .poem-item.active .pi-author { color:rgba(250,248,244,0.6); }
+
+  .pi-lang   { font-size:0.72rem; color:var(--muted); }
+  .pi-title  { font-size:0.95rem; }
+  .pi-author { font-size:0.78rem; color:var(--muted); }
+
+  /* Panneau latéral */
+  .side-panel {
+    width:320px; flex-shrink:0;
+    background:var(--bord);
+    color:var(--blanc);
+    border-left: var(--trait) solid var(--bord);
+    min-height:100vh;
+    position:sticky; top:0; align-self:flex-start;
+    max-height:100vh; overflow-y:auto;
+    transform:translateX(100%);
+    transition:transform .4s cubic-bezier(.77,0,.18,1);
+    position:fixed; right:0; top:0; height:100vh;
+    z-index:50;
+  }
+
+  .side-panel.open { transform:translateX(0); }
+
+  .panel-header {
+    padding:32px 28px 24px;
+    border-bottom:1px solid rgba(250,248,244,0.15);
+  }
+
+  .panel-close {
+    background:none; border:none;
+    font-family:'Patrick Hand',cursive;
+    font-size:0.85rem; color:rgba(250,248,244,0.5);
+    cursor:pointer; padding:0 0 16px;
+    display:block; transition:color .18s;
+    text-align:left;
+  }
+  .panel-close:hover { color:var(--blanc); }
+
+  .panel-poem-title {
+    font-size:1.2rem; color:var(--blanc);
+    line-height:1.3;
+  }
+
+  .panel-body { padding:28px; }
+
+  .anec-block { margin-bottom:28px; }
+  .anec-label {
+    font-size:0.75rem; color:rgba(250,248,244,0.4);
+    text-transform:uppercase; letter-spacing:0.1em;
+    margin-bottom:8px;
+    padding-bottom:6px;
+    border-bottom:1px solid rgba(250,248,244,0.1);
+  }
+  .anec-text {
+    font-size:0.95rem; line-height:1.7;
+    color:rgba(250,248,244,0.82);
+  }
+
+  /* Toggle */
+  .panel-toggle {
+    position:fixed; right:0; top:50%;
+    transform:translateY(-50%);
+    background:var(--bord); color:var(--blanc);
+    border:none; font-family:'Patrick Hand',cursive;
+    font-size:0.75rem;
+    writing-mode:vertical-rl;
+    padding:16px 10px; cursor:pointer; z-index:49;
+    transition:opacity .28s;
+    letter-spacing:0.1em;
+  }
+  .panel-toggle.hidden { opacity:0; pointer-events:none; }
+
+  .overlay {
+    display:none; position:fixed; inset:0;
+    background:rgba(250,248,244,0.5);
+    backdrop-filter:blur(2px); z-index:40;
+  }
+  .overlay.active { display:block; }
+
+  @keyframes fadeUp {
+    from{opacity:0;transform:translateY(8px)}
+    to{opacity:1;transform:translateY(0)}
+  }
+  .poem-wrap { animation:fadeUp .35s ease; }
+</style>
+</head>
+<body>
+
+<div class="layout">
+  <div class="main">
+    <nav class="nav">
+      <a href="index.html" class="back-btn">← retour</a>
+      <div class="nav-title">Poèmes</div>
+      <div></div>
+    </nav>
+
+    <div class="poem-wrap" id="poem-wrap">
+      <div class="poem-lang"  id="poem-lang"></div>
+      <div class="poem-title" id="poem-title"></div>
+      <div class="poem-author"id="poem-author"></div>
+      <div class="poem-body"  id="poem-body"></div>
+    </div>
+
+    <div class="poem-actions">
+      <button class="btn" onclick="navigate(-1)">← précédent</button>
+      <button class="btn btn-full" onclick="goRandom()">au hasard</button>
+      <button class="btn" onclick="navigate(1)">suivant →</button>
+    </div>
+
+    <div class="poem-list-wrap">
+      <div class="list-label">tous les poèmes</div>
+      <div class="poem-list" id="poem-list"></div>
+    </div>
+
+    <footer>Ana & Adrien</footer>
+  </div>
+</div>
+
+<div class="overlay" id="overlay" onclick="closePanel()"></div>
+<button class="panel-toggle" id="panel-toggle" onclick="openPanel()">en savoir plus</button>
+<div class="side-panel" id="side-panel">
+  <div class="panel-header">
+    <button class="panel-close" onclick="closePanel()">fermer ×</button>
+    <div class="panel-poem-title" id="panel-poem-title"></div>
+  </div>
+  <div class="panel-body" id="panel-body"></div>
+</div>
+
+<script>
+const POEMS = [
+  { lang:"fr", langLabel:"Français", title:"Demain, dès l'aube", author:"Victor Hugo", year:"1856",
+    text:`Demain, dès l'aube, à l'heure où blanchit la campagne,\nJe partirai. Vois-tu, je sais que tu m'attends.\nJ'irai par la forêt, j'irai par la montagne.\nJe ne puis demeurer loin de toi plus longtemps.\n\nJe marcherai les yeux fixés sur mes pensées,\nSans rien voir au dehors, sans entendre aucun bruit,\nSeul, inconnu, le dos courbé, les mains croisées,\nTriste, et le jour pour moi sera comme la nuit.\n\nEt quand j'arriverai, je mettrai sur ta tombe\nUn bouquet de houx vert et de bruyère en fleur.`,
+    anecdotes:[{label:"Contexte",text:"Hugo écrit ce poème après la mort de sa fille Léopoldine, noyée en 1847. Le lecteur comprend seulement au dernier vers que le voyage décrit mène à une tombe."},{label:"La ruse du poème",text:"Les deux premières strophes semblent décrire un voyage amoureux. Le mot « tombe » au dernier vers fait tout basculer — une des fins les plus bouleversantes de la poésie française."},{label:"Victor Hugo",text:"Hugo (1802-1885) est la figure tutélaire du romantisme français. Exilé sous Napoléon III, il est l'auteur des Misérables et de Notre-Dame de Paris."}]},
+
+  { lang:"fr", langLabel:"Français", title:"Le Bonheur", author:"Paul Verlaine", year:"1881",
+    text:`Le ciel est, par-dessus le toit,\nSi bleu, si calme !\nUn arbre, par-dessus le toit,\nBerce sa palme.\n\nLa cloche, dans le ciel qu'on voit,\nDoucement tinte.\nUn oiseau sur l'arbre qu'on voit\nChante sa plainte.\n\nMon Dieu, mon Dieu, la vie est là,\nSimple et tranquille.\nCette paisible rumeur-là\nVient de la ville.\n\n— Qu'as-tu fait, ô toi que voilà\nPleurant sans cesse,\nDis, qu'as-tu fait, toi que voilà,\nDe ta jeunesse ?`,
+    anecdotes:[{label:"Contexte",text:"Verlaine écrit ce poème depuis la prison de Mons en 1873, après avoir blessé Rimbaud d'un coup de pistolet. Le carré de ciel par la fenêtre de cellule devient symbole d'une liberté perdue."},{label:"La forme",text:"Les octosyllabes répétés créent un effet d'écho mélancolique. Le dernier quatrain rompt le charme et s'adresse à lui-même avec une cruauté douce."},{label:"Verlaine & Rimbaud",text:"Leur relation tumultueuse est l'une des plus célèbres de l'histoire littéraire. Rimbaud avait 17 ans à leur rencontre. Il abandonnera la poésie peu après."}]},
+
+  { lang:"fr", langLabel:"Français", title:"L'Invitation au voyage", author:"Charles Baudelaire", year:"1857",
+    text:`Mon enfant, ma sœur,\nSonge à la douceur\nD'aller là-bas vivre ensemble !\nAimer à loisir,\nAimer et mourir\nAu pays qui te ressemble !\n\nLes soleils mouillés\nDe ces ciels brouillés\nPour mon esprit ont les charmes\nSi mystérieux\nDe tes traîtres yeux,\nBrillant à travers leurs larmes.\n\nLà, tout n'est qu'ordre et beauté,\nLuxe, calme et volupté.`,
+    anecdotes:[{label:"Le pays imaginaire",text:"Le poème décrit un pays idéal qui ressemble à la femme aimée — on pense aux Pays-Bas, leurs canaux et ciels gris. Mais ce pays n'existe pas : c'est une utopie du désir."},{label:"Le refrain parfait",text:"« Là, tout n'est qu'ordre et beauté, / Luxe, calme et volupté » est peut-être le vers le plus cité de Baudelaire. Matisse s'en inspirera pour un tableau célèbre (1904)."},{label:"Les Fleurs du Mal",text:"Baudelaire publie Les Fleurs du Mal en 1857 — recueil aussitôt censuré. Le procès contribue paradoxalement à sa célébrité. Il mourra à 46 ans, ruiné et malade."}]},
+
+  { lang:"fr", langLabel:"Français", title:"Green", author:"Paul Verlaine", year:"1874",
+    text:`Voici des fruits, des fleurs, des feuilles et des branches,\nEt puis voici mon cœur, qui ne bat que pour vous.\nNe le déchirez pas avec vos deux mains blanches\nEt qu'à vos yeux si beaux l'humble présent soit doux.\n\nJ'arrive tout couvert encore de rosée\nQue le vent du matin vient glacer à mon front.\nSouffrez que ma fatigue, à vos pieds reposée,\nRêve des chers instants qui la délasseront.\n\nSur votre jeune sein laissez rouler ma tête\nToute sonore encore de vos derniers baisers ;\nLaissez-la s'apaiser de la bonne tempête,\nEt que je dorme un peu puisque vous reposez.`,
+    anecdotes:[{label:"Dédié à Rimbaud",text:"Ce poème est adressé à Rimbaud dans Romances sans paroles. Il décrit l'arrivée d'un amant au petit matin, suppliant d'être accueilli. La tendresse et la vulnérabilité y sont rares et touchantes."},{label:"Romances sans paroles",text:"Verlaine écrit ce recueil pendant leur fuite en Belgique et en Angleterre (1872-1873). Les poèmes sont délibérément musicaux, presque sans images fortes."},{label:"Le titre anglais",text:"Verlaine titrait parfois ses poèmes en anglais par fascination pour la culture britannique. Green renvoie à la jeunesse — la green youth anglaise."}]},
+
+  { lang:"fr", langLabel:"Français", title:"Ma Bohème", author:"Arthur Rimbaud", year:"1870",
+    text:`Je m'en allais, les poings dans mes poches crevées ;\nMon paletot aussi devenait idéal ;\nJ'allais sous le ciel, Muse ! et j'étais ton féal ;\nOh ! là ! là ! que d'amours splendides j'ai rêvées !\n\nMon unique culotte avait un large trou.\n— Petit-Poucet rêveur, j'égrenais dans ma course\nDes rimes. Mon auberge était à la Grande-Ourse.\n— Mes étoiles au ciel avaient un doux frou-frou.\n\nEt je les écoutais, assis au bord des routes,\nCes bons soirs de septembre où je sentais des gouttes\nDe rosée à mon front, comme un vin de vigueur ;\n\nOù, rimant au milieu des ombres fantastiques,\nComme des lyres, je tirais les élastiques\nDe mes souliers blessés, un pied près de mon cœur !`,
+    anecdotes:[{label:"Un adolescent fugitif",text:"Rimbaud écrit ce sonnet à 16 ans, lors de ses premières fugues à pied vers Paris depuis Charleville. Il transforme sa misère en aventure poétique avec une joie insolente."},{label:"L'adieu à la poésie",text:"Rimbaud abandonne définitivement la poésie à 21 ans. Il partira faire du commerce en Éthiopie et au Yémen. Ses œuvres complètes tiennent en moins de 300 pages."},{label:"Le sonnet brisé",text:"Le sonnet est ici malmené avec humour : Rimbaud mélange le trivial (la culotte trouée) et le sublime (la Grande Ourse comme auberge). Cette liberté de ton est sa signature."}]},
+
+  { lang:"fr", langLabel:"Français", title:"Liberté", author:"Paul Éluard", year:"1942",
+    text:`Sur mes cahiers d'écolier\nSur mon pupitre et les arbres\nSur le sable sur la neige\nJ'écris ton nom.\n\nSur toutes les pages lues\nSur toutes les pages blanches\nPierre sang papier ou cendre\nJ'écris ton nom.\n\nSur les images dorées\nSur les armes des guerriers\nSur la couronne des rois\nJ'écris ton nom.\n\nEt par le pouvoir d'un mot\nJe recommence ma vie\nJe suis né pour te connaître\nPour te nommer :\nLiberté.`,
+    anecdotes:[{label:"Résistance et clandestinité",text:"Éluard écrit ce poème en 1942 sous l'Occupation. La RAF le largue en tracts sur la France occupée. Il est d'abord intitulé « Une seule pensée »."},{label:"Le mot final",text:"Le lecteur croit pendant 20 strophes que le poète écrit le nom d'une femme. Le dernier mot — « Liberté » — fait relire tout le poème autrement."},{label:"Paul Éluard",text:"Éluard (1895-1952) est l'un des grands surréalistes français. Ami de Breton, Picasso et Dali, il s'engage dans le Parti communiste après la guerre."}]},
+
+  { lang:"fr", langLabel:"Français", title:"Le Dormeur du Val", author:"Arthur Rimbaud", year:"1870",
+    text:`C'est un trou de verdure où chante une rivière\nAccrochant follement aux herbes des haillons\nD'argent ; où le soleil, de la montagne fière,\nLuit : c'est un petit val qui mousse de rayons.\n\nUn soldat jeune, bouche ouverte, tête nue,\nEt la nuque baignant dans le frais cresson bleu,\nDort ; il est étendu dans l'herbe, sous la nue,\nPâle dans son lit vert où la lumière pleut.\n\nLes pieds dans les glaïeuls, il dort. Souriant comme\nSourirait un enfant malade, il fait un somme :\nNature, berce-le chaudement : il a froid.\n\nLes parfums ne font pas frissonner sa narine ;\nIl dort dans le soleil, la main sur sa poitrine,\nTranquille. Il a deux trous rouges au côté droit.`,
+    anecdotes:[{label:"Le choc final",text:"Rimbaud décrit avec beauté un paysage idyllique et un soldat endormi. Le dernier vers brise l'illusion : « deux trous rouges » — des blessures de balle. L'anti-guerre le plus dévastateur de la langue française."},{label:"Écrit à 16 ans",text:"Rimbaud compose ce sonnet en octobre 1870 pendant la guerre franco-prussienne, sans avoir encore jamais vu de combat."},{label:"La technique du leurre",text:"Rimbaud utilise un vocabulaire de douceur (berce, chaudement, souriant, tranquille) pour mieux préparer le choc final. Même technique que Hugo dans « Demain, dès l'aube »."}]},
+
+  { lang:"fr", langLabel:"Français", title:"Sensation", author:"Arthur Rimbaud", year:"1870",
+    text:`Par les soirs bleus d'été, j'irai dans les sentiers,\nPicoté par les blés, fouler l'herbe menue :\nRêveur, j'en sentirai la fraîcheur à mes pieds.\nJe laisserai le vent baigner ma tête nue.\n\nJe ne parlerai pas, je ne penserai rien :\nMais l'amour infini me montera dans l'âme,\nEt j'irai loin, bien loin, comme un bohémien,\nPar la Nature, — heureux comme avec une femme.`,
+    anecdotes:[{label:"Le plus jeune chef-d'œuvre",text:"Rimbaud écrit ce poème en mars 1870 — il a 15 ans et 7 mois. Déjà il possède sa voix entière : la liberté du corps, la dissolution dans la nature, le bonheur sans mot."},{label:"Un art poétique en huit vers",text:"Le poème préfigure tout Rimbaud : le refus de la pensée rationnelle, la fusion avec la nature, l'errance comme mode de vie."},{label:"La comparaison finale",text:"Le dernier vers — « heureux comme avec une femme » — est d'une audace remarquable pour un adolescent de 15 ans. La Nature est érotisée avec une innocence absolue."}]},
+
+  { lang:"fr", langLabel:"Français", title:"Correspondances", author:"Charles Baudelaire", year:"1857",
+    text:`La Nature est un temple où de vivants piliers\nLaissent parfois sortir de confuses paroles ;\nL'homme y passe à travers des forêts de symboles\nQui l'observent avec des regards familiers.\n\nComme de longs échos qui de loin se confondent\nDans une ténébreuse et profonde unité,\nVaste comme la nuit et comme la clarté,\nLes parfums, les couleurs et les sons se répondent.\n\nIl est des parfums frais comme des chairs d'enfants,\nDoux comme les hautbois, verts comme les prairies,\n— Et d'autres, corrompus, riches et triomphants,\n\nAyant l'expansion des choses infinies,\nComme l'ambre, le musc, le benjoin et l'encens,\nQui chantent les transports de l'esprit et des sens.`,
+    anecdotes:[{label:"La synesthésie",text:"Baudelaire théorise la synesthésie — la correspondance entre les sens : un parfum peut être « vert », une couleur peut « sonner ». Cette idée influencera tout le symbolisme."},{label:"Influence sur la musique",text:"Debussy, Fauré et Wagner ont été influencés par ce poème. L'idée que tous les arts se correspondent est au cœur de l'esthétique symboliste."},{label:"La Nature comme langage",text:"Pour Baudelaire, le monde visible est un système de signes à déchiffrer. Le poète est celui qui sait lire ce langage secret."}]},
+
+  { lang:"fr", langLabel:"Français", title:"Nuit Rhénane", author:"Guillaume Apollinaire", year:"1913",
+    text:`Mon verre est plein d'un vin trembleur comme une flamme\nÉcoutez la chanson lente d'un batelier\nQui raconte avoir vu sous la lune sept femmes\nTordre leurs cheveux verts et longs jusqu'à leurs pieds\n\nDebout chantez plus haut en dansant une ronde\nQue je n'entende plus le chant du batelier\nEt mettez près de moi toutes les filles blondes\nAu regard immobile aux nattes repliées\n\nLe Rhin le Rhin est ivre où les vignes se mirent\nTout l'or des nuits tombe en tremblant s'y refléter\nLa voix chante toujours à en râle-mourir\nCes fées aux cheveux verts qui incantent l'été\n\nMon verre s'est brisé comme un éclat de rire`,
+    anecdotes:[{label:"Alcools et le Rhin",text:"Ce poème ouvre le recueil Alcools (1913). Il évoque les années en Rhénanie (1901-1902) où Apollinaire était précepteur, tombé amoureux d'Annie Playden qui le repoussera."},{label:"Pas de ponctuation",text:"Apollinaire supprime toute ponctuation dans Alcools — décision radicale pour l'époque. Cela crée une ambiguïté permanente et oblige le lecteur à décider lui-même où respirer."},{label:"Le vers final",text:"« Mon verre s'est brisé comme un éclat de rire » est l'un des vers les plus célèbres d'Apollinaire. La fin de fête, le retour brutal au réel."}]},
+
+  { lang:"pt", langLabel:"Brésilien", title:"Soneto de Fidelidade", author:"Vinícius de Moraes", year:"1946",
+    text:`De tudo ao meu amor serei atento\nAntes, e com tal zelo, e sempre, e tanto\nQue mesmo em face do maior encanto\nDele se encante mais meu pensamento.\n\nQuero vivê-lo em cada vão momento\nE em seu louvor hei de espalhar meu canto\nE rir meu riso e derramar meu pranto\nAo seu pesar ou seu contentamento.\n\nE assim, quando mais tarde me procure\nQuem sabe a morte, angústia de quem vive\nQuem sabe a solidão, fim de quem ama\n\nEu possa me dizer do amor (que tive):\nQue não seja imortal, posto que é chama\nMas que seja infinito enquanto dure.`,
+    anecdotes:[{label:"Le poème le plus aimé du Brésil",text:"Ce sonnet est considéré comme le plus beau poème d'amour brésilien. Son dernier tercet — « que não seja imortal, posto que é chama / Mas que seja infinito enquanto dure » — est gravé dans la mémoire collective."},{label:"Vinícius de Moraes",text:"Poète, diplomate et musicien (1913-1980), Vinícius est aussi le parolier de la Bossa Nova. Il co-écrit avec Tom Jobim Garota de Ipanema. Il se maria neuf fois."},{label:"La forme du sonnet",text:"Vinícius reprend la forme du sonnet shakespearien en langue portugaise. Le poème fonctionne comme un serment amoureux structuré : avant, pendant, et face à la mort."}]},
+
+  { lang:"pt", langLabel:"Brésilien", title:"Quadrilha", author:"Carlos Drummond de Andrade", year:"1930",
+    text:`João amava Teresa que amava Raimundo\nque amava Maria que amava Joaquim que amava Lili\nque não amava ninguém.\n\nJoão foi para os Estados Unidos, Teresa para o convento,\nRaimundo morreu de desastre, Maria ficou para tia,\nJoaquim suicidou-se e Lili casou com J. Pinto Fernandes\nque não tinha entrado na história.`,
+    anecdotes:[{label:"La cruauté douce",text:"En sept lignes, Drummond décrit toute la tragicomédie de l'amour : chaque personne aime quelqu'un qui ne l'aime pas. Tout le monde finit mal — sauf Lili qui épouse quelqu'un hors de l'histoire."},{label:"Drummond de Andrade",text:"Carlos Drummond (1902-1987) est le plus grand poète brésilien du XXe siècle. Sa poésie mêle l'ironie, la mélancolie et une lucidité implacable."},{label:"Le modernisme brésilien",text:"Ce poème paraît dans Alguma Poesia (1930), premier recueil de Drummond. Il s'inscrit dans la révolution moderniste née de la Semaine d'Art Moderne de 1922 à São Paulo."}]},
+
+  { lang:"pt", langLabel:"Brésilien", title:"Canção do Exílio", author:"Gonçalves Dias", year:"1843",
+    text:`Minha terra tem palmeiras,\nOnde canta o Sabiá;\nAs aves, que aqui gorjeiam,\nNão gorjeiam como lá.\n\nNosso céu tem mais estrelas,\nNossas várzeas têm mais flores,\nNossos bosques têm mais vida,\nNossa vida mais amores.\n\nEm cismar, sozinho, à noite,\nMais prazer encontro eu lá;\nMinha terra tem palmeiras,\nOnde canta o Sabiá.\n\nNão permita Deus que eu morra,\nSem que eu volte para lá;\nSem que desfrute os primores\nQue não encontro por cá;\nSem qu'inda aviste as palmeiras,\nOnde canta o Sabiá.`,
+    anecdotes:[{label:"Écrit au Portugal",text:"Gonçalves Dias (1823-1864) écrit ce poème à Coimbra, loin de son Maranhão natal. La nostalgie du Brésil imprègne chaque strophe."},{label:"Le Sabiá, symbole national",text:"Le sabiá (grive brésilienne) est l'oiseau le plus chanté de la poésie brésilienne. Tom Jobim reprendra cette image dans Sabiá (1968) avec des paroles de Chico Buarque."},{label:"Poème fondateur",text:"Ce poème est l'un des textes fondateurs de l'identité brésilienne. Gonçalves Dias est le premier grand poète à célébrer la nature tropicale comme égale à l'Europe."}]},
+
+  { lang:"pt", langLabel:"Brésilien", title:"Amor é Fogo", author:"Luís de Camões", year:"1595",
+    text:`Amor é fogo que arde sem se ver;\nÉ ferida que dói e não se sente;\nÉ um contentamento descontente;\nÉ dor que desatina sem doer.\n\nÉ um não querer mais que bem querer;\nÉ solitário andar por entre a gente;\nÉ nunca contentar-se de contente;\nÉ cuidar que se ganha em se perder.\n\nÉ querer estar preso por vontade;\nÉ servir a quem vence, o vencedor;\nÉ ter com quem nos mata, lealdade.\n\nMas como causar pode seu favor\nNos corações humanos amizade,\nSe tão contrário a si é o mesmo Amor?`,
+    anecdotes:[{label:"Camões et le Portugal",text:"Luís de Camões (1524-1580) est le plus grand poète de langue portugaise — l'équivalent de Shakespeare pour l'anglais. Ce sonnet fait partie de ses Rimas, publiées après sa mort."},{label:"La logique des contraires",text:"Chaque vers est construit sur un paradoxe : le feu brûle sans se voir, la douleur ne fait pas souffrir. Cette rhétorique pétrarquiste était le sommet de la sophistication poétique."},{label:"Un Brésilien ?",text:"Camões est portugais, mais sa langue est celle du Brésil, et son œuvre est au programme de toutes les écoles brésiliennes depuis des siècles."}]},
+
+  { lang:"pt", langLabel:"Brésilien", title:"No Meio do Caminho", author:"Carlos Drummond de Andrade", year:"1928",
+    text:`No meio do caminho tinha uma pedra\ntinha uma pedra no meio do caminho\ntinha uma pedra\nno meio do caminho tinha uma pedra.\n\nNunca me esquecerei desse acontecimento\nna vida de minhas retinas tão fatigadas.\nNunca me esquecerei que no meio do caminho\ntinha uma pedra\ntinha uma pedra no meio do caminho\nno meio do caminho tinha uma pedra.`,
+    anecdotes:[{label:"Le scandale de la pierre",text:"À sa publication en 1928, ce poème déclenche un tollé : les critiques l'accusent d'être une imposture. Drummond répond avec un calme souverain pendant des années."},{label:"La répétition comme sens",text:"La répétition obsessionnelle n'est pas un défaut — c'est le sujet. La pierre est tout obstacle mental qui colonise la conscience. Une œuvre proto-minimaliste."},{label:"L'influence mondiale",text:"La « pedra no meio do caminho » est entrée dans la langue courante brésilienne comme métaphore de l'obstacle existentiel."}]},
+
+  { lang:"pt", langLabel:"Brésilien", title:"Receita de Mulher", author:"Vinícius de Moraes", year:"1960",
+    text:`As muito feias que me perdoem\nmas beleza é fundamental.\nÉ preciso que haja qualquer coisa de flor\nem tudo isso, não sei…\n\nA mulher que não seja feia\ndeve ter qualquer coisa de pássaro —\nnão o raivoso ou o de rapina\nmas algo de garça\nalgo de andorinha, algo de pomba.\n\nMas que seja levemente maluca —\nmas levemente —\ne que não descuide da loucura.\n\nE que seja bonita\n— mas naturalmente bonita —\ncom a beleza da coisa que existe\ne não da coisa que se enfeita.`,
+    anecdotes:[{label:"Un poème ambigu",text:"Vinícius décrit la femme idéale selon ses critères — beauté naturelle, légère folie, grâce animale. On peut le lire comme un hommage ou comme un manifeste du désir masculin."},{label:"La beauté naturelle",text:"L'insistance sur la beauté « naturelle, pas artificielle » est centrale chez Vinícius. Les images animales (garça, andorinha, pomba) renvoient à la faune brésilienne."},{label:"Vinícius le diplomate amoureux",text:"Vinícius fut en poste à Paris, Los Angeles et Montevideo. Ses neuf mariages alimentaient autant sa poésie que sa réputation."}]},
+
+  { lang:"pt", langLabel:"Brésilien", title:"Motivo", author:"Cecília Meireles", year:"1939",
+    text:`Eu canto porque o instante existe\ne a minha vida está completa.\nNão sou alegre nem sou triste:\nsou poeta.\n\nIrmão das coisas fugidias,\nnão sinto gozo nem tormento.\nPasso os dias que me são dados\nem êxtase e contentamento.\n\nNão sou alegre nem sou triste.\nSou poeta.\nSou poeta e isto me basta:\nviver é poesia.`,
+    anecdotes:[{label:"Cecília Meireles",text:"Cecília Meireles (1901-1964) est la plus grande poétesse brésilienne. Orpheline dès l'enfance, elle écrit une poésie d'une spiritualité et d'une musicalité rares."},{label:"L'identité du poète",text:"« Não sou alegre nem sou triste : sou poeta » — la poésie n'est pas un moyen d'expression, elle est un état d'être. Vision mystique et moderne à la fois."},{label:"L'influence orientale",text:"Cecília fut profondément marquée par la philosophie hindoue et bouddhiste. Son détachement du plaisir et de la douleur rappelle le concept de non-attachement."}]},
+
+  { lang:"pt", langLabel:"Brésilien", title:"Poema de Sete Faces", author:"Carlos Drummond de Andrade", year:"1930",
+    text:`Quando nasci, um anjo torto\ndesses que vivem na sombra\ndisse: Vai, Carlos! ser gauche na vida.\n\nAs casas espiam os homens\nque correm atrás de mulheres.\nA tarde talvez fosse azul,\nnão houvesse tantos desejos.\n\nO bonde passa cheio de pernas:\npernas brancas pretas amarelas.\nPara que tanta perna, meu Deus?\npergunta meu coração.\nPorém meus olhos\nnão perguntam nada.\n\nMundo mundo vasto mundo\nse eu me chamasse Raimundo\nseria uma rima não seria uma solução.\nMundo mundo vasto mundo,\nmais vasto é meu coração.`,
+    anecdotes:[{label:"L'ange gauche",text:"Le premier vers est le plus célèbre de Drummond : « um anjo torto disse: Vai, Carlos! ser gauche na vida ». Être gauche devient sa condition existentielle et son programme poétique."},{label:"Premier poème du premier recueil",text:"Ce poème ouvre Alguma Poesia (1930). Il pose d'emblée tous les thèmes de Drummond : l'inadaptation, la ville, le désir, l'humour mélancolique."},{label:"Le mot gauche",text:"Drummond utilise le mot français « gauche » — un choix délibéré. La langue étrangère dit ce que le portugais ne peut pas exprimer aussi précisément."}]},
+
+  { lang:"pt", langLabel:"Brésilien", title:"Europa, França e Bahia", author:"Oswald de Andrade", year:"1925",
+    text:`Quando eu vier a morrer\nQuero virar bicho do mato\nQuero virar planta\nQuero virar pedra\nQuero virar terra\n\nQuero virar tudo\nMenos gente\nPorque gente\nÉ muito chato.`,
+    anecdotes:[{label:"Le Manifeste Anthropophage",text:"Oswald de Andrade (1890-1954) est le provocateur du modernisme brésilien. En 1928 il publie le Manifeste Anthropophage — « Tupi or not Tupi, that is the question »."},{label:"L'anti-humanisme souriant",text:"Ce petit poème condense tout Oswald : le refus de la solennité, la préférence pour la nature sur la société, la chute finale comique. « Gente é muito chato » reste infiniment citable."},{label:"La Semaine de 1922",text:"Oswald est l'un des organisateurs de la Semaine d'Art Moderne de São Paulo (1922), événement fondateur du modernisme brésilien."}]},
+
+  { lang:"pt", langLabel:"Brésilien", title:"Morte e Vida Severina (extrait)", author:"João Cabral de Melo Neto", year:"1955",
+    text:`O que é o Severino\neu não sei dizer,\nmas sei que é assim que chamam\ntodos os homens que chegam\ndo Sertão do Maranhão.\n\nMas, para que me conheçam\nmelhor Vossas Senhorias\ne melhor possam seguir\na história de minha vida,\npasso a ser o que sou:\n\nsou um Severino,\nsou Francisco Severino,\nsou Francisco de Assis Severino,\nsou o que chamam Severino,\nsou Severino de Maria,\nsou o das secas do Norte,\nsou o boi de carga bruta,\nsou o homem sem esperança.`,
+    anecdotes:[{label:"Un auto de Natal",text:"Morte e Vida Severina est un long poème dramatique qui suit la migration d'un paysan nordestino vers la mer. Adapté en pièce musicale (1966), il reste l'une des œuvres les plus importantes du Brésil."},{label:"Le Sertão",text:"Le Sertão est le semi-aride du Nordeste brésilien, région de sécheresses et d'exodes. Des millions de Nordestinos ont migré vers São Paulo et Rio au XXe siècle."},{label:"João Cabral de Melo Neto",text:"Poète pernamboucain (1920-1999), sa poésie est sèche, précise, anti-lyrique — comme le paysage du Sertão qu'il décrit."}]},
+];
+
+let current = 0;
+
+function renderPoem(idx) {
+  current = ((idx%POEMS.length)+POEMS.length)%POEMS.length;
+  const p = POEMS[current];
+  const wrap = document.getElementById('poem-wrap');
+  wrap.style.opacity=0;
+  setTimeout(()=>{
+    document.getElementById('poem-lang').textContent   = p.langLabel;
+    document.getElementById('poem-title').textContent  = p.title;
+    document.getElementById('poem-author').textContent = p.author + (p.year ? '  ·  '+p.year : '');
+    document.getElementById('poem-body').textContent   = p.text;
+    wrap.style.opacity=1; wrap.style.transition='opacity .35s';
+    if (document.getElementById('side-panel').classList.contains('open')) renderPanel(current);
+    document.querySelectorAll('.poem-item').forEach((el,i)=>el.classList.toggle('active',i===current));
+    document.querySelector('.poem-counter').textContent = (current+1)+' / '+POEMS.length;
+    window.scrollTo({top:0,behavior:'smooth'});
+  },180);
+  wrap.style.transition='opacity .18s';
+}
+
+function buildList() {
+  const list = document.getElementById('poem-list');
+  POEMS.forEach((p,i)=>{
+    const btn = document.createElement('button');
+    btn.className='poem-item'+(i===0?' active':'');
+    btn.innerHTML=`<span class="pi-lang">${p.langLabel}</span><span class="pi-title">${p.title}</span><span class="pi-author">${p.author}</span>`;
+    btn.onclick=()=>{renderPoem(i);closePanel();};
+    list.appendChild(btn);
+  });
+}
+
+function navigate(dir) { renderPoem(current+dir); }
+function goRandom() { let i; do{i=Math.floor(Math.random()*POEMS.length);}while(i===current&&POEMS.length>1); renderPoem(i); }
+
+function renderPanel(idx) {
+  const p = POEMS[idx];
+  document.getElementById('panel-poem-title').textContent = p.title+' — '+p.author;
+  document.getElementById('panel-body').innerHTML = p.anecdotes.map(a=>
+    `<div class="anec-block"><div class="anec-label">${a.label}</div><div class="anec-text">${a.text}</div></div>`
+  ).join('');
+}
+
+function openPanel()  { renderPanel(current); document.getElementById('side-panel').classList.add('open'); document.getElementById('overlay').classList.add('active'); document.getElementById('panel-toggle').classList.add('hidden'); }
+function closePanel() { document.getElementById('side-panel').classList.remove('open'); document.getElementById('overlay').classList.remove('active'); document.getElementById('panel-toggle').classList.remove('hidden'); }
+
+// ajouter compteur au header
+document.querySelector('.page-header').innerHTML += '<span class="poem-counter">1 / '+POEMS.length+'</span>';
+
+buildList();
+renderPoem(Math.floor(Math.random()*POEMS.length));
+</script>
+</body>
+</html>
