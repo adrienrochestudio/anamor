@@ -159,6 +159,89 @@
     color: var(--bord); min-width: 22px; flex-shrink: 0; font-size: 0.8rem;
   }
 
+  /* ── MODAL SOLUTION ── */
+  .sol-overlay {
+    display:none; position:fixed; inset:0;
+    background:rgba(250,248,244,0.92);
+    backdrop-filter:blur(6px);
+    z-index:300;
+    align-items:center; justify-content:center;
+    flex-direction:column; gap:0;
+  }
+  .sol-overlay.active { display:flex; }
+
+  .sol-screen {
+    display:none;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:28px;
+    text-align:center;
+    padding:40px;
+    animation:fadeUp .35s ease;
+  }
+  .sol-screen.active { display:flex; }
+
+  @keyframes fadeUp {
+    from{opacity:0;transform:translateY(12px)}
+    to{opacity:1;transform:translateY(0)}
+  }
+
+  .sol-img-wrap {
+    width:min(52vw,280px); height:min(52vw,280px);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .sol-img-wrap img {
+    width:100%; height:100%; object-fit:contain;
+  }
+  /* Placeholder image — remplace par <img src="..."> */
+  .sol-img-placeholder {
+    width:100%; height:100%;
+    border:2px dashed var(--bord); opacity:0.2;
+    display:flex; align-items:center; justify-content:center;
+    font-size:0.8rem; color:var(--bord);
+    flex-direction:column; gap:6px;
+  }
+
+  .sol-text {
+    font-size:clamp(1.6rem,5vw,3rem);
+    color:var(--bord);
+    line-height:1.2;
+  }
+
+  .sol-subtext {
+    font-size:0.95rem; color:var(--muted);
+  }
+
+  /* Grille solution */
+  .sol-grid-wrap {
+    overflow:auto; max-width:90vw; max-height:70vh;
+  }
+  .sol-grid-wrap table { border-collapse:collapse; }
+  .sol-grid-wrap td {
+    width:36px; height:36px;
+    border:var(--trait) solid var(--bord-l);
+    text-align:center; font-family:'Patrick Hand',cursive;
+    font-size:1rem; font-weight:bold;
+    color:var(--bord); background:transparent;
+  }
+  .sol-grid-wrap td.sol-black { background:var(--bord); border-color:var(--bord); }
+  .sol-grid-wrap td .sol-num {
+    display:block; font-size:8px; color:var(--muted);
+    line-height:1; text-align:left; padding-left:2px;
+    font-weight:normal;
+  }
+
+  .sol-close {
+    margin-top:8px;
+    font-size:0.82rem; color:var(--muted);
+    background:none; border:none;
+    font-family:'Patrick Hand',cursive;
+    cursor:pointer; text-decoration:underline;
+    transition:color .15s;
+  }
+  .sol-close:hover { color:var(--bord); }
+
   @media(max-width:700px) {
     .game-area { grid-template-columns: 1fr; }
     .clues-col { border-left: none; border-top: var(--trait) solid var(--bord-l); padding: 20px 0 0; max-height: none; }
@@ -186,11 +269,48 @@
     <div class="game-actions">
       <button class="btn btn-full" onclick="checkGrid()">check</button>
       <button class="btn"          onclick="resetGrid()">clear</button>
+      <button class="btn"          onclick="startSolution()">see the soluçaõ</button>
     </div>
     <div class="result-msg" id="result-msg"></div>
     <button class="share-btn" id="share-btn" onclick="shareResult()">share this win</button>
   </div>
   <div class="clues-col" id="clues-col"></div>
+</div>
+
+<!-- ── MODAL SOLUTION ── -->
+<div class="sol-overlay" id="sol-overlay">
+
+  <!-- Écran 1 : you sure ? -->
+  <div class="sol-screen active" id="sol-s1">
+    <div class="sol-img-wrap">
+      <!-- remplace par <img src="sol-img1.jpg" alt=""> -->
+      <div class="sol-img-placeholder">image 1<br><span style="font-size:.7rem">sol-img1.jpg</span></div>
+    </div>
+    <div class="sol-text">you sure ?</div>
+    <button class="btn btn-full" onclick="solNext(2)">yeah</button>
+    <button class="sol-close" onclick="closeSol()">nah forget it</button>
+  </div>
+
+  <!-- Écran 2 : reeeeeaaally sure ? -->
+  <div class="sol-screen" id="sol-s2">
+    <div class="sol-img-wrap">
+      <!-- remplace par <img src="sol-img2.jpg" alt=""> -->
+      <div class="sol-img-placeholder">image 2<br><span style="font-size:.7rem">sol-img2.jpg</span></div>
+    </div>
+    <div class="sol-text">reeeeeaaally sure ?</div>
+    <div class="sol-subtext">i mean...</div>
+    <button class="btn btn-full" onclick="solNext(3)">yes ok just show me</button>
+    <button class="sol-close" onclick="closeSol()">ok ok i'll try again</button>
+  </div>
+
+  <!-- Écran 3 : la solution -->
+  <div class="sol-screen" id="sol-s3">
+    <div class="sol-text" style="font-size:1.4rem;margin-bottom:4px">ok fine. here it is.</div>
+    <div class="sol-grid-wrap" id="sol-grid-wrap"></div>
+    <button class="btn btn-full" onclick="applySolution()">fill it in for me</button>
+    <button class="sol-close" onclick="closeSol()">close</button>
+  </div>
+
 </div>
 
 <footer>Ana & Adrien — the kompiuter</footer>
