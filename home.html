@@ -8,24 +8,19 @@
 <style>
   body { text-align: center; }
 
-  /* ── HEADER ── */
-  header {
-    padding: 64px 40px 32px;
-  }
+  header { padding: 64px 40px 32px; }
 
   .title-main {
     font-size: clamp(3.2rem, 10vw, 7rem);
     color: var(--bord);
     line-height: 1;
   }
-
   .title-sub {
     margin-top: 10px;
     font-size: 1rem;
     color: var(--muted);
   }
 
-  /* ── CITATION ── */
   .citation-wrap {
     padding: 28px 40px 8px;
     max-width: 640px;
@@ -36,14 +31,12 @@
     gap: 18px;
     flex-wrap: wrap;
   }
-
   .citation-text {
     font-size: 1.05rem;
     color: var(--text);
     line-height: 1.65;
     text-align: center;
   }
-
   .citation-author {
     display: block;
     font-size: 0.82rem;
@@ -51,7 +44,6 @@
     margin-top: 6px;
     text-align: center;
   }
-
   .citation-aside {
     font-size: 0.88rem;
     color: var(--muted);
@@ -59,7 +51,6 @@
     flex-shrink: 0;
   }
 
-  /* ── ROUE ── */
   .wheel-section {
     padding: 40px 40px 32px;
     display: flex;
@@ -67,15 +58,12 @@
     align-items: center;
     gap: 24px;
   }
-
   .wheel-container {
     position: relative;
     width: 420px; height: 420px;
     max-width: 86vw; max-height: 86vw;
   }
-
   #wheel-canvas { width:100%; height:100%; }
-
   .wheel-pointer {
     position: absolute;
     top: -18px; left: 50%;
@@ -86,7 +74,6 @@
     border-top: 22px solid var(--bord);
     z-index: 6;
   }
-
   .wheel-center {
     position: absolute;
     top: 50%; left: 50%;
@@ -101,11 +88,9 @@
     transition: background .18s, color .18s;
     overflow: hidden;
   }
-
   .wheel-center:hover { background: var(--bord); color: var(--blanc); }
   .wheel-center img   { width:100%; height:100%; object-fit:cover; border-radius:50%; display:none; }
 
-  /* ── CASES DÉSORDONNÉES ── */
   .cards-wrap {
     padding: 16px 40px 64px;
     max-width: 700px;
@@ -115,7 +100,6 @@
     justify-content: center;
     gap: 14px;
   }
-
   .mini-card {
     padding: 14px 22px;
     background: transparent;
@@ -131,27 +115,21 @@
     text-align: center;
     border: var(--trait) solid var(--bord);
   }
+  .mini-card:hover { background: var(--bord); color: var(--blanc); }
 
-  .mini-card:hover {
-    background: var(--bord);
-    color: var(--blanc);
-  }
+  .mini-card:nth-child(1) { transform: translateY(6px)   rotate(-1.2deg); }
+  .mini-card:nth-child(2) { transform: translateY(-8px)  rotate(0.8deg);  }
+  .mini-card:nth-child(3) { transform: translateY(12px)  rotate(-0.5deg); }
+  .mini-card:nth-child(4) { transform: translateY(-4px)  rotate(1.5deg);  }
+  .mini-card:nth-child(5) { transform: translateY(8px)   rotate(-1deg);   }
+  .mini-card:nth-child(6) { transform: translateY(-10px) rotate(0.6deg);  }
+  .mini-card:nth-child(7) { transform: translateY(4px)   rotate(-0.8deg); }
 
-  /* Décalages verticaux pour le désordre */
-  .mini-card:nth-child(1) { transform: translateY(6px)  rotate(-1.2deg); }
-  .mini-card:nth-child(2) { transform: translateY(-8px) rotate(0.8deg); }
-  .mini-card:nth-child(3) { transform: translateY(12px) rotate(-0.5deg); }
-  .mini-card:nth-child(4) { transform: translateY(-4px) rotate(1.5deg); }
-  .mini-card:nth-child(5) { transform: translateY(8px)  rotate(-1deg); }
-  .mini-card:nth-child(6) { transform: translateY(-10px)rotate(0.6deg); }
-
-  /* ── MODAL ── */
-  .modal-bar { width:32px; height:var(--trait); background:var(--bord); margin-bottom:20px; }
+  .modal-bar        { width:32px; height:var(--trait); background:var(--bord); margin-bottom:20px; }
   .modal-title-text { font-size:1.6rem; color:var(--bord); margin-bottom:10px; }
-  .modal-desc { font-size:1rem; color:var(--muted); line-height:1.65; margin-bottom:28px; }
-  .modal-btns { display:flex; gap:10px; flex-wrap:wrap; }
+  .modal-desc       { font-size:1rem; color:var(--muted); line-height:1.65; margin-bottom:28px; }
+  .modal-btns       { display:flex; gap:10px; flex-wrap:wrap; }
 
-  /* ── REPLAY INTRO ── */
   .replay-link {
     display: block;
     text-align: center;
@@ -167,29 +145,6 @@
     padding: 0;
   }
   .replay-link:hover { color: var(--bord); }
-
-  /* ── GEOGUESSR ── */
-  .geo-wrap {
-    text-align: center;
-    padding: 0 40px 24px;
-  }
-  .geo-link {
-    display: inline-block;
-    font-size: 1.05rem;
-    color: var(--bord);
-    text-decoration: none;
-    border-bottom: var(--trait) solid var(--bord);
-    padding-bottom: 1px;
-    transition: opacity .18s;
-  }
-  .geo-link:hover { opacity: .6; }
-  .geo-aside {
-    display: block;
-    margin-top: 6px;
-    font-size: 0.82rem;
-    color: var(--muted);
-  }
-
 </style>
 </head>
 <body>
@@ -201,7 +156,7 @@
 
 <div class="citation-wrap">
   <div>
-    <div class="citation-text"  id="cit-text"></div>
+    <div class="citation-text"   id="cit-text"></div>
     <span class="citation-author" id="cit-author"></span>
   </div>
   <div class="citation-aside">... i guess uh</div>
@@ -232,11 +187,6 @@
       <button class="btn" onclick="closeModal()">nah</button>
     </div>
   </div>
-</div>
-
-<div class="geo-wrap">
-  <a href="https://www.worldguessr.com/" target="_blank" class="geo-link">geoguessr</a>
-  <span class="geo-aside">mais the free version i am a rats uh ratatouille</span>
 </div>
 
 <button class="replay-link" onclick="replayIntro()">see the little animation encore</button>
@@ -273,13 +223,13 @@ const MOTS = [
 
 /* ── SECTIONS ── */
 const SECTIONS = [
-  { label:"poems",     url:"poeme.html",          desc:"A love poem, picked at random. French or Brazilian, oh là là." },
-  { label:"trivia",    url:"quiz-histoire.html",   desc:"France & Brazil mixed — who knows the most, huh ?" },
-  { label:"crossword", url:"mots-croises.html",    desc:"Fill in the grids. Score is saved, bah oui." },
-  { label:"us",        url:"quiz-nous.html",       desc:"Do we really know each other ? let's see..." },
-  { label:"cinema",    url:"filmographie.html",    desc:"Adrien's films, sorted by director." },
-  { label:"todo",      url:"https://www.icloud.com/notes/038_LgyD3tTC4I2XbACKHyCzA#To_do_AA",
-                                                   desc:"Our shared list. the important stuff." },
+  { label:"poems",      url:"poeme.html",          desc:"A love poem, picked at random. French or Brazilian, oh là là." },
+  { label:"trivia",     url:"quiz-histoire.html",   desc:"France & Brazil mixed — who knows the most, huh ?" },
+  { label:"crossword",  url:"mots-croises.html",    desc:"Fill in the grids. Score is saved, bah oui." },
+  { label:"us",         url:"quiz-nous.html",       desc:"Do we really know each other ? let's see..." },
+  { label:"cinema",     url:"filmographie.html",    desc:"Adrien's films, sorted by director." },
+  { label:"geoguessr",  url:"https://www.worldguessr.com/", desc:"Guess where we are — mais the free version, i am a rats uh ratatouille.", external:true },
+  { label:"todo",       url:"https://www.icloud.com/notes/038_LgyD3tTC4I2XbACKHyCzA#To_do_AA", desc:"Our shared list. the important stuff.", external:true },
 ];
 
 const wrap = document.getElementById('cards-wrap');
@@ -287,7 +237,7 @@ SECTIONS.forEach(s => {
   const a = document.createElement('a');
   a.href      = s.url;
   a.className = 'mini-card';
-  if (s.url.startsWith('http')) a.target = '_blank';
+  if (s.external) a.target = '_blank';
   a.textContent = s.label;
   wrap.appendChild(a);
 });
@@ -301,23 +251,20 @@ let angle    = 0, spinning = false;
 const BORD   = '#8B1A2B';
 const BLANC  = '#FAF8F4';
 
-// Perturbation douce : sinus décalé par tranche → pas de cassure
 function softWobble(baseR, angle, sliceIdx) {
-  // Deux harmoniques basse fréquence, déphasées par tranche
   const phase = sliceIdx * 2.3;
-  const w = Math.sin(angle * 3 + phase) * 3.5
-           + Math.sin(angle * 7 + phase * 1.7) * 1.5;
-  return baseR + w;
+  return baseR
+    + Math.sin(angle * 3 + phase) * 3.5
+    + Math.sin(angle * 7 + phase * 1.7) * 1.5;
 }
 
 function drawSlice(cx, cy, baseR, s0, s1, sliceIdx, fill, stroke) {
   const steps = 48;
   ctx.beginPath();
   ctx.moveTo(cx, cy);
-  // Bord extérieur avec wobble sinusoïdal continu
   for (let k = 0; k <= steps; k++) {
-    const a   = s0 + (s1 - s0) * (k / steps);
-    const r   = softWobble(baseR, a, sliceIdx);
+    const a = s0 + (s1 - s0) * (k / steps);
+    const r = softWobble(baseR, a, sliceIdx);
     ctx.lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r);
   }
   ctx.closePath();
@@ -331,25 +278,20 @@ function drawSlice(cx, cy, baseR, s0, s1, sliceIdx, fill, stroke) {
 function drawWheel(a) {
   const cx = canvas.width / 2, cy = canvas.height / 2, r = cx - 10;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-
   for (let i = 0; i < N; i++) {
     const s0   = a + i * ARC - Math.PI / 2;
     const s1   = s0 + ARC;
     const even = i % 2 === 0;
     drawSlice(cx, cy, r, s0, s1, i, even ? BORD : BLANC, BORD);
-
-    // Label
     ctx.save();
     ctx.translate(cx, cy);
     ctx.rotate(s0 + ARC / 2);
-    ctx.textAlign  = 'right';
-    ctx.fillStyle  = even ? BLANC : BORD;
-    ctx.font       = 'bold 18px "Patrick Hand", cursive';
+    ctx.textAlign = 'right';
+    ctx.fillStyle = even ? BLANC : BORD;
+    ctx.font      = 'bold 18px "Patrick Hand", cursive';
     ctx.fillText(SECTIONS[i].label, r - 20, 7);
     ctx.restore();
   }
-
-  // Centre blanc propre pour masquer les jonctions
   ctx.beginPath();
   ctx.arc(cx, cy, 40, 0, 2 * Math.PI);
   ctx.fillStyle   = BLANC;
@@ -390,7 +332,7 @@ function showResult() {
   document.getElementById('modal-desc').textContent  = s.desc;
   const lnk  = document.getElementById('modal-go');
   lnk.href   = s.url;
-  lnk.target = s.url.startsWith('http') ? '_blank' : '';
+  lnk.target = s.external ? '_blank' : '';
   document.getElementById('modal').classList.add('active');
 }
 
