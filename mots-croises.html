@@ -6,245 +6,179 @@
 <title>Crosswords — Ana & Adrien</title>
 <link rel="stylesheet" href="style.css">
 <style>
-  /* ── LAYOUT ── */
-  body { background: var(--blanc); }
+  body { background:var(--blanc); }
 
   .page-header {
-    padding: 36px 40px 24px;
-    display: flex; align-items: center; justify-content: space-between;
+    padding:28px 40px 16px;
+    display:flex; align-items:center; justify-content:space-between;
   }
-  .page-header h1 { font-size: 2rem; color: var(--bord); }
+  .page-header h1 { font-size:2rem; color:var(--bord); }
   .score-badge {
-    font-size: 0.9rem; color: var(--bord);
-    border: var(--trait) solid var(--bord);
-    padding: 6px 18px;
+    font-size:.9rem; color:var(--bord);
+    border:var(--trait) solid var(--bord); padding:6px 18px;
   }
 
-  /* Sélecteur de grille */
   .grid-tabs {
-    padding: 0 40px 24px;
-    display: flex; gap: 6px; flex-wrap: wrap;
+    padding:0 40px 20px;
+    display:flex; gap:6px; flex-wrap:wrap;
   }
   .tab {
-    padding: 7px 14px;
-    border: var(--trait) solid var(--bord-l);
-    background: transparent;
-    font-family: 'Patrick Hand', cursive; font-size: 0.82rem;
-    cursor: pointer; color: var(--muted);
-    transition: all .15s;
-    display: flex; flex-direction: column; gap: 2px; align-items: center;
+    padding:7px 14px;
+    border:var(--trait) solid var(--bord-l);
+    background:transparent;
+    font-family:'Patrick Hand',cursive; font-size:.82rem;
+    cursor:pointer; color:var(--muted);
+    transition:all .15s;
+    display:flex; flex-direction:column; gap:2px; align-items:center;
   }
-  .tab .tab-name { font-size: 0.82rem; }
-  .tab .tab-diff { font-size: 0.65rem; color: var(--muted); }
-  .tab.active, .tab:hover { background: var(--bord); color: var(--blanc); }
-  .tab.active .tab-diff, .tab:hover .tab-diff { color: rgba(250,248,244,0.6); }
-  .tab.done .tab-name::before { content: '✓ '; }
+  .tab .tn { font-size:.82rem; }
+  .tab .td { font-size:.62rem; color:var(--muted); }
+  .tab.active,.tab:hover { background:var(--bord); color:var(--blanc); }
+  .tab.active .td,.tab:hover .td { color:rgba(250,248,244,.6); }
+  .tab.done .tn::before { content:'✓ '; }
 
-  /* Zone de jeu : ¾ grille + ¼ consignes */
   .game-area {
-    display: grid;
-    grid-template-columns: 3fr 1fr;
-    gap: 0;
-    padding: 0 40px 40px;
-    min-height: 60vh;
+    display:grid;
+    grid-template-columns:3fr 1fr;
+    gap:0;
+    padding:0 40px 40px;
   }
 
-  /* ── GRILLE ── */
   .grid-col {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    display:flex; flex-direction:column; align-items:center;
   }
 
   .grid-title {
-    font-size: 1.1rem; color: var(--bord);
-    margin-bottom: 16px; text-align: center;
-    letter-spacing: 0.03em;
+    font-size:1rem; color:var(--bord);
+    margin-bottom:16px; text-align:center;
   }
 
-  .cw-table {
-    border-collapse: collapse;
-  }
-
+  .cw-table { border-collapse:collapse; }
   .cw-table td {
-    width: 42px; height: 42px;
-    border: var(--trait) solid var(--bord-l);
-    position: relative; text-align: center;
-    padding: 0;
+    width:40px; height:40px;
+    border:var(--trait) solid var(--bord-l);
+    position:relative; text-align:center; padding:0;
   }
-
-  .cw-table td.black {
-    background: var(--bord);
-    border-color: var(--bord);
-  }
-
+  .cw-table td.blk { background:var(--bord); border-color:var(--bord); }
   .cw-table td input {
-    width: 100%; height: 100%;
-    border: none; background: transparent;
-    text-align: center;
-    font-family: 'Patrick Hand', cursive; font-size: 1.1rem; font-weight: bold;
-    color: var(--text);
-    text-transform: uppercase; outline: none; cursor: pointer;
-    caret-color: transparent;
+    width:100%; height:100%; border:none; background:transparent;
+    text-align:center;
+    font-family:'Patrick Hand',cursive; font-size:1.1rem; font-weight:bold;
+    color:var(--text); text-transform:uppercase; outline:none; cursor:pointer;
+    caret-color:transparent;
+  }
+  .cw-table td input:focus { background:rgba(139,26,43,.08); }
+  .cw-table td input.ok  { background:var(--bord); color:var(--blanc); }
+  .cw-table td input.bad { background:rgba(139,26,43,.15); color:var(--bord); }
+  .cw-table td input.sel { background:rgba(139,26,43,.12); }
+  .cn {
+    position:absolute; top:2px; left:3px;
+    font-size:8px; color:var(--muted);
+    pointer-events:none; line-height:1;
+    font-family:'Patrick Hand',cursive;
   }
 
-  .cw-table td input:focus { background: rgba(139,26,43,0.08); }
-  .cw-table td input.correct { background: var(--bord); color: var(--blanc); }
-  .cw-table td input.wrong   { background: rgba(139,26,43,0.15); color: var(--bord); }
-  .cw-table td input.selected { background: rgba(139,26,43,0.14); }
-
-  .cell-num {
-    position: absolute; top: 2px; left: 3px;
-    font-size: 8px; color: var(--muted);
-    pointer-events: none; line-height: 1;
-    font-family: 'Patrick Hand', cursive;
-  }
-
-  /* Actions */
   .game-actions {
-    margin-top: 20px;
-    display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;
+    margin-top:18px;
+    display:flex; gap:10px; flex-wrap:wrap; justify-content:center;
   }
 
-  /* Message résultat */
   .result-msg {
-    margin-top: 14px;
-    font-size: 0.95rem; color: var(--muted);
-    text-align: center; min-height: 24px;
+    margin-top:12px; font-size:.95rem;
+    color:var(--muted); text-align:center; min-height:22px;
   }
-  .result-msg.win { color: var(--bord); font-size: 1.1rem; }
+  .result-msg.win { color:var(--bord); font-size:1.05rem; }
 
-  /* Share */
   .share-btn {
-    display: none;
-    margin-top: 10px;
-    padding: 10px 24px;
-    background: transparent;
-    border: var(--trait) solid var(--bord);
-    font-family: 'Patrick Hand', cursive; font-size: 0.9rem;
-    color: var(--bord); cursor: pointer;
-    transition: all .15s;
+    display:none; margin-top:8px;
+    padding:10px 24px;
+    background:transparent; border:var(--trait) solid var(--bord);
+    font-family:'Patrick Hand',cursive; font-size:.9rem;
+    color:var(--bord); cursor:pointer; transition:all .15s;
   }
-  .share-btn:hover { background: var(--bord); color: var(--blanc); }
-  .share-btn.show { display: inline-block; }
+  .share-btn:hover { background:var(--bord); color:var(--blanc); }
+  .share-btn.show { display:inline-block; }
 
-  /* ── CONSIGNES ── */
   .clues-col {
-    padding-left: 28px;
-    border-left: var(--trait) solid var(--bord-l);
-    font-size: 0.85rem;
-    overflow-y: auto;
-    max-height: 80vh;
+    padding-left:24px;
+    border-left:var(--trait) solid var(--bord-l);
+    font-size:.85rem;
+    overflow-y:auto; max-height:80vh;
   }
-
   .clues-col h3 {
-    font-size: 0.9rem; color: var(--bord);
-    margin: 0 0 8px; padding-bottom: 4px;
-    border-bottom: 1px solid var(--bord-l);
+    font-size:.88rem; color:var(--bord);
+    margin:0 0 8px; padding-bottom:4px;
+    border-bottom:1px solid var(--bord-l);
   }
-  .clues-col h3:not(:first-child) { margin-top: 20px; }
-
-  .clue-list { list-style: none; margin-bottom: 4px; }
+  .clues-col h3:not(:first-child) { margin-top:18px; }
+  .clue-list { list-style:none; }
   .clue-list li {
-    display: flex; gap: 8px;
-    padding: 4px 0; line-height: 1.4;
-    border-bottom: 1px solid var(--bord-l);
-    color: var(--text);
-    cursor: pointer;
-    transition: color .15s;
+    display:flex; gap:8px;
+    padding:4px 0; line-height:1.4;
+    border-bottom:1px solid var(--bord-l);
+    color:var(--text); cursor:pointer; transition:color .15s;
   }
-  .clue-list li:hover { color: var(--bord); }
-  .clue-list li.active-clue { color: var(--bord); font-weight: bold; }
+  .clue-list li:hover { color:var(--bord); }
+  .clue-list li.hi { color:var(--bord); font-weight:bold; }
   .clue-list li span:first-child {
-    color: var(--bord); min-width: 22px; flex-shrink: 0; font-size: 0.8rem;
+    color:var(--bord); min-width:20px; flex-shrink:0; font-size:.78rem;
   }
 
   /* ── MODAL SOLUTION ── */
   .sol-overlay {
     display:none; position:fixed; inset:0;
-    background:rgba(250,248,244,0.92);
-    backdrop-filter:blur(6px);
-    z-index:300;
+    background:rgba(250,248,244,.92);
+    backdrop-filter:blur(6px); z-index:300;
     align-items:center; justify-content:center;
-    flex-direction:column; gap:0;
   }
   .sol-overlay.active { display:flex; }
 
   .sol-screen {
-    display:none;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    gap:28px;
-    text-align:center;
-    padding:40px;
-    animation:fadeUp .35s ease;
+    display:none; flex-direction:column;
+    align-items:center; justify-content:center;
+    gap:24px; text-align:center; padding:40px;
+    animation:pu .3s ease;
   }
+  @keyframes pu { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
   .sol-screen.active { display:flex; }
 
-  @keyframes fadeUp {
-    from{opacity:0;transform:translateY(12px)}
-    to{opacity:1;transform:translateY(0)}
-  }
-
-  .sol-img-wrap {
-    width:min(52vw,280px); height:min(52vw,280px);
+  .sol-img {
+    width:min(50vw,260px); height:min(50vw,260px);
+    border:2px dashed var(--bord); opacity:.2;
     display:flex; align-items:center; justify-content:center;
+    font-size:.8rem; color:var(--bord);
   }
-  .sol-img-wrap img {
-    width:100%; height:100%; object-fit:contain;
-  }
-  /* Placeholder image — remplace par <img src="..."> */
-  .sol-img-placeholder {
-    width:100%; height:100%;
-    border:2px dashed var(--bord); opacity:0.2;
-    display:flex; align-items:center; justify-content:center;
-    font-size:0.8rem; color:var(--bord);
-    flex-direction:column; gap:6px;
-  }
+  .sol-img img { width:100%; height:100%; object-fit:contain; opacity:1; }
 
-  .sol-text {
-    font-size:clamp(1.6rem,5vw,3rem);
-    color:var(--bord);
-    line-height:1.2;
-  }
+  .sol-txt { font-size:clamp(1.6rem,5vw,3rem); color:var(--bord); line-height:1.2; }
+  .sol-sub { font-size:.95rem; color:var(--muted); }
 
-  .sol-subtext {
-    font-size:0.95rem; color:var(--muted);
-  }
-
-  /* Grille solution */
-  .sol-grid-wrap {
-    overflow:auto; max-width:90vw; max-height:70vh;
-  }
+  .sol-grid-wrap { overflow:auto; max-width:88vw; max-height:60vh; }
   .sol-grid-wrap table { border-collapse:collapse; }
   .sol-grid-wrap td {
-    width:36px; height:36px;
+    width:34px; height:34px;
     border:var(--trait) solid var(--bord-l);
-    text-align:center; font-family:'Patrick Hand',cursive;
-    font-size:1rem; font-weight:bold;
-    color:var(--bord); background:transparent;
+    text-align:center;
+    font-family:'Patrick Hand',cursive; font-size:.95rem; font-weight:bold;
+    color:var(--bord);
   }
-  .sol-grid-wrap td.sol-black { background:var(--bord); border-color:var(--bord); }
-  .sol-grid-wrap td .sol-num {
-    display:block; font-size:8px; color:var(--muted);
-    line-height:1; text-align:left; padding-left:2px;
-    font-weight:normal;
+  .sol-grid-wrap td.sblk { background:var(--bord); border-color:var(--bord); }
+  .sol-grid-wrap .sn {
+    display:block; font-size:7px; color:var(--muted);
+    line-height:1; text-align:left; padding-left:2px; font-weight:normal;
   }
 
   .sol-close {
-    margin-top:8px;
-    font-size:0.82rem; color:var(--muted);
+    margin-top:4px; font-size:.82rem; color:var(--muted);
     background:none; border:none;
     font-family:'Patrick Hand',cursive;
     cursor:pointer; text-decoration:underline;
-    transition:color .15s;
   }
   .sol-close:hover { color:var(--bord); }
 
   @media(max-width:700px) {
-    .game-area { grid-template-columns: 1fr; }
-    .clues-col { border-left: none; border-top: var(--trait) solid var(--bord-l); padding: 20px 0 0; max-height: none; }
+    .game-area { grid-template-columns:1fr; }
+    .clues-col { border-left:none; border-top:var(--trait) solid var(--bord-l); padding:16px 0 0; max-height:none; }
   }
 </style>
 </head>
@@ -256,9 +190,7 @@
   <div class="score-badge" id="score-badge">0 pts</div>
 </nav>
 
-<div class="page-header">
-  <h1>crosswords</h1>
-</div>
+<div class="page-header"><h1>crosswords</h1></div>
 
 <div class="grid-tabs" id="grid-tabs"></div>
 
@@ -268,8 +200,8 @@
     <table class="cw-table" id="cw-table"></table>
     <div class="game-actions">
       <button class="btn btn-full" onclick="checkGrid()">check</button>
-      <button class="btn"          onclick="resetGrid()">clear</button>
-      <button class="btn"          onclick="startSolution()">see the soluçaõ</button>
+      <button class="btn" onclick="resetGrid()">clear</button>
+      <button class="btn" onclick="startSol()">see the soluçaõ</button>
     </div>
     <div class="result-msg" id="result-msg"></div>
     <button class="share-btn" id="share-btn" onclick="shareResult()">share this win</button>
@@ -277,88 +209,69 @@
   <div class="clues-col" id="clues-col"></div>
 </div>
 
-<!-- ── MODAL SOLUTION ── -->
-<div class="sol-overlay" id="sol-overlay">
-
-  <!-- Écran 1 : you sure ? -->
-  <div class="sol-screen active" id="sol-s1">
-    <div class="sol-img-wrap">
-      <!-- remplace par <img src="sol-img1.jpg" alt=""> -->
-      <div class="sol-img-placeholder">image 1<br><span style="font-size:.7rem">sol-img1.jpg</span></div>
-    </div>
-    <div class="sol-text">you sure ?</div>
-    <button class="btn btn-full" onclick="solNext(2)">yeah</button>
-    <button class="sol-close" onclick="closeSol()">nah forget it</button>
-  </div>
-
-  <!-- Écran 2 : reeeeeaaally sure ? -->
-  <div class="sol-screen" id="sol-s2">
-    <div class="sol-img-wrap">
-      <!-- remplace par <img src="sol-img2.jpg" alt=""> -->
-      <div class="sol-img-placeholder">image 2<br><span style="font-size:.7rem">sol-img2.jpg</span></div>
-    </div>
-    <div class="sol-text">reeeeeaaally sure ?</div>
-    <div class="sol-subtext">i mean...</div>
-    <button class="btn btn-full" onclick="solNext(3)">yes ok just show me</button>
-    <button class="sol-close" onclick="closeSol()">ok ok i'll try again</button>
-  </div>
-
-  <!-- Écran 3 : la solution -->
-  <div class="sol-screen" id="sol-s3">
-    <div class="sol-text" style="font-size:1.4rem;margin-bottom:4px">ok fine. here it is.</div>
-    <div class="sol-grid-wrap" id="sol-grid-wrap"></div>
-    <button class="btn btn-full" onclick="applySolution()">fill it in for me</button>
-    <button class="sol-close" onclick="closeSol()">close</button>
-  </div>
-
-</div>
-
 <footer>Ana & Adrien — the kompiuter</footer>
 
-<script>
-// ══════════════════════════════════════════════════════════════
-//  10 GRILLES — difficulté croissante
-//  Format grille : '#' = case noire, lettre = case active
-//  Les numéros sont attribués automatiquement (standard crossword)
-// ══════════════════════════════════════════════════════════════
-const GRIDS = [
+<!-- SOLUTION MODAL -->
+<div class="sol-overlay" id="sol-overlay">
+  <div class="sol-screen active" id="sol1">
+    <div class="sol-img" id="sol-img1">image<br><small>sol-img1.jpg</small></div>
+    <div class="sol-txt">you sure ?</div>
+    <button class="btn btn-full" onclick="solGo(2)">yeah</button>
+    <button class="sol-close" onclick="closeSol()">nah forget it</button>
+  </div>
+  <div class="sol-screen" id="sol2">
+    <div class="sol-img" id="sol-img2">image<br><small>sol-img2.jpg</small></div>
+    <div class="sol-txt">reeeeeaaally sure ?</div>
+    <div class="sol-sub">i mean...</div>
+    <button class="btn btn-full" onclick="solGo(3)">yes ok just show me</button>
+    <button class="sol-close" onclick="closeSol()">ok ok i'll try again</button>
+  </div>
+  <div class="sol-screen" id="sol3">
+    <div class="sol-txt" style="font-size:1.4rem">ok fine. here it is.</div>
+    <div class="sol-grid-wrap" id="sol-grid-wrap"></div>
+    <button class="btn btn-full" onclick="applySol()">fill it in for me</button>
+    <button class="sol-close" onclick="closeSol()">close</button>
+  </div>
+</div>
 
-// ── 1. Clichés parisiens & brésiliens ────────────────────────
+<script>
+// ════════════════════════════════════════════════════════
+//  GRILLES
+// ════════════════════════════════════════════════════════
+var GRIDS = [
 {
   name:"clichés", diff:1,
   theme:"Paris & Brasil — the clichés",
   grid:[
     ['#','B','E','R','E','T','#','#','#','#','#','#','#'],
-    ['#','A','#','#','#','#','#','T','#','#','#','#','#'],
+    ['#','A','#','#','#','#','#','#','#','#','#','#','#'],
     ['#','G','O','U','R','M','E','T','#','#','#','#','#'],
-    ['#','U','#','#','#','#','#','A','#','#','#','#','#'],
-    ['F','E','T','T','E','#','#','N','G','O','#','#','#'],
-    ['U','T','#','#','#','#','#','G','#','#','#','#','#'],
-    ['T','T','#','#','#','#','#','O','#','#','#','#','#'],
-    ['E','E','#','#','#','#','#','#','#','#','#','#','#'],
-    ['B','#','#','#','#','#','#','#','#','#','#','#','#'],
-    ['O','C','A','I','P','I','R','I','N','H','A','#','#'],
-    ['L','#','#','#','#','#','#','#','#','#','#','#','#'],
-    ['#','S','A','M','B','A','#','#','#','#','#','#','#'],
+    ['#','U','#','#','#','#','#','#','#','#','#','#','#'],
+    ['#','F','U','T','E','B','O','L','#','#','#','#','#'],
+    ['#','E','#','#','#','#','#','#','#','#','#','#','#'],
+    ['C','A','I','P','I','R','I','N','H','A','#','#','#'],
+    ['#','U','#','#','#','#','#','#','#','#','#','#','#'],
+    ['S','A','M','B','A','#','#','#','#','#','#','#','#'],
+    ['#','X','#','#','#','#','#','#','#','#','#','#','#'],
+    ['C','H','A','M','P','A','G','N','E','#','#','#','#'],
     ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
+    ['#','#','#','#','#','#','#','#','#','#','#','#','#']
   ],
   clues:{
     across:[
       {num:1,  clue:"Le couvre-chef du Français stéréotypé"},
       {num:3,  clue:"Il mange bien, le Français — il est ___"},
-      {num:7,  clue:"Le sport national du Brésil"},
-      {num:9,  clue:"Cocktail brésilien à la cachaça et au citron vert"},
-      {num:11, clue:"Rythme de Rio, carnaval, fête"},
+      {num:4,  clue:"Sport national du Brésil"},
+      {num:5,  clue:"Cocktail brésilien, cachaça et citron vert"},
+      {num:6,  clue:"Rythme de Rio, carnaval"},
+      {num:7,  clue:"Bulles françaises pour fêter"}
     ],
     down:[
       {num:2,  clue:"Pain long et croustillant, symbole de Paris"},
-      {num:4,  clue:"Boisson brésilienne, alcool de canne à sucre"},
-      {num:6,  clue:"Rythme argentin adoré des Brésiliens"},
+      {num:8,  clue:"Instrument de musique brésilien — berimbau ou ___"}
     ]
   }
 },
-
-// ── 2. Insultes FR & expressions BR ──────────────────────────
 {
   name:"insultes", diff:2,
   theme:"insults & expressions — FR & BR",
@@ -375,29 +288,27 @@ const GRIDS = [
     ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
     ['B','O','S','S','A','#','#','#','#','#','#','#','#'],
     ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
-    ['C','A','R','A','M','B','A','#','#','#','#','#','#'],
+    ['C','A','R','A','M','B','A','#','#','#','#','#','#']
   ],
   clues:{
     across:[
       {num:1,  clue:"Idiot affectueux, insulte du Sud de la France"},
-      {num:3,  clue:"Juron français universel, à toutes les sauces"},
-      {num:5,  clue:"Mauvais conducteur en argot brésilien (litt. barbier)"},
-      {num:7a, clue:"Mec, gars, en brésilien familier"},
-      {num:7b, clue:"Exclamation de surprise ou déception, en brésilien"},
-      {num:9,  clue:"Nostalgie douce-amère, mot-âme brésilien"},
-      {num:11, clue:"Genre musical — ___ nova, né à Rio dans les 50s"},
-      {num:13, clue:"Exclamation espagnole/brésilienne de surprise"},
+      {num:3,  clue:"Juron français universel"},
+      {num:4,  clue:"Mauvais conducteur en argot brésilien (litt. barbier)"},
+      {num:5,  clue:"Mec, gars — brésilien familier"},
+      {num:6,  clue:"Exclamation brésilienne de surprise"},
+      {num:7,  clue:"Nostalgie douce-amère, mot-âme brésilien"},
+      {num:8,  clue:"Genre musical — ___ nova, né à Rio"},
+      {num:9,  clue:"Exclamation de surprise espagnole/brésilienne"}
     ],
     down:[
       {num:2,  clue:"Énergie, dynamisme — avoir du ___"},
-      {num:10, clue:"Juron français, exclamation vive (3 lettres)"},
+      {num:10, clue:"Juron français court (3 lettres)"}
     ]
   }
 },
-
-// ── 3. Amour, littérature & cinéma ───────────────────────────
 {
-  name:"amour & cinéma", diff:3,
+  name:"cinéma", diff:3,
   theme:"love, literature & French cinema",
   grid:[
     ['T','R','U','F','F','A','U','T','#','#','#','#','#'],
@@ -412,106 +323,97 @@ const GRIDS = [
     ['B','A','R','D','O','T','#','#','#','#','#','#','#'],
     ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
     ['N','O','U','V','E','L','L','E','#','#','#','#','#'],
-    ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
+    ['#','#','#','#','#','#','#','#','#','#','#','#','#']
   ],
   clues:{
     across:[
-      {num:1,  clue:"Réalisateur des 400 coups, Jules et Jim"},
+      {num:1,  clue:"Réalisateur des 400 coups et de Jules et Jim"},
       {num:3,  clue:"Ce mot résume toute la littérature française"},
-      {num:5,  clue:"Réalisateur de À bout de souffle, Le Mépris"},
-      {num:8,  clue:"Cinéaste de Pickpocket et Au hasard Balthazar"},
-      {num:10, clue:"Brigitte ___, icône française et sex-symbol"},
-      {num:12, clue:"___ vague — mouvement cinématographique des années 60"},
+      {num:4,  clue:"Réalisateur de À bout de souffle"},
+      {num:5,  clue:"Cinéaste de Pickpocket et Au hasard Balthazar"},
+      {num:6,  clue:"Brigitte ___ — icône française"},
+      {num:7,  clue:"___ vague — mouvement cinéma des années 60"}
     ],
     down:[
-      {num:2,  clue:"Recherche du temps perdu — auteur : Marcel ___"},
-      {num:9,  clue:"Verlaine, Rimbaud — poètes ___"},
+      {num:2,  clue:"À la recherche du temps perdu — auteur : Marcel ___"},
+      {num:8,  clue:"Paul ___ — poète des Romances sans paroles"}
     ]
   }
 },
-
-// ── 4. Histoire de France & Europe ───────────────────────────
 {
   name:"histoire", diff:4,
   theme:"French & European history",
   grid:[
     ['B','A','S','T','I','L','L','E','#','#','#','#','#'],
-    ['A','#','#','#','#','O','#','#','S','#','#','#','#'],
+    ['A','#','#','#','#','#','#','#','S','#','#','#','#'],
     ['N','A','P','O','L','E','O','N','#','#','#','#','#'],
-    ['S','#','#','#','#','N','#','#','I','#','#','#','#'],
+    ['#','#','#','#','#','#','#','#','I','#','#','#','#'],
     ['V','E','R','S','A','I','L','L','E','S','#','#','#'],
-    ['#','#','#','#','#','N','#','#','N','#','#','#','#'],
+    ['#','#','#','#','#','#','#','#','N','#','#','#','#'],
     ['D','E','G','A','U','L','L','E','#','#','#','#','#'],
     ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
     ['G','U','I','L','L','O','T','I','N','E','#','#','#'],
     ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
     ['R','O','B','E','S','P','I','E','R','R','E','#','#'],
     ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
-    ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
+    ['L','O','U','I','S','#','#','#','#','#','#','#','#']
   ],
   clues:{
     across:[
       {num:1,  clue:"Prison prise le 14 juillet 1789"},
-      {num:3,  clue:"Conquérant, exilé à Sainte-Hélène"},
-      {num:5,  clue:"Château du Roi-Soleil, Louis XIV"},
-      {num:7,  clue:"Général et président — De ___"},
-      {num:9,  clue:"Machine d'exécution de la Révolution"},
-      {num:11, clue:"Révolutionnaire, la Terreur, guillotiné en 1794"},
+      {num:3,  clue:"Conquérant et consul, exilé à Sainte-Hélène"},
+      {num:4,  clue:"Château du Roi-Soleil, Louis XIV"},
+      {num:5,  clue:"Général et président — De ___"},
+      {num:6,  clue:"Machine d'exécution de la Révolution"},
+      {num:7,  clue:"Révolutionnaire guillotiné en 1794"},
+      {num:8,  clue:"Prénom de nombreux rois de France"}
     ],
     down:[
       {num:2,  clue:"Fleuve qui traverse Paris"},
-      {num:4,  clue:"Édit accordé aux protestants par Henri IV en 1598"},
-      {num:10, clue:"Le dernier des Valois, Henri ___"},
+      {num:9,  clue:"Édit accordé aux protestants par Henri IV"}
     ]
   }
 },
-
-// ── 5. Art & architecture ─────────────────────────────────────
 {
   name:"art & archi", diff:5,
   theme:"art & architecture",
   grid:[
-    ['#','E','I','F','F','E','L','#','#','#','#','#','#'],
-    ['#','I','#','#','#','#','#','#','#','#','#','#','#'],
-    ['#','C','U','B','I','S','M','E','#','#','#','#','#'],
-    ['#','F','#','#','#','#','#','#','#','#','#','#','#'],
-    ['#','B','A','U','H','A','U','S','#','#','#','#','#'],
-    ['#','E','#','#','#','#','#','#','#','#','#','#','#'],
-    ['#','L','O','U','V','R','E','#','O','S','C','A','R'],
+    ['E','I','F','F','E','L','#','#','#','#','#','#','#'],
+    ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
+    ['C','U','B','I','S','M','E','#','#','#','#','#','#'],
+    ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
+    ['B','A','U','H','A','U','S','#','#','#','#','#','#'],
+    ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
+    ['L','O','U','V','R','E','#','O','S','C','A','R','#'],
     ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
     ['N','I','E','M','E','Y','E','R','#','#','#','#','#'],
     ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
     ['F','R','E','S','Q','U','E','#','#','#','#','#','#'],
     ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
-    ['M','O','S','A','I','Q','U','E','#','#','#','#','#'],
+    ['M','O','S','A','I','Q','U','E','#','#','#','#','#']
   ],
   clues:{
     across:[
       {num:1,  clue:"Tour métallique de Paris, 1889"},
-      {num:3,  clue:"Mouvement de Picasso et Braque"},
-      {num:5,  clue:"École d'art et design allemande fondée par Gropius"},
-      {num:7a, clue:"Le plus grand musée du monde, à Paris"},
-      {num:7b, clue:"Prix du meilleur film étranger — statuette en or"},
-      {num:9,  clue:"Architecte brésilien de Brasília"},
-      {num:11, clue:"Peinture murale à même le mur"},
-      {num:13, clue:"Art décoratif fait de petits carreaux colorés"},
+      {num:2,  clue:"Mouvement pictural de Picasso et Braque"},
+      {num:3,  clue:"École d'art et design allemande, Gropius"},
+      {num:4,  clue:"Le plus grand musée du monde, à Paris"},
+      {num:5,  clue:"Prix du meilleur film — statuette dorée"},
+      {num:6,  clue:"Architecte brésilien de Brasília"},
+      {num:7,  clue:"Peinture murale à même le mur"},
+      {num:8,  clue:"Art décoratif fait de petits carreaux colorés"}
     ],
-    down:[
-      {num:2,  clue:"Tour Eiffel, obélisque — ce sont des ___"},
-      {num:6,  clue:"Le Corbusier, Haussmann — ils sont ___"},
-    ]
+    down:[]
   }
 },
-
-// ── 6. Chanson française ──────────────────────────────────────
 {
   name:"chanson FR", diff:6,
   theme:"chanson française",
   grid:[
     ['P','I','A','F','#','#','#','#','#','#','#','#','#'],
-    ['#','#','#','#','#','#','B','#','#','#','#','#','#'],
+    ['#','#','#','#','B','#','#','#','#','#','#','#','#'],
     ['G','A','I','N','S','B','O','U','R','G','#','#','#'],
-    ['#','#','#','#','#','#','E','#','#','#','#','#','#'],
+    ['#','#','#','#','E','#','#','#','#','#','#','#','#'],
     ['B','A','R','B','A','R','A','#','#','#','#','#','#'],
     ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
     ['B','R','A','S','S','E','N','S','#','#','#','#','#'],
@@ -520,65 +422,61 @@ const GRIDS = [
     ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
     ['C','L','A','U','D','E','#','#','#','#','#','#','#'],
     ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
-    ['V','A','R','E','N','S','#','#','#','#','#','#','#'],
+    ['V','A','R','E','N','S','#','#','#','#','#','#','#']
   ],
   clues:{
     across:[
       {num:1,  clue:"Elle chantait La vie en rose"},
       {num:3,  clue:"Il chantait Je t'aime... moi non plus"},
-      {num:5,  clue:"La Dame brune, Ma plus belle histoire d'amour"},
-      {num:7,  clue:"Les copains d'abord, La mauvaise réputation"},
-      {num:9,  clue:"Il chantait La Bohème, d'origine arménienne"},
-      {num:11, clue:"___ François — chanteuse de Tous les garçons et les filles"},
-      {num:13, clue:"___ Sylvie — yéyé, chanteuse des années 60"},
+      {num:4,  clue:"La Dame brune, Ma plus belle histoire d'amour"},
+      {num:5,  clue:"Les copains d'abord, La mauvaise réputation"},
+      {num:6,  clue:"Il chantait La Bohème, d'origine arménienne"},
+      {num:7,  clue:"___ François — tous les garçons et les filles"},
+      {num:8,  clue:"Sylvie ___ — yéyé, chanteuse années 60"}
     ],
     down:[
       {num:2,  clue:"Il chantait Ne me quitte pas"},
-      {num:4,  clue:"Troisième des trois B de la chanson française"},
+      {num:9,  clue:"Troisième des trois B de la chanson française"}
     ]
   }
 },
-
-// ── 7. Saudade ────────────────────────────────────────────────
 {
   name:"saudade", diff:7,
   theme:"saudade",
   grid:[
     ['S','A','U','D','A','D','E','#','#','#','#','#','#'],
-    ['A','#','#','#','#','#','#','J','#','#','#','#','#'],
+    ['#','#','#','#','#','#','#','J','#','#','#','#','#'],
     ['V','I','N','I','C','I','U','S','#','#','#','#','#'],
-    ['D','#','#','#','#','#','#','O','#','#','#','#','#'],
+    ['#','#','#','#','#','#','#','O','#','#','#','#','#'],
     ['B','O','S','S','A','N','O','V','A','#','#','#','#'],
-    ['A','#','#','#','#','#','#','I','#','#','#','#','#'],
+    ['#','#','#','#','#','#','#','I','#','#','#','#','#'],
     ['D','R','U','M','M','O','N','D','#','#','#','#','#'],
-    ['E','#','#','#','#','#','#','#','#','#','#','#','#'],
+    ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
     ['J','O','B','I','M','#','#','#','#','#','#','#','#'],
     ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
     ['I','P','A','N','E','M','A','#','#','#','#','#','#'],
     ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
-    ['G','I','L','B','E','R','T','O','#','#','#','#','#'],
+    ['G','I','L','B','E','R','T','O','#','#','#','#','#']
   ],
   clues:{
     across:[
       {num:1,  clue:"Nostalgie douce-amère, mot intraduisible brésilien"},
       {num:3,  clue:"Poète du Soneto de Fidelidade, parolier de la Bossa"},
-      {num:5,  clue:"Genre musical né à Rio dans les années 50"},
-      {num:7,  clue:"Grand poète de Minas Gerais, Carlos ___"},
-      {num:9,  clue:"Compositeur de Garota de Ipanema, Antônio Carlos ___"},
-      {num:11, clue:"Plage de Rio rendue célèbre par une chanson"},
-      {num:13, clue:"João ___ — guitariste et chanteur de la Bossa Nova"},
+      {num:4,  clue:"Genre musical né à Rio dans les années 50"},
+      {num:5,  clue:"Grand poète de Minas, Carlos ___ de Andrade"},
+      {num:6,  clue:"Compositeur de Garota de Ipanema, Antônio Carlos ___"},
+      {num:7,  clue:"Plage de Rio rendue célèbre par une chanson"},
+      {num:8,  clue:"João ___ — guitariste fondateur de la Bossa Nova"}
     ],
     down:[
-      {num:2,  clue:"La nostalgie, en portugais, c'est la ___"},
-      {num:4,  clue:"Percussions de Bahia, rythme afro-brésilien"},
+      {num:2,  clue:"Percussion afro-brésilienne de Bahia"},
+      {num:9,  clue:"Compositeur, Aquarela do Brasil — Ary ___"}
     ]
   }
 },
-
-// ── 8. L'Auvergne ────────────────────────────────────────────
 {
   name:"Auvergne", diff:8,
-  theme:"l'Auvergne — histoire & patrimoine",
+  theme:"Auvergne — histoire & patrimoine",
   grid:[
     ['C','L','E','R','M','O','N','T','#','#','#','#','#'],
     ['A','#','#','#','#','#','#','#','V','#','#','#','#'],
@@ -587,31 +485,29 @@ const GRIDS = [
     ['V','I','C','H','Y','#','#','#','C','#','#','#','#'],
     ['#','#','#','#','#','#','#','#','A','#','#','#','#'],
     ['R','O','Q','U','E','F','O','R','T','#','#','#','#'],
+    ['#','#','#','#','#','#','#','#','I','#','#','#','#'],
+    ['A','L','I','G','O','T','#','#','Q','#','#','#','#'],
+    ['#','#','#','#','#','#','#','#','U','#','#','#','#'],
+    ['O','R','C','I','V','A','L','#','E','#','#','#','#'],
     ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
-    ['A','L','I','G','O','T','#','#','#','#','#','#','#'],
-    ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
-    ['O','R','C','I','V','A','L','#','#','#','#','#','#'],
-    ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
-    ['P','A','Y','S','A','N','#','#','#','#','#','#','#'],
+    ['P','A','Y','S','A','N','#','#','#','#','#','#','#']
   ],
   clues:{
     across:[
       {num:1,  clue:"Capitale de l'Auvergne — ___ Ferrand"},
       {num:3,  clue:"Fromage AOP d'Auvergne, le plus ancien de France"},
-      {num:5,  clue:"Ville thermale d'Auvergne, gouvernement de Pétain"},
-      {num:7,  clue:"Fromage à pâte persillée du Massif Central"},
-      {num:9,  clue:"Spécialité auvergnate — purée de pommes de terre et tome"},
-      {num:11, clue:"Village roman d'Auvergne, basilique Notre-Dame"},
-      {num:13, clue:"Le Français des champs — le ___ auvergnat"},
+      {num:4,  clue:"Ville thermale, gouvernement de Pétain"},
+      {num:5,  clue:"Fromage à pâte persillée du Massif Central"},
+      {num:6,  clue:"Spécialité auvergnate — purée, tome fraîche"},
+      {num:7,  clue:"Village roman d'Auvergne, basilique Notre-Dame"},
+      {num:8,  clue:"Le Français des champs — le ___ auvergnat"}
     ],
     down:[
-      {num:2,  clue:"Pic volcanique d'Auvergne — Puy de ___"},
-      {num:4,  clue:"Région d'Auvergne, volcans, lacs et fromages"},
+      {num:2,  clue:"Pic volcanique — Puy de ___"},
+      {num:9,  clue:"Région volcanique d'Auvergne"}
     ]
   }
 },
-
-// ── 9. Minas Gerais ───────────────────────────────────────────
 {
   name:"Minas", diff:9,
   theme:"Minas Gerais",
@@ -625,29 +521,27 @@ const GRIDS = [
     ['Q','U','E','I','J','O','#','#','#','#','#','#','#'],
     ['#','#','#','#','O','#','#','#','#','#','#','#','#'],
     ['O','U','R','O','P','R','E','T','O','#','#','#','#'],
-    ['#','#','#','#','R','#','#','#','#','#','#','#','#'],
+    ['#','#','#','#','E','#','#','#','#','#','#','#','#'],
     ['C','O','N','G','O','N','H','A','S','#','#','#','#'],
     ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
-    ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
+    ['T','I','R','A','D','E','N','T','E','S','#','#','#']
   ],
   clues:{
     across:[
       {num:1,  clue:"Capitale du Minas Gerais — ___ Horizonte"},
       {num:3,  clue:"Grand poète du Minas, Carlos ___ de Andrade"},
-      {num:5,  clue:"Cuisine traditionnelle du Minas Gerais — comida ___"},
-      {num:7,  clue:"Spécialité fromagère — pão de ___"},
-      {num:9,  clue:"Ville baroque patrimoine UNESCO — Ouro ___"},
-      {num:11, clue:"Ville du Minas, sculptures de l'Aleijadinho"},
+      {num:4,  clue:"Cuisine traditionnelle du Minas — comida ___"},
+      {num:5,  clue:"Pão de ___ — spécialité fromagère du Minas"},
+      {num:6,  clue:"Ville baroque patrimoine UNESCO — Ouro ___"},
+      {num:7,  clue:"Ville du Minas, sculptures de l'Aleijadinho"},
+      {num:8,  clue:"Martyr de l'Inconfidência Mineira, héros brésilien"}
     ],
     down:[
-      {num:2,  clue:"Richesse historique du Minas — ville d'Ouro Preto, ville de l'___"},
-      {num:4,  clue:"Rivière de Minas, affluent du São Francisco"},
-      {num:6,  clue:"Cachaça, danse, football — la culture ___"},
+      {num:2,  clue:"Richesse historique du Minas — ville de l'or"},
+      {num:9,  clue:"Rivière du Minas, affluent du São Francisco"}
     ]
   }
 },
-
-// ── 10. Paris — expert ────────────────────────────────────────
 {
   name:"Paris", diff:10,
   theme:"Paris — expert",
@@ -664,113 +558,109 @@ const GRIDS = [
     ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
     ['H','A','U','S','S','M','A','N','N','#','#','#','#'],
     ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
-    ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
+    ['L','O','U','V','R','E','#','#','#','#','#','#','#']
   ],
   clues:{
     across:[
       {num:1,  clue:"Butte de Paris, Sacré-Cœur et place du Tertre"},
-      {num:3,  clue:"Quartier historique de Paris, hôtels particuliers"},
-      {num:5,  clue:"Fleuve qui traverse Paris"},
-      {num:7,  clue:"Place parisienne, Opéra et colonne de Juillet"},
-      {num:9,  clue:"Place de la ___, anciennement de la Révolution"},
-      {num:11, clue:"Baron ___ — il a redessiné Paris sous Napoléon III"},
+      {num:3,  clue:"Quartier historique, hôtels particuliers"},
+      {num:4,  clue:"Fleuve traversant Paris"},
+      {num:5,  clue:"Place parisienne, Opéra et colonne de Juillet"},
+      {num:6,  clue:"Place de la ___, anciennement de la Révolution"},
+      {num:7,  clue:"Baron ___ — il a redessiné Paris sous Napoléon III"},
+      {num:8,  clue:"Le plus grand musée du monde, rive droite"}
     ],
     down:[
       {num:2,  clue:"Île au milieu de la Seine, Notre-Dame"},
-      {num:10, clue:"Quartier bohème de Paris, cabarets et artistes"},
+      {num:9,  clue:"Quartier bohème, cabarets — place du ___"}
     ]
   }
-},
+}
+];
 
-]; // fin GRIDS
-
-// ══════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════
 //  ÉTAT
-// ══════════════════════════════════════════════════════════════
-let currentGrid   = 0;
-let score         = parseInt(localStorage.getItem('cw-score') || '0');
-let doneGrids     = JSON.parse(localStorage.getItem('cw-done') || '[]');
-let inputMap      = []; // inputMap[r][c] = <input> element
-let cellSequence  = []; // liste ordonnée des inputs de la direction courante
-let activeDir     = 'across';
-let activeClueNum = null;
+// ════════════════════════════════════════════════════════
+var currentGrid  = 0;
+var score        = parseInt(localStorage.getItem('cw-score') || '0');
+var doneGrids    = JSON.parse(localStorage.getItem('cw-done') || '[]');
+var inputMap     = [];
+var cellSeq      = [];
+var activeDir    = 'across';
+var activeNum    = null;
 
 document.getElementById('score-badge').textContent = score + ' pts';
 
 // ── ONGLETS ──────────────────────────────────────────────────
-const tabsEl = document.getElementById('grid-tabs');
-GRIDS.forEach((g, i) => {
-  const btn = document.createElement('button');
-  btn.className = 'tab' + (i === 0 ? ' active' : '') + (doneGrids.includes(i) ? ' done' : '');
-  btn.innerHTML = `<span class="tab-name">${g.name}</span><span class="tab-diff">${'·'.repeat(g.diff)}</span>`;
-  btn.onclick = () => {
+var tabsEl = document.getElementById('grid-tabs');
+GRIDS.forEach(function(g, i) {
+  var btn = document.createElement('button');
+  btn.className = 'tab' + (i===0?' active':'') + (doneGrids.indexOf(i)>=0?' done':'');
+  btn.innerHTML = '<span class="tn">'+g.name+'</span><span class="td">'+Array(g.diff+1).join('·')+'</span>';
+  btn.onclick = function() {
     currentGrid = i;
     buildGrid(i);
-    document.querySelectorAll('.tab').forEach((t, j) => t.classList.toggle('active', j === i));
+    document.querySelectorAll('.tab').forEach(function(t,j){ t.classList.toggle('active',j===i); });
   };
   tabsEl.appendChild(btn);
 });
 
-// ── NUMÉROTATION AUTO ────────────────────────────────────────
-function computeNumbers(grid) {
-  const rows = grid.length, cols = grid[0].length;
-  const nums = Array.from({length: rows}, () => Array(cols).fill(0));
-  let n = 1;
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
-      if (grid[r][c] === '#') continue;
-      const acrossStart = (c === 0 || grid[r][c-1] === '#') && c+1 < cols && grid[r][c+1] !== '#';
-      const downStart   = (r === 0 || grid[r-1][c] === '#') && r+1 < rows && grid[r+1][c] !== '#';
-      if (acrossStart || downStart) nums[r][c] = n++;
+// ── NUMÉROTATION ─────────────────────────────────────────────
+function computeNums(grid) {
+  var rows=grid.length, cols=grid[0].length;
+  var nums=[];
+  for(var r=0;r<rows;r++){ nums.push([]); for(var c=0;c<cols;c++) nums[r].push(0); }
+  var n=1;
+  for(var r=0;r<rows;r++) {
+    for(var c=0;c<cols;c++) {
+      if(grid[r][c]==='#') continue;
+      var a=(c===0||grid[r][c-1]==='#')&&c+1<cols&&grid[r][c+1]!=='#';
+      var d=(r===0||grid[r-1][c]==='#')&&r+1<rows&&grid[r+1][c]!=='#';
+      if(a||d) nums[r][c]=n++;
     }
   }
   return nums;
 }
 
-// ── CONSTRUCTION GRILLE ───────────────────────────────────────
+// ── CONSTRUIRE LA GRILLE ─────────────────────────────────────
 function buildGrid(idx) {
-  const g    = GRIDS[idx];
-  const grid = g.grid;
-  const rows = grid.length, cols = grid[0].length;
-  const nums = computeNumbers(grid);
+  var g=GRIDS[idx], grid=g.grid;
+  var rows=grid.length, cols=grid[0].length;
+  var nums=computeNums(grid);
 
   document.getElementById('grid-title').textContent = g.theme;
   document.getElementById('result-msg').textContent = '';
-  document.getElementById('result-msg').className   = 'result-msg';
-  document.getElementById('share-btn').className    = 'share-btn';
+  document.getElementById('result-msg').className = 'result-msg';
+  document.getElementById('share-btn').className = 'share-btn';
 
-  inputMap = [];
-  const table = document.getElementById('cw-table');
-  table.innerHTML = '';
+  inputMap=[];
+  var table=document.getElementById('cw-table');
+  table.innerHTML='';
 
-  for (let r = 0; r < rows; r++) {
-    inputMap[r] = [];
-    const tr = document.createElement('tr');
-    for (let c = 0; c < cols; c++) {
-      const td = document.createElement('td');
-      if (grid[r][c] === '#') {
-        td.className = 'black';
-        inputMap[r][c] = null;
+  for(var r=0;r<rows;r++) {
+    inputMap.push([]);
+    var tr=document.createElement('tr');
+    for(var c=0;c<cols;c++) {
+      var td=document.createElement('td');
+      if(grid[r][c]==='#') {
+        td.className='blk';
+        inputMap[r].push(null);
       } else {
-        if (nums[r][c]) {
-          const sp = document.createElement('span');
-          sp.className = 'cell-num';
-          sp.textContent = nums[r][c];
+        if(nums[r][c]) {
+          var sp=document.createElement('span');
+          sp.className='cn'; sp.textContent=nums[r][c];
           td.appendChild(sp);
         }
-        const inp = document.createElement('input');
-        inp.type = 'text';
-        inp.maxLength = 1;
-        inp.dataset.r   = r;
-        inp.dataset.c   = c;
-        inp.dataset.ans = grid[r][c];
-
-        inp.addEventListener('keydown', onKeyDown);
-        inp.addEventListener('input',   onInput);
-        inp.addEventListener('focus',   () => onFocus(r, c));
-
+        var inp=document.createElement('input');
+        inp.type='text'; inp.maxLength=1;
+        inp.dataset.r=r; inp.dataset.c=c; inp.dataset.ans=grid[r][c];
+        (function(rr,cc){ 
+          inp.addEventListener('keydown',function(e){ onKey(e,rr,cc); });
+          inp.addEventListener('input',  function(e){ onInp(e,rr,cc); });
+          inp.addEventListener('focus',  function()  { onFoc(rr,cc); });
+        })(r,c);
         td.appendChild(inp);
-        inputMap[r][c] = inp;
+        inputMap[r].push(inp);
       }
       tr.appendChild(td);
     }
@@ -778,252 +668,206 @@ function buildGrid(idx) {
   }
 
   buildClues(g, nums);
-  activeDir = 'across';
-  activeClueNum = null;
+  activeDir='across'; activeNum=null;
 }
 
-// ── CONSIGNES ─────────────────────────────────────────────────
+// ── CONSIGNES ────────────────────────────────────────────────
 function buildClues(g, nums) {
-  const col = document.getElementById('clues-col');
-  col.innerHTML = '';
-  ['across','down'].forEach(dir => {
-    const h = document.createElement('h3');
-    h.textContent = dir === 'across' ? '→ across' : '↓ down';
+  var col=document.getElementById('clues-col');
+  col.innerHTML='';
+  ['across','down'].forEach(function(dir) {
+    if(!g.clues[dir]||g.clues[dir].length===0) return;
+    var h=document.createElement('h3');
+    h.textContent=dir==='across'?'→ across':'↓ down';
     col.appendChild(h);
-    const ul = document.createElement('ul');
-    ul.className = 'clue-list';
-    (g.clues[dir] || []).forEach(cl => {
-      const li = document.createElement('li');
-      li.dataset.num = cl.num;
-      li.dataset.dir = dir;
-      li.innerHTML = `<span>${cl.num}.</span><span>${cl.clue}</span>`;
-      li.onclick = () => jumpToClue(cl.num, dir, nums);
+    var ul=document.createElement('ul'); ul.className='clue-list';
+    g.clues[dir].forEach(function(cl) {
+      var li=document.createElement('li');
+      li.dataset.num=cl.num; li.dataset.dir=dir;
+      li.innerHTML='<span>'+cl.num+'.</span><span>'+cl.clue+'</span>';
+      li.onclick=function(){ jumpTo(cl.num, dir, computeNums(GRIDS[currentGrid].grid)); };
       ul.appendChild(li);
     });
     col.appendChild(ul);
   });
 }
 
-function highlightClue(num, dir) {
-  document.querySelectorAll('.clue-list li').forEach(li => {
-    li.classList.toggle('active-clue',
-      parseInt(li.dataset.num) === num && li.dataset.dir === dir);
+function hiClue(num, dir) {
+  document.querySelectorAll('.clue-list li').forEach(function(li) {
+    li.classList.toggle('hi', parseInt(li.dataset.num)===num && li.dataset.dir===dir);
   });
-  // Scroll la consigne active dans la vue
-  const active = document.querySelector('.clue-list li.active-clue');
-  if (active) active.scrollIntoView({block:'nearest', behavior:'smooth'});
+  var a=document.querySelector('.clue-list li.hi');
+  if(a) a.scrollIntoView({block:'nearest',behavior:'smooth'});
 }
 
-// ── NAVIGATION CLAVIER ────────────────────────────────────────
-function onFocus(r, c) {
-  // Déterminer la direction et le mot courant
-  const g    = GRIDS[currentGrid];
-  const grid = g.grid;
-  const nums = computeNumbers(grid);
-
-  // Chercher dans quelle(s) direction(s) cette case appartient
-  const inAcross = canGoDir(grid, r, c, 'across');
-  const inDown   = canGoDir(grid, r, c, 'down');
-
-  if (inAcross && !inDown) activeDir = 'across';
-  else if (!inAcross && inDown) activeDir = 'down';
-  // sinon garde la direction courante
-
-  buildSequence(grid, nums, r, c, activeDir);
-  highlightCurrentWord(grid, nums, r, c, activeDir);
+// ── NAVIGATION ───────────────────────────────────────────────
+function canDir(grid, r, c, dir) {
+  var rows=grid.length, cols=grid[0].length;
+  if(dir==='across') return (c>0&&grid[r][c-1]!=='#')||(c+1<cols&&grid[r][c+1]!=='#');
+  return (r>0&&grid[r-1][c]!=='#')||(r+1<rows&&grid[r+1][c]!=='#');
 }
 
-function canGoDir(grid, r, c, dir) {
-  if (dir === 'across') {
-    const rows = grid.length, cols = grid[0].length;
-    return (c > 0 && grid[r][c-1] !== '#') || (c < cols-1 && grid[r][c+1] !== '#');
-  } else {
-    const rows = grid.length;
-    return (r > 0 && grid[r-1][c] !== '#') || (r < rows-1 && grid[r+1][c] !== '#');
+function buildSeq(grid, nums, r, c, dir) {
+  var rows=grid.length, cols=grid[0].length;
+  var sr=r, sc=c;
+  if(dir==='across') { while(sc>0&&grid[sr][sc-1]!=='#') sc--; }
+  else               { while(sr>0&&grid[sr-1][sc]!=='#') sr--; }
+  cellSeq=[];
+  var cr=sr, cc=sc;
+  while(cr<rows&&cc<cols&&grid[cr][cc]!=='#') {
+    if(inputMap[cr]&&inputMap[cr][cc]) cellSeq.push(inputMap[cr][cc]);
+    if(dir==='across') cc++; else cr++;
   }
+  if(nums[sr][sc]) { activeNum=nums[sr][sc]; hiClue(activeNum, dir); }
 }
 
-function buildSequence(grid, nums, r, c, dir) {
-  const rows = grid.length, cols = grid[0].length;
-  // Trouver le début du mot
-  let sr = r, sc = c;
-  if (dir === 'across') { while (sc > 0 && grid[sr][sc-1] !== '#') sc--; }
-  else                  { while (sr > 0 && grid[sr-1][sc] !== '#') sr--; }
+function hiWord() {
+  document.querySelectorAll('.cw-table input').forEach(function(i){ i.classList.remove('sel'); });
+  cellSeq.forEach(function(i){ i.classList.add('sel'); });
+}
 
-  cellSequence = [];
-  let cr = sr, cc = sc;
-  while (cr < rows && cc < cols && grid[cr][cc] !== '#') {
-    if (inputMap[cr] && inputMap[cr][cc]) cellSequence.push(inputMap[cr][cc]);
-    if (dir === 'across') cc++; else cr++;
-  }
+function onFoc(r, c) {
+  var grid=GRIDS[currentGrid].grid;
+  var nums=computeNums(grid);
+  var ia=canDir(grid,r,c,'across'), id=canDir(grid,r,c,'down');
+  if(ia&&!id) activeDir='across';
+  else if(!ia&&id) activeDir='down';
+  buildSeq(grid,nums,r,c,activeDir);
+  hiWord();
+}
 
-  // Trouver le numéro de la consigne active
-  if (nums[sr][sc]) {
-    activeClueNum = nums[sr][sc];
-    highlightClue(activeClueNum, dir);
+function onInp(e, r, c) {
+  var inp=e.target;
+  var v=inp.value.toUpperCase().replace(/[^A-ZÀÂÄÉÈÊËÎÏÔÙÛÜÇ]/g,'');
+  inp.value=v.slice(-1);
+  inp.classList.remove('ok','bad');
+  if(inp.value) {
+    var idx=cellSeq.indexOf(inp);
+    if(idx!==-1&&idx<cellSeq.length-1) cellSeq[idx+1].focus();
   }
 }
 
-function highlightCurrentWord(grid, nums, r, c, dir) {
-  // Reset toutes les cases
-  document.querySelectorAll('.cw-table input').forEach(inp => {
-    inp.classList.remove('selected');
-  });
-  // Surligner le mot courant
-  cellSequence.forEach(inp => inp.classList.add('selected'));
-  // La case active brille plus fort via :focus
+function onKey(e, r, c) {
+  var inp=e.target;
+  var grid=GRIDS[currentGrid].grid;
+  var rows=grid.length, cols=grid[0].length;
+  var nums=computeNums(grid);
+
+  if(e.key==='Backspace') {
+    if(inp.value==='') {
+      var idx=cellSeq.indexOf(inp);
+      if(idx>0){ cellSeq[idx-1].value=''; cellSeq[idx-1].focus(); }
+    } else { inp.value=''; }
+    e.preventDefault(); return;
+  }
+  if(e.key==='ArrowRight'&&c+1<cols&&inputMap[r][c+1]){ activeDir='across'; buildSeq(grid,nums,r,c+1,'across'); inputMap[r][c+1].focus(); e.preventDefault(); }
+  if(e.key==='ArrowLeft' &&c>0    &&inputMap[r][c-1]){ activeDir='across'; buildSeq(grid,nums,r,c-1,'across'); inputMap[r][c-1].focus(); e.preventDefault(); }
+  if(e.key==='ArrowDown' &&r+1<rows&&inputMap[r+1]&&inputMap[r+1][c]){ activeDir='down'; buildSeq(grid,nums,r+1,c,'down'); inputMap[r+1][c].focus(); e.preventDefault(); }
+  if(e.key==='ArrowUp'   &&r>0    &&inputMap[r-1]&&inputMap[r-1][c]){ activeDir='down'; buildSeq(grid,nums,r-1,c,'down'); inputMap[r-1][c].focus(); e.preventDefault(); }
+  if(e.key==='Tab'){ e.preventDefault(); activeDir=activeDir==='across'?'down':'across'; buildSeq(grid,nums,r,c,activeDir); inp.focus(); }
 }
 
-function onInput(e) {
-  const inp = e.target;
-  const val = inp.value.toUpperCase().replace(/[^A-ZÀÂÄÉÈÊËÎÏÔÙÛÜÇ]/g,'');
-  inp.value  = val.slice(-1);
-  inp.classList.remove('correct', 'wrong');
-
-  if (inp.value) {
-    // Avancer vers la case suivante du mot
-    const idx = cellSequence.indexOf(inp);
-    if (idx !== -1 && idx < cellSequence.length - 1) {
-      cellSequence[idx + 1].focus();
-    }
-  }
-}
-
-function onKeyDown(e) {
-  const inp  = e.target;
-  const r    = parseInt(inp.dataset.r);
-  const c    = parseInt(inp.dataset.c);
-  const grid = GRIDS[currentGrid].grid;
-  const rows = grid.length, cols = grid[0].length;
-
-  if (e.key === 'Backspace') {
-    if (inp.value === '') {
-      // Reculer
-      const idx = cellSequence.indexOf(inp);
-      if (idx > 0) { cellSequence[idx-1].value = ''; cellSequence[idx-1].focus(); }
-    } else {
-      inp.value = '';
-    }
-    e.preventDefault();
-    return;
-  }
-
-  if (e.key === 'ArrowRight' && r < rows && c+1 < cols && inputMap[r][c+1]) {
-    activeDir = 'across';
-    buildSequence(grid, computeNumbers(grid), r, c+1, 'across');
-    inputMap[r][c+1].focus(); e.preventDefault();
-  }
-  if (e.key === 'ArrowLeft'  && c > 0 && inputMap[r][c-1]) {
-    activeDir = 'across';
-    buildSequence(grid, computeNumbers(grid), r, c-1, 'across');
-    inputMap[r][c-1].focus(); e.preventDefault();
-  }
-  if (e.key === 'ArrowDown'  && r+1 < rows && inputMap[r+1] && inputMap[r+1][c]) {
-    activeDir = 'down';
-    buildSequence(grid, computeNumbers(grid), r+1, c, 'down');
-    inputMap[r+1][c].focus(); e.preventDefault();
-  }
-  if (e.key === 'ArrowUp'    && r > 0 && inputMap[r-1] && inputMap[r-1][c]) {
-    activeDir = 'down';
-    buildSequence(grid, computeNumbers(grid), r-1, c, 'down');
-    inputMap[r-1][c].focus(); e.preventDefault();
-  }
-
-  // Tab : changer de direction
-  if (e.key === 'Tab') {
-    e.preventDefault();
-    activeDir = activeDir === 'across' ? 'down' : 'across';
-    buildSequence(grid, computeNumbers(grid), r, c, activeDir);
-    inp.focus();
+function jumpTo(num, dir, nums) {
+  activeDir=dir;
+  var grid=GRIDS[currentGrid].grid;
+  for(var r=0;r<grid.length;r++) for(var c=0;c<grid[0].length;c++) {
+    if(nums[r][c]===num){ buildSeq(grid,nums,r,c,dir); if(inputMap[r][c]) inputMap[r][c].focus(); return; }
   }
 }
 
-function jumpToClue(num, dir, nums) {
-  activeDir = dir;
-  // Trouver la case correspondant au numéro
-  const grid = GRIDS[currentGrid].grid;
-  for (let r = 0; r < grid.length; r++) {
-    for (let c = 0; c < grid[0].length; c++) {
-      if (nums[r][c] === num) {
-        buildSequence(grid, nums, r, c, dir);
-        if (inputMap[r][c]) inputMap[r][c].focus();
-        return;
-      }
-    }
-  }
-}
-
-// ── VÉRIFICATION ─────────────────────────────────────────────
+// ── VÉRIFIER ─────────────────────────────────────────────────
 function checkGrid() {
-  const inputs = document.querySelectorAll('.cw-table input');
-  let correct = 0, total = 0;
-  inputs.forEach(inp => {
-    total++;
-    if (inp.value.toUpperCase() === inp.dataset.ans.toUpperCase()) {
-      inp.classList.add('correct'); inp.classList.remove('wrong');
-      correct++;
-    } else if (inp.value) {
-      inp.classList.add('wrong'); inp.classList.remove('correct');
-    } else {
-      inp.classList.remove('correct','wrong');
-    }
+  var inps=document.querySelectorAll('.cw-table input');
+  var ok=0, tot=0;
+  inps.forEach(function(inp) {
+    tot++;
+    if(inp.value.toUpperCase()===inp.dataset.ans.toUpperCase()){ inp.classList.add('ok'); inp.classList.remove('bad'); ok++; }
+    else if(inp.value){ inp.classList.add('bad'); inp.classList.remove('ok'); }
+    else { inp.classList.remove('ok','bad'); }
   });
-
-  const msg  = document.getElementById('result-msg');
-  const share= document.getElementById('share-btn');
-
-  if (correct === total) {
-    msg.textContent = 'parfait ! grille complète — +' + (currentGrid + 1) * 10 + ' pts';
-    msg.className   = 'result-msg win';
-    share.className = 'share-btn show';
-
-    if (!doneGrids.includes(currentGrid)) {
+  var msg=document.getElementById('result-msg'), sh=document.getElementById('share-btn');
+  if(ok===tot) {
+    msg.textContent='parfait ! grille complète — +'+(currentGrid+1)*10+' pts';
+    msg.className='result-msg win'; sh.className='share-btn show';
+    if(doneGrids.indexOf(currentGrid)<0) {
       doneGrids.push(currentGrid);
-      localStorage.setItem('cw-done', JSON.stringify(doneGrids));
-      score += (currentGrid + 1) * 10;
-      localStorage.setItem('cw-score', score);
-      document.getElementById('score-badge').textContent = score + ' pts';
-      // Marquer l'onglet
+      localStorage.setItem('cw-done',JSON.stringify(doneGrids));
+      score+=(currentGrid+1)*10;
+      localStorage.setItem('cw-score',score);
+      document.getElementById('score-badge').textContent=score+' pts';
       document.querySelectorAll('.tab')[currentGrid].classList.add('done');
     }
   } else {
-    msg.textContent = correct + ' / ' + total + ' correct';
-    msg.className   = 'result-msg';
-    share.className = 'share-btn';
+    msg.textContent=ok+' / '+tot+' correct';
+    msg.className='result-msg'; sh.className='share-btn';
   }
 }
 
-// ── RESET ────────────────────────────────────────────────────
 function resetGrid() {
-  document.querySelectorAll('.cw-table input').forEach(inp => {
-    inp.value = '';
-    inp.classList.remove('correct','wrong','selected');
-  });
-  document.getElementById('result-msg').textContent = '';
-  document.getElementById('result-msg').className   = 'result-msg';
-  document.getElementById('share-btn').className    = 'share-btn';
+  document.querySelectorAll('.cw-table input').forEach(function(i){ i.value=''; i.classList.remove('ok','bad','sel'); });
+  document.getElementById('result-msg').textContent='';
+  document.getElementById('result-msg').className='result-msg';
+  document.getElementById('share-btn').className='share-btn';
+}
+
+// ── SOLUTION ─────────────────────────────────────────────────
+function startSol() {
+  ['sol1','sol2','sol3'].forEach(function(id){ document.getElementById(id).classList.remove('active'); });
+  document.getElementById('sol1').classList.add('active');
+  buildSolGrid();
+  document.getElementById('sol-overlay').classList.add('active');
+}
+
+function solGo(n) {
+  ['sol1','sol2','sol3'].forEach(function(id){ document.getElementById(id).classList.remove('active'); });
+  document.getElementById('sol'+n).classList.add('active');
+}
+
+function closeSol() { document.getElementById('sol-overlay').classList.remove('active'); }
+
+function buildSolGrid() {
+  var g=GRIDS[currentGrid], grid=g.grid;
+  var rows=grid.length, cols=grid[0].length;
+  var nums=computeNums(grid);
+  var wrap=document.getElementById('sol-grid-wrap'); wrap.innerHTML='';
+  var table=document.createElement('table');
+  for(var r=0;r<rows;r++) {
+    var tr=document.createElement('tr');
+    for(var c=0;c<cols;c++) {
+      var td=document.createElement('td');
+      if(grid[r][c]==='#') { td.className='sblk'; }
+      else {
+        if(nums[r][c]){ var s=document.createElement('span'); s.className='sn'; s.textContent=nums[r][c]; td.appendChild(s); }
+        td.appendChild(document.createTextNode(grid[r][c]));
+      }
+      tr.appendChild(td);
+    }
+    table.appendChild(tr);
+  }
+  wrap.appendChild(table);
+}
+
+function applySol() {
+  var g=GRIDS[currentGrid], grid=g.grid;
+  for(var r=0;r<grid.length;r++) for(var c=0;c<grid[0].length;c++) {
+    if(inputMap[r]&&inputMap[r][c]&&grid[r][c]!=='#'){ inputMap[r][c].value=grid[r][c]; inputMap[r][c].classList.add('ok'); inputMap[r][c].classList.remove('bad'); }
+  }
+  closeSol();
+  document.getElementById('result-msg').textContent='voilà. pas de jugement, bah.';
 }
 
 // ── PARTAGE ──────────────────────────────────────────────────
 function shareResult() {
-  const g = GRIDS[currentGrid];
-  const txt = `j'ai fini la grille niveau ${currentGrid + 1} — "${g.theme}" — sur Ana & Adrien the kompiuter 🎉\n${window.location.href}`;
-  if (navigator.share) {
-    navigator.share({ text: txt }).catch(() => fallbackCopy(txt));
-  } else {
-    fallbackCopy(txt);
-  }
+  var g=GRIDS[currentGrid];
+  var txt="j'ai fini la grille niveau "+(currentGrid+1)+" — \""+g.theme+"\" — sur Ana & Adrien the kompiuter\n"+window.location.href;
+  if(navigator.share) { navigator.share({text:txt}).catch(function(){ fallbackCopy(txt); }); }
+  else fallbackCopy(txt);
 }
-
 function fallbackCopy(txt) {
-  navigator.clipboard.writeText(txt).then(() => {
-    document.getElementById('result-msg').textContent = 'copied to clipboard — go share it bah !';
-  }).catch(() => {
-    prompt('copy this :', txt);
-  });
+  navigator.clipboard.writeText(txt).then(function(){ document.getElementById('result-msg').textContent='copied — go share it bah !'; }).catch(function(){ prompt('copy this:',txt); });
 }
 
-// ── INIT ────────────────────────────────────────────────────
+// ── INIT ─────────────────────────────────────────────────────
 buildGrid(0);
 </script>
 </body>
