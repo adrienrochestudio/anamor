@@ -290,10 +290,6 @@
 </div>
 
 <script>
-if (sessionStorage.getItem('intro-seen') === '1') {
-  window.location.replace('home.html');
-}
-
 // Curseur
 const curEl = document.getElementById('cursor');
 document.addEventListener('mousemove', e => {
@@ -334,7 +330,6 @@ function next() {
     fade.style.background = '#FAF8F4';
     fade.classList.add('on');
     setTimeout(() => {
-      sessionStorage.setItem('intro-seen', '1');
       window.location.href = 'home.html';
     }, 650);
     return;
