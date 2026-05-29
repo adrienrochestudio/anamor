@@ -43,6 +43,38 @@
   .field { margin-bottom:18px; }
   .field label { display:block; font-size:0.8rem; color:var(--muted); margin-bottom:6px; }
   .modal-note { font-size:0.85rem; color:var(--muted); margin-bottom:20px; line-height:1.6; }
+
+  /* ── PAGE HEADER ── */
+  .page-header {
+    max-width:960px;
+    margin:0 auto;
+    padding:36px 40px 0;
+  }
+  .page-title {
+    font-size:clamp(1.6rem, 4vw, 2.4rem);
+    color:var(--bord);
+    line-height:1.15;
+    margin-bottom:10px;
+  }
+  .page-sub {
+    font-size:0.92rem;
+    color:var(--muted);
+    line-height:1.7;
+  }
+  .ape-link {
+    display:inline-block;
+    color:var(--bord);
+    text-decoration:none;
+    border-bottom:1.5px solid var(--bord);
+    padding-bottom:1px;
+    margin-left:3px;
+    transition:opacity .18s, letter-spacing .18s;
+    cursor:pointer;
+  }
+  .ape-link:hover {
+    opacity:0.6;
+    letter-spacing:0.04em;
+  }
 </style>
 </head>
 <body>
@@ -52,6 +84,15 @@
   <div class="nav-title">filmografia</div>
   <button class="btn-add" onclick="openModal()">+ add</button>
 </nav>
+
+<div class="page-header">
+  <div class="page-title">mes cinéastes et mes films !</div>
+  <div class="page-sub">
+    but you can add yours with the little button. it will keep the informação
+    and we can make good list together.
+    <a href="https://www.youtube.com/watch?v=fib0dfdtMuI" target="_blank" rel="noopener" class="ape-link">ape… together… strong….</a>
+  </div>
+</div>
 
 <div class="toolbar">
   <div class="search-wrap">
@@ -99,9 +140,6 @@
 </div>
 
 <script>
-// ═══════════════════════════════════════════════════════════════
-//  BASE DE DONNÉES
-// ═══════════════════════════════════════════════════════════════
 const BASE_FILMS = [
   { dir:"Akerman, Chantal",    first:"Chantal",   last:"Akerman",    title:"Jeanne Dielman, 23, quai du Commerce, 1080 Bruxelles", year:"1976" },
   { dir:"Almodovar, Pedro",    first:"Pedro",     last:"Almodovar",   title:"La Loi du désir",          year:"1987" },
@@ -355,23 +393,12 @@ const BASE_FILMS = [
   { dir:"Zeller, Florian",     first:"Florian",   last:"Zeller",      title:"The Son",                  year:"2022" },
 ];
 
-// ═══════════════════════════════════════════════════════════════
-//  ÉTAT
-// ═══════════════════════════════════════════════════════════════
 let addedFilms = JSON.parse(localStorage.getItem('films-added') || '[]');
 let currentFilter = 'all';
 
-function allFilms() {
-  return [...BASE_FILMS, ...addedFilms];
-}
+function allFilms() { return [...BASE_FILMS, ...addedFilms]; }
+function normalize(str) { return str.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase(); }
 
-function normalize(str) {
-  return str.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
-}
-
-// ═══════════════════════════════════════════════════════════════
-//  RENDU
-// ═══════════════════════════════════════════════════════════════
 function buildImdbUrl(title, year) {
   return 'https://www.imdb.com/find/?q=' + encodeURIComponent(title + ' ' + year) + '&s=tt&ttype=ft';
 }
@@ -381,16 +408,13 @@ function render() {
   const list = document.getElementById('film-list');
   list.innerHTML = '';
 
-  // Fusionner base + ajouts, marquer les ajouts
   const films = [
     ...BASE_FILMS.map(f => ({...f, added:false})),
     ...addedFilms.map(f => ({...f, added:true})),
   ];
 
-  // Filtre "ajoutés"
   let pool = currentFilter === 'added' ? films.filter(f => f.added) : films;
 
-  // Filtre recherche
   if (q) {
     pool = pool.filter(f =>
       normalize(f.title).includes(q) ||
@@ -405,21 +429,18 @@ function render() {
     return;
   }
 
-  // Grouper par réalisateur (clé = dir)
   const groups = {};
   pool.forEach(f => {
     if (!groups[f.dir]) groups[f.dir] = [];
     groups[f.dir].push(f);
   });
 
-  // Trier les groupes alphabétiquement (sur last name normalisé)
   const sortedDirs = Object.keys(groups).sort((a, b) => {
     const la = normalize(groups[a][0].last);
     const lb = normalize(groups[b][0].last);
     return la < lb ? -1 : la > lb ? 1 : 0;
   });
 
-  // Séparateurs de lettre
   let lastLetter = '';
 
   sortedDirs.forEach(dir => {
@@ -434,11 +455,9 @@ function render() {
 
     const group = document.createElement('div');
     group.className = 'director-group';
-
     const row = document.createElement('div');
     row.className = 'director-row';
 
-    // Cellule réalisateur
     const dirCell = document.createElement('div');
     dirCell.className = 'director-cell';
     const f0 = groups[dir][0];
@@ -448,11 +467,9 @@ function render() {
         `<span class="first">${f0.first}</span>` +
       `</div>`;
 
-    // Cellule films
     const filmsCell = document.createElement('div');
     filmsCell.className = 'films-cell';
 
-    // Trier les films du groupe par année
     groups[dir]
       .sort((a,b) => (parseInt(a.year)||0) - (parseInt(b.year)||0))
       .forEach(film => {
@@ -485,9 +502,6 @@ function updateStats(visible, added) {
     (added > 0 ? '  ·  ' + added + ' added' : '');
 }
 
-// ═══════════════════════════════════════════════════════════════
-//  FILTRES
-// ═══════════════════════════════════════════════════════════════
 function setFilter(f) {
   currentFilter = f;
   document.getElementById('f-all').classList.toggle('active',   f === 'all');
@@ -497,9 +511,6 @@ function setFilter(f) {
 
 function applyFilters() { render(); }
 
-// ═══════════════════════════════════════════════════════════════
-//  AJOUT
-// ═══════════════════════════════════════════════════════════════
 function openModal() {
   document.getElementById('modal').classList.add('active');
   document.getElementById('f-firstname').focus();
@@ -541,21 +552,16 @@ function addFilm() {
   render();
 }
 
-// Fermer modal sur fond
 document.getElementById('modal').addEventListener('click', e => {
   if (e.target === document.getElementById('modal')) closeModal();
 });
 
-// Enter dans le formulaire
 ['f-firstname','f-lastname','f-title','f-year','f-imdb'].forEach(id => {
   document.getElementById(id).addEventListener('keydown', e => {
     if (e.key === 'Enter') addFilm();
   });
 });
 
-// ═══════════════════════════════════════════════════════════════
-//  INIT
-// ═══════════════════════════════════════════════════════════════
 render();
 </script>
 </body>
