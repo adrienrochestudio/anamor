@@ -146,6 +146,22 @@
     padding: 0;
   }
   .replay-link:hover { color: var(--bord); }
+
+  .not-ana-wrap {
+    text-align: center;
+    padding: 8px 40px 48px;
+  }
+  .not-ana-btn {
+    font-family: 'Patrick Hand', cursive;
+    font-size: 0.82rem;
+    color: var(--muted);
+    text-decoration: none;
+    border-bottom: 1px dashed var(--muted);
+    opacity: 0.4;
+    transition: opacity .18s, color .18s;
+    letter-spacing: 0.04em;
+  }
+  .not-ana-btn:hover { opacity: 1; color: var(--bord); }
 </style>
 </head>
 <body>
@@ -192,6 +208,10 @@
 </div>
 
 <button class="replay-link" onclick="replayIntro()">see the little animation encore</button>
+
+<div class="not-ana-wrap">
+  <a href="stranger.html" class="not-ana-btn">I am not Ana ????</a>
+</div>
 
 <footer>Ana & Adrien — the kompiuter</footer>
 
