@@ -323,299 +323,361 @@
 // ══════════════════════════════════════════════════════════════
 const GRIDS = [
 
-// ── 1. Clichés parisiens & brésiliens (facile) ────────────────
+// ── 1. Clichés parisiens & brésiliens ────────────────────────
 {
-  name: "clichés", diff: 1,
-  theme: "Paris & Brasil — the clichés",
-  grid: [
-    ['B','E','R','E','T','#','#','#','#','#'],
-    ['#','#','U','#','A','#','#','#','#','#'],
-    ['#','#','E','#','N','G','O','U','R','M'],
-    ['#','#','#','#','G','#','#','#','#','A'],
-    ['C','A','I','P','I','R','I','N','H','A'],
-    ['#','#','#','#','N','#','#','#','#','R'],
-    ['#','#','F','U','T','E','B','O','L','A'],
-    ['#','#','#','#','E','#','#','#','#','V'],
-    ['#','#','#','#','#','#','#','#','#','I'],
-    ['#','#','#','#','#','#','#','#','#','L'],
+  name:"clichés", diff:1,
+  theme:"Paris & Brasil — the clichés",
+  grid:[
+    ['#','B','E','R','E','T','#','#','#','#','#','#','#'],
+    ['#','A','#','#','#','#','#','T','#','#','#','#','#'],
+    ['#','G','O','U','R','M','E','T','#','#','#','#','#'],
+    ['#','U','#','#','#','#','#','A','#','#','#','#','#'],
+    ['F','E','T','T','E','#','#','N','G','O','#','#','#'],
+    ['U','T','#','#','#','#','#','G','#','#','#','#','#'],
+    ['T','T','#','#','#','#','#','O','#','#','#','#','#'],
+    ['E','E','#','#','#','#','#','#','#','#','#','#','#'],
+    ['B','#','#','#','#','#','#','#','#','#','#','#','#'],
+    ['O','C','A','I','P','I','R','I','N','H','A','#','#'],
+    ['L','#','#','#','#','#','#','#','#','#','#','#','#'],
+    ['#','S','A','M','B','A','#','#','#','#','#','#','#'],
+    ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
   ],
-  clues: {
-    across: [
-      { num:1,  clue:"Le couvre-chef du Français typique" },
-      { num:5,  clue:"Cocktail brésilien à la cachaça" },
-      { num:7,  clue:"Sport national du Brésil" },
+  clues:{
+    across:[
+      {num:1,  clue:"Le couvre-chef du Français stéréotypé"},
+      {num:3,  clue:"Il mange bien, le Français — il est ___"},
+      {num:7,  clue:"Le sport national du Brésil"},
+      {num:9,  clue:"Cocktail brésilien à la cachaça et au citron vert"},
+      {num:11, clue:"Rythme de Rio, carnaval, fête"},
     ],
-    down: [
-      { num:1,  clue:"Apéritif favori des Parisiens, avec ou sans pastis" },
-      { num:2,  clue:"Émotion brésilienne intraduisible, nostalgie douce" },
-      { num:3,  clue:"Le Parisien aime manger — il est ___" },
+    down:[
+      {num:2,  clue:"Pain long et croustillant, symbole de Paris"},
+      {num:4,  clue:"Boisson brésilienne, alcool de canne à sucre"},
+      {num:6,  clue:"Rythme argentin adoré des Brésiliens"},
     ]
   }
 },
 
-// ── 2. Insultes FR & expressions BR (facile-moyen) ────────────
+// ── 2. Insultes FR & expressions BR ──────────────────────────
 {
-  name: "insults", diff: 2,
-  theme: "insults & expressions — FR & BR",
-  grid: [
-    ['#','#','Z','#','#','#','#','#','#','#'],
-    ['C','O','U','I','L','L','O','N','#','#'],
-    ['#','#','T','#','#','#','#','#','#','#'],
-    ['#','#','E','#','M','E','R','D','E','#'],
-    ['#','#','#','#','#','#','#','#','#','#'],
-    ['B','A','R','B','E','I','R','O','#','#'],
-    ['#','#','#','#','#','#','#','#','#','#'],
-    ['#','#','S','A','U','D','A','D','E','#'],
-    ['#','#','#','#','#','#','#','#','#','#'],
-    ['#','#','P','O','X','A','#','#','#','#'],
+  name:"insultes", diff:2,
+  theme:"insults & expressions — FR & BR",
+  grid:[
+    ['C','O','U','I','L','L','O','N','#','#','#','#','#'],
+    ['A','#','#','#','#','#','#','#','#','Z','#','#','#'],
+    ['M','E','R','D','E','#','#','#','#','U','#','#','#'],
+    ['A','#','#','#','#','#','#','#','#','T','#','#','#'],
+    ['B','A','R','B','E','I','R','O','#','#','#','#','#'],
+    ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
+    ['C','A','R','A','#','P','O','X','A','#','#','#','#'],
+    ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
+    ['S','A','U','D','A','D','E','#','#','#','#','#','#'],
+    ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
+    ['B','O','S','S','A','#','#','#','#','#','#','#','#'],
+    ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
+    ['C','A','R','A','M','B','A','#','#','#','#','#','#'],
   ],
-  clues: {
-    across: [
-      { num:2, clue:"Insulte du Sud de la France, idiot affectueux" },
-      { num:4, clue:"Juron français universel, à toutes les sauces" },
-      { num:6, clue:"Mauvais conducteur en argot brésilien (litt. barbier)" },
-      { num:8, clue:"Nostalgie douce-amère, mot-âme brésilien" },
-      { num:9, clue:"Exclamation brésilienne de surprise ou déception" },
+  clues:{
+    across:[
+      {num:1,  clue:"Idiot affectueux, insulte du Sud de la France"},
+      {num:3,  clue:"Juron français universel, à toutes les sauces"},
+      {num:5,  clue:"Mauvais conducteur en argot brésilien (litt. barbier)"},
+      {num:7a, clue:"Mec, gars, en brésilien familier"},
+      {num:7b, clue:"Exclamation de surprise ou déception, en brésilien"},
+      {num:9,  clue:"Nostalgie douce-amère, mot-âme brésilien"},
+      {num:11, clue:"Genre musical — ___ nova, né à Rio dans les 50s"},
+      {num:13, clue:"Exclamation espagnole/brésilienne de surprise"},
     ],
-    down: [
-      { num:1, clue:"Énergie, dynamisme en argot brésilien — avoir du ___" },
+    down:[
+      {num:2,  clue:"Énergie, dynamisme — avoir du ___"},
+      {num:10, clue:"Juron français, exclamation vive (3 lettres)"},
     ]
   }
 },
 
-// ── 3. Amour, littérature & cinéma français (moyen) ───────────
+// ── 3. Amour, littérature & cinéma ───────────────────────────
 {
-  name: "amour & cinéma", diff: 3,
-  theme: "love, literature & French cinema",
-  grid: [
-    ['#','#','#','T','#','#','#','#','#','#'],
-    ['#','#','#','R','#','#','#','#','#','#'],
-    ['#','#','#','U','#','#','#','#','#','#'],
-    ['F','L','A','F','F','A','U','T','#','#'],
-    ['#','#','#','F','#','#','#','#','#','#'],
-    ['#','V','E','A','U','T','#','#','#','#'],
-    ['#','E','#','U','#','#','#','#','#','#'],
-    ['#','R','#','T','#','#','#','#','#','#'],
-    ['#','L','#','#','#','#','#','#','#','#'],
-    ['#','A','M','O','U','R','#','#','#','#'],
-    ['#','I','#','#','#','#','#','#','#','#'],
-    ['#','N','#','#','#','#','#','#','#','#'],
+  name:"amour & cinéma", diff:3,
+  theme:"love, literature & French cinema",
+  grid:[
+    ['T','R','U','F','F','A','U','T','#','#','#','#','#'],
+    ['R','#','#','#','#','#','#','#','V','#','#','#','#'],
+    ['A','M','O','U','R','#','#','#','E','#','#','#','#'],
+    ['U','#','#','#','#','#','#','#','R','#','#','#','#'],
+    ['G','O','D','A','R','D','#','#','L','#','#','#','#'],
+    ['#','#','#','#','#','#','#','#','A','#','#','#','#'],
+    ['#','#','#','#','#','#','#','#','I','#','#','#','#'],
+    ['B','R','E','S','S','O','N','#','N','#','#','#','#'],
+    ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
+    ['B','A','R','D','O','T','#','#','#','#','#','#','#'],
+    ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
+    ['N','O','U','V','E','L','L','E','#','#','#','#','#'],
+    ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
   ],
-  clues: {
-    across: [
-      { num:4, clue:"Réalisateur des 400 coups et de Jules et Jim" },
-      { num:6, clue:"Héroïne de Zola dans Germinal, Gervaise ___ " },
-      { num:9, clue:"Ce mot résume toute la littérature française" },
+  clues:{
+    across:[
+      {num:1,  clue:"Réalisateur des 400 coups, Jules et Jim"},
+      {num:3,  clue:"Ce mot résume toute la littérature française"},
+      {num:5,  clue:"Réalisateur de À bout de souffle, Le Mépris"},
+      {num:8,  clue:"Cinéaste de Pickpocket et Au hasard Balthazar"},
+      {num:10, clue:"Brigitte ___, icône française et sex-symbol"},
+      {num:12, clue:"___ vague — mouvement cinématographique des années 60"},
     ],
-    down: [
-      { num:1, clue:"Proust l'a cherché, et tout le monde aussi" },
-      { num:2, clue:"Acteur emblématique du cinéma français, Jean-Paul ___" },
+    down:[
+      {num:2,  clue:"Recherche du temps perdu — auteur : Marcel ___"},
+      {num:9,  clue:"Verlaine, Rimbaud — poètes ___"},
     ]
   }
 },
 
-// ── 4. Histoire de France & Europe (moyen) ────────────────────
+// ── 4. Histoire de France & Europe ───────────────────────────
 {
-  name: "histoire", diff: 4,
-  theme: "French & European history",
-  grid: [
-    ['#','#','#','#','#','L','#','#','#','#'],
-    ['#','#','#','#','#','O','#','#','#','#'],
-    ['#','B','A','S','T','I','L','L','E','#'],
-    ['#','#','#','#','#','S','#','#','#','#'],
-    ['#','#','N','A','P','O','L','E','O','N'],
-    ['#','#','#','#','#','N','#','#','#','#'],
-    ['#','#','#','#','#','#','#','#','#','#'],
-    ['G','A','U','L','L','E','#','#','#','#'],
-    ['#','#','#','#','#','#','#','#','#','#'],
-    ['V','E','R','S','A','I','L','L','E','S'],
+  name:"histoire", diff:4,
+  theme:"French & European history",
+  grid:[
+    ['B','A','S','T','I','L','L','E','#','#','#','#','#'],
+    ['A','#','#','#','#','O','#','#','S','#','#','#','#'],
+    ['N','A','P','O','L','E','O','N','#','#','#','#','#'],
+    ['S','#','#','#','#','N','#','#','I','#','#','#','#'],
+    ['V','E','R','S','A','I','L','L','E','S','#','#','#'],
+    ['#','#','#','#','#','N','#','#','N','#','#','#','#'],
+    ['D','E','G','A','U','L','L','E','#','#','#','#','#'],
+    ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
+    ['G','U','I','L','L','O','T','I','N','E','#','#','#'],
+    ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
+    ['R','O','B','E','S','P','I','E','R','R','E','#','#'],
+    ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
+    ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
   ],
-  clues: {
-    across: [
-      { num:3, clue:"Prison-forteresse prise le 14 juillet 1789" },
-      { num:5, clue:"Conquérant et premier consul, exilé à Sainte-Hélène" },
-      { num:8, clue:"Général, président — De ___" },
-      { num:9, clue:"Château du Roi-Soleil, Louis XIV" },
+  clues:{
+    across:[
+      {num:1,  clue:"Prison prise le 14 juillet 1789"},
+      {num:3,  clue:"Conquérant, exilé à Sainte-Hélène"},
+      {num:5,  clue:"Château du Roi-Soleil, Louis XIV"},
+      {num:7,  clue:"Général et président — De ___"},
+      {num:9,  clue:"Machine d'exécution de la Révolution"},
+      {num:11, clue:"Révolutionnaire, la Terreur, guillotiné en 1794"},
     ],
-    down: [
-      { num:1, clue:"Fleuve traversant Paris" },
-      { num:2, clue:"Accordé en 1598 par Henri IV aux protestants" },
+    down:[
+      {num:2,  clue:"Fleuve qui traverse Paris"},
+      {num:4,  clue:"Édit accordé aux protestants par Henri IV en 1598"},
+      {num:10, clue:"Le dernier des Valois, Henri ___"},
     ]
   }
 },
 
-// ── 5. Art & architecture (moyen-difficile) ───────────────────
+// ── 5. Art & architecture ─────────────────────────────────────
 {
-  name: "art & archi", diff: 5,
-  theme: "art & architecture",
-  grid: [
-    ['#','#','#','#','#','#','E','#','#','#'],
-    ['#','#','#','#','#','#','I','#','#','#'],
-    ['#','#','#','#','#','#','F','#','#','#'],
-    ['#','B','A','U','H','A','U','S','#','#'],
-    ['#','#','#','#','#','#','S','#','#','#'],
-    ['#','#','N','I','E','M','E','Y','E','R'],
-    ['#','#','#','#','#','#','R','#','#','#'],
-    ['#','L','O','U','V','R','E','#','#','#'],
-    ['#','#','#','#','#','#','#','#','#','#'],
-    ['C','U','B','I','S','M','E','#','#','#'],
+  name:"art & archi", diff:5,
+  theme:"art & architecture",
+  grid:[
+    ['#','E','I','F','F','E','L','#','#','#','#','#','#'],
+    ['#','I','#','#','#','#','#','#','#','#','#','#','#'],
+    ['#','C','U','B','I','S','M','E','#','#','#','#','#'],
+    ['#','F','#','#','#','#','#','#','#','#','#','#','#'],
+    ['#','B','A','U','H','A','U','S','#','#','#','#','#'],
+    ['#','E','#','#','#','#','#','#','#','#','#','#','#'],
+    ['#','L','O','U','V','R','E','#','O','S','C','A','R'],
+    ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
+    ['N','I','E','M','E','Y','E','R','#','#','#','#','#'],
+    ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
+    ['F','R','E','S','Q','U','E','#','#','#','#','#','#'],
+    ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
+    ['M','O','S','A','I','Q','U','E','#','#','#','#','#'],
   ],
-  clues: {
-    across: [
-      { num:3, clue:"École d'art et design allemande fondée par Gropius" },
-      { num:5, clue:"Architecte brésilien de Brasília" },
-      { num:7, clue:"Le plus grand musée du monde, à Paris" },
-      { num:9, clue:"Mouvement pictural de Picasso et Braque" },
+  clues:{
+    across:[
+      {num:1,  clue:"Tour métallique de Paris, 1889"},
+      {num:3,  clue:"Mouvement de Picasso et Braque"},
+      {num:5,  clue:"École d'art et design allemande fondée par Gropius"},
+      {num:7a, clue:"Le plus grand musée du monde, à Paris"},
+      {num:7b, clue:"Prix du meilleur film étranger — statuette en or"},
+      {num:9,  clue:"Architecte brésilien de Brasília"},
+      {num:11, clue:"Peinture murale à même le mur"},
+      {num:13, clue:"Art décoratif fait de petits carreaux colorés"},
     ],
-    down: [
-      { num:1, clue:"Tour métallique de Paris, 1889" },
-      { num:2, clue:"Architecte suisse de l'unité d'habitation" },
+    down:[
+      {num:2,  clue:"Tour Eiffel, obélisque — ce sont des ___"},
+      {num:6,  clue:"Le Corbusier, Haussmann — ils sont ___"},
     ]
   }
 },
 
-// ── 6. Chanson française (difficile) ──────────────────────────
+// ── 6. Chanson française ──────────────────────────────────────
 {
-  name: "chanson FR", diff: 6,
-  theme: "chanson française — difficile",
-  grid: [
-    ['#','#','#','#','B','#','#','#','#','#'],
-    ['#','#','#','#','R','#','#','#','#','#'],
-    ['#','#','#','#','A','#','#','#','#','#'],
-    ['#','P','I','A','S','S','E','N','S','#'],
-    ['#','#','#','#','S','#','#','#','#','#'],
-    ['V','A','R','E','N','S','#','#','#','#'],
-    ['#','#','#','#','S','#','#','#','#','#'],
-    ['#','#','G','A','S','T','A','N','A','#'],
-    ['#','#','#','#','#','#','#','#','#','#'],
-    ['#','B','A','R','B','A','R','A','#','#'],
+  name:"chanson FR", diff:6,
+  theme:"chanson française",
+  grid:[
+    ['P','I','A','F','#','#','#','#','#','#','#','#','#'],
+    ['#','#','#','#','#','#','B','#','#','#','#','#','#'],
+    ['G','A','I','N','S','B','O','U','R','G','#','#','#'],
+    ['#','#','#','#','#','#','E','#','#','#','#','#','#'],
+    ['B','A','R','B','A','R','A','#','#','#','#','#','#'],
+    ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
+    ['B','R','A','S','S','E','N','S','#','#','#','#','#'],
+    ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
+    ['A','Z','N','A','V','O','U','R','#','#','#','#','#'],
+    ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
+    ['C','L','A','U','D','E','#','#','#','#','#','#','#'],
+    ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
+    ['V','A','R','E','N','S','#','#','#','#','#','#','#'],
   ],
-  clues: {
-    across: [
-      { num:3, clue:"Piaf, Brel, Brassens — les trois ___" },
-      { num:5, clue:"Dieu de la chanson selon ses fans, Serge ___" },
-      { num:7, clue:"Chanteuse de Dis, quand reviendras-tu ?" },
-      { num:9, clue:"Chanteuse, la Dame brune, Ma plus belle histoire d'amour" },
+  clues:{
+    across:[
+      {num:1,  clue:"Elle chantait La vie en rose"},
+      {num:3,  clue:"Il chantait Je t'aime... moi non plus"},
+      {num:5,  clue:"La Dame brune, Ma plus belle histoire d'amour"},
+      {num:7,  clue:"Les copains d'abord, La mauvaise réputation"},
+      {num:9,  clue:"Il chantait La Bohème, d'origine arménienne"},
+      {num:11, clue:"___ François — chanteuse de Tous les garçons et les filles"},
+      {num:13, clue:"___ Sylvie — yéyé, chanteuse des années 60"},
     ],
-    down: [
-      { num:1, clue:"Il chantait Ne me quitte pas" },
-      { num:2, clue:"Elle chantait La vie en rose" },
+    down:[
+      {num:2,  clue:"Il chantait Ne me quitte pas"},
+      {num:4,  clue:"Troisième des trois B de la chanson française"},
     ]
   }
 },
 
-// ── 7. Saudade (difficile) ────────────────────────────────────
+// ── 7. Saudade ────────────────────────────────────────────────
 {
-  name: "saudade", diff: 7,
-  theme: "saudade",
-  grid: [
-    ['#','#','#','#','#','#','D','#','#','#'],
-    ['#','#','#','#','#','#','R','#','#','#'],
-    ['#','#','#','#','#','#','U','#','#','#'],
-    ['#','#','S','A','U','D','A','D','E','#'],
-    ['#','#','#','#','#','#','M','#','#','#'],
-    ['#','#','#','#','#','#','M','#','#','#'],
-    ['V','I','N','I','C','I','U','S','#','#'],
-    ['#','#','#','#','#','#','N','#','#','#'],
-    ['#','#','#','#','#','#','D','#','#','#'],
-    ['#','B','O','S','S','A','#','#','#','#'],
+  name:"saudade", diff:7,
+  theme:"saudade",
+  grid:[
+    ['S','A','U','D','A','D','E','#','#','#','#','#','#'],
+    ['A','#','#','#','#','#','#','J','#','#','#','#','#'],
+    ['V','I','N','I','C','I','U','S','#','#','#','#','#'],
+    ['D','#','#','#','#','#','#','O','#','#','#','#','#'],
+    ['B','O','S','S','A','N','O','V','A','#','#','#','#'],
+    ['A','#','#','#','#','#','#','I','#','#','#','#','#'],
+    ['D','R','U','M','M','O','N','D','#','#','#','#','#'],
+    ['E','#','#','#','#','#','#','#','#','#','#','#','#'],
+    ['J','O','B','I','M','#','#','#','#','#','#','#','#'],
+    ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
+    ['I','P','A','N','E','M','A','#','#','#','#','#','#'],
+    ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
+    ['G','I','L','B','E','R','T','O','#','#','#','#','#'],
   ],
-  clues: {
-    across: [
-      { num:3, clue:"Mot intraduisible — nostalgie heureuse brésilienne" },
-      { num:6, clue:"Poète qui a écrit le Soneto de Fidelidade" },
-      { num:9, clue:"Genre musical né à Rio, Jobim et Gilberto" },
+  clues:{
+    across:[
+      {num:1,  clue:"Nostalgie douce-amère, mot intraduisible brésilien"},
+      {num:3,  clue:"Poète du Soneto de Fidelidade, parolier de la Bossa"},
+      {num:5,  clue:"Genre musical né à Rio dans les années 50"},
+      {num:7,  clue:"Grand poète de Minas Gerais, Carlos ___"},
+      {num:9,  clue:"Compositeur de Garota de Ipanema, Antônio Carlos ___"},
+      {num:11, clue:"Plage de Rio rendue célèbre par une chanson"},
+      {num:13, clue:"João ___ — guitariste et chanteur de la Bossa Nova"},
     ],
-    down: [
-      { num:1, clue:"Batteur de Bahia, rythme afro-brésilien" },
-      { num:2, clue:"Chanteur de Aquarela do Brasil, Ary ___" },
+    down:[
+      {num:2,  clue:"La nostalgie, en portugais, c'est la ___"},
+      {num:4,  clue:"Percussions de Bahia, rythme afro-brésilien"},
     ]
   }
 },
 
-// ── 8. L'Auvergne (difficile) ─────────────────────────────────
+// ── 8. L'Auvergne ────────────────────────────────────────────
 {
-  name: "Auvergne", diff: 8,
-  theme: "l'Auvergne — histoire & patrimoine",
-  grid: [
-    ['#','#','#','#','V','#','#','#','#','#'],
-    ['#','#','#','#','O','#','#','#','#','#'],
-    ['#','#','#','#','L','#','#','#','#','#'],
-    ['C','L','E','R','C','A','N','T','A','L'],
-    ['#','#','#','#','A','#','#','#','#','#'],
-    ['#','#','#','#','N','#','#','#','#','#'],
-    ['#','#','#','#','I','#','#','#','#','#'],
-    ['#','#','R','O','Q','U','E','F','O','R'],
-    ['#','#','#','#','U','#','#','#','#','#'],
-    ['#','V','I','C','H','Y','#','#','#','#'],
+  name:"Auvergne", diff:8,
+  theme:"l'Auvergne — histoire & patrimoine",
+  grid:[
+    ['C','L','E','R','M','O','N','T','#','#','#','#','#'],
+    ['A','#','#','#','#','#','#','#','V','#','#','#','#'],
+    ['C','A','N','T','A','L','#','#','O','#','#','#','#'],
+    ['N','#','#','#','#','#','#','#','L','#','#','#','#'],
+    ['V','I','C','H','Y','#','#','#','C','#','#','#','#'],
+    ['#','#','#','#','#','#','#','#','A','#','#','#','#'],
+    ['R','O','Q','U','E','F','O','R','T','#','#','#','#'],
+    ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
+    ['A','L','I','G','O','T','#','#','#','#','#','#','#'],
+    ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
+    ['O','R','C','I','V','A','L','#','#','#','#','#','#'],
+    ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
+    ['P','A','Y','S','A','N','#','#','#','#','#','#','#'],
   ],
-  clues: {
-    across: [
-      { num:3, clue:"Capitale de l'Auvergne — Clermont-___" },
-      { num:7, clue:"Fromage du Massif Central à pâte persillée" },
-      { num:9, clue:"Ville thermale d'Auvergne, eau et histoire" },
+  clues:{
+    across:[
+      {num:1,  clue:"Capitale de l'Auvergne — ___ Ferrand"},
+      {num:3,  clue:"Fromage AOP d'Auvergne, le plus ancien de France"},
+      {num:5,  clue:"Ville thermale d'Auvergne, gouvernement de Pétain"},
+      {num:7,  clue:"Fromage à pâte persillée du Massif Central"},
+      {num:9,  clue:"Spécialité auvergnate — purée de pommes de terre et tome"},
+      {num:11, clue:"Village roman d'Auvergne, basilique Notre-Dame"},
+      {num:13, clue:"Le Français des champs — le ___ auvergnat"},
     ],
-    down: [
-      { num:1, clue:"Sommet volcanique de l'Auvergne, Puy de ___" },
-      { num:2, clue:"Fromage AOP de l'Auvergne, le plus ancien de France" },
+    down:[
+      {num:2,  clue:"Pic volcanique d'Auvergne — Puy de ___"},
+      {num:4,  clue:"Région d'Auvergne, volcans, lacs et fromages"},
     ]
   }
 },
 
-// ── 9. Minas Gerais (très difficile) ──────────────────────────
+// ── 9. Minas Gerais ───────────────────────────────────────────
 {
-  name: "Minas", diff: 9,
-  theme: "Minas Gerais",
-  grid: [
-    ['#','#','#','#','#','O','#','#','#','#'],
-    ['#','#','#','#','#','U','#','#','#','#'],
-    ['#','#','#','#','#','R','#','#','#','#'],
-    ['B','E','L','O','H','O','R','I','Z','O'],
-    ['#','#','#','#','#','P','#','#','#','#'],
-    ['#','#','#','#','#','R','#','#','#','#'],
-    ['#','#','P','A','O','D','E','Q','U','E'],
-    ['#','#','#','#','#','A','#','#','#','#'],
-    ['#','#','#','#','#','#','#','#','#','#'],
-    ['#','D','R','U','M','M','O','N','D','#'],
+  name:"Minas", diff:9,
+  theme:"Minas Gerais",
+  grid:[
+    ['B','E','L','O','#','#','#','#','#','#','#','#','#'],
+    ['E','#','#','#','O','#','#','#','#','#','#','#','#'],
+    ['D','R','U','M','M','O','N','D','#','#','#','#','#'],
+    ['O','#','#','#','O','#','#','#','#','#','#','#','#'],
+    ['M','I','N','E','I','R','A','#','#','#','#','#','#'],
+    ['#','#','#','#','R','#','#','#','#','#','#','#','#'],
+    ['Q','U','E','I','J','O','#','#','#','#','#','#','#'],
+    ['#','#','#','#','O','#','#','#','#','#','#','#','#'],
+    ['O','U','R','O','P','R','E','T','O','#','#','#','#'],
+    ['#','#','#','#','R','#','#','#','#','#','#','#','#'],
+    ['C','O','N','G','O','N','H','A','S','#','#','#','#'],
+    ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
+    ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
   ],
-  clues: {
-    across: [
-      { num:3, clue:"Capitale du Minas Gerais — ___ Horizonte" },
-      { num:6, clue:"Spécialité mineira, pain au fromage — pão de ___" },
-      { num:9, clue:"Grand poète du Minas, Carlos ___ de Andrade" },
+  clues:{
+    across:[
+      {num:1,  clue:"Capitale du Minas Gerais — ___ Horizonte"},
+      {num:3,  clue:"Grand poète du Minas, Carlos ___ de Andrade"},
+      {num:5,  clue:"Cuisine traditionnelle du Minas Gerais — comida ___"},
+      {num:7,  clue:"Spécialité fromagère — pão de ___"},
+      {num:9,  clue:"Ville baroque patrimoine UNESCO — Ouro ___"},
+      {num:11, clue:"Ville du Minas, sculptures de l'Aleijadinho"},
     ],
-    down: [
-      { num:1, clue:"City of gold, ville baroque — Ouro ___" },
-      { num:2, clue:"Pluie d'or, ville patrimoine UNESCO au Minas" },
+    down:[
+      {num:2,  clue:"Richesse historique du Minas — ville d'Ouro Preto, ville de l'___"},
+      {num:4,  clue:"Rivière de Minas, affluent du São Francisco"},
+      {num:6,  clue:"Cachaça, danse, football — la culture ___"},
     ]
   }
 },
 
-// ── 10. Paris (expert) ────────────────────────────────────────
+// ── 10. Paris — expert ────────────────────────────────────────
 {
-  name: "Paris", diff: 10,
-  theme: "Paris — expert",
-  grid: [
-    ['#','#','M','#','#','#','#','#','#','#'],
-    ['#','#','O','#','#','#','#','#','#','#'],
-    ['#','#','N','#','#','#','#','#','#','#'],
-    ['#','#','T','#','#','#','#','#','#','#'],
-    ['M','A','M','A','R','A','I','S','#','#'],
-    ['#','#','A','#','#','#','#','#','#','#'],
-    ['#','#','R','#','#','#','#','#','#','#'],
-    ['#','#','T','#','#','#','#','#','#','#'],
-    ['S','E','R','E','P','U','B','L','I','C'],
-    ['#','#','E','#','#','#','#','#','#','#'],
+  name:"Paris", diff:10,
+  theme:"Paris — expert",
+  grid:[
+    ['M','O','N','T','M','A','R','T','R','E','#','#','#'],
+    ['A','#','#','#','#','#','#','#','#','#','A','#','#'],
+    ['M','A','R','A','I','S','#','#','#','#','N','#','#'],
+    ['R','#','#','#','#','#','#','#','#','#','T','#','#'],
+    ['S','E','I','N','E','#','#','#','#','#','H','#','#'],
+    ['#','#','#','#','#','#','#','#','#','#','E','#','#'],
+    ['B','A','S','T','I','L','L','E','#','#','#','#','#'],
+    ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
+    ['R','E','P','U','B','L','I','Q','U','E','#','#','#'],
+    ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
+    ['H','A','U','S','S','M','A','N','N','#','#','#','#'],
+    ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
+    ['#','#','#','#','#','#','#','#','#','#','#','#','#'],
   ],
-  clues: {
-    across: [
-      { num:4, clue:"Quartier historique de Paris, hôtels particuliers" },
-      { num:8, clue:"Place de la ___, anciennement Place de la Révolution" },
+  clues:{
+    across:[
+      {num:1,  clue:"Butte de Paris, Sacré-Cœur et place du Tertre"},
+      {num:3,  clue:"Quartier historique de Paris, hôtels particuliers"},
+      {num:5,  clue:"Fleuve qui traverse Paris"},
+      {num:7,  clue:"Place parisienne, Opéra et colonne de Juillet"},
+      {num:9,  clue:"Place de la ___, anciennement de la Révolution"},
+      {num:11, clue:"Baron ___ — il a redessiné Paris sous Napoléon III"},
     ],
-    down: [
-      { num:1, clue:"Butte de Paris, basilique blanche — Sacré-___" },
-      { num:2, clue:"Île au milieu de la Seine, Notre-Dame" },
-      { num:3,  clue:"Le boulevard de la culture et des librairies à Paris" },
+    down:[
+      {num:2,  clue:"Île au milieu de la Seine, Notre-Dame"},
+      {num:10, clue:"Quartier bohème de Paris, cabarets et artistes"},
     ]
   }
 },
