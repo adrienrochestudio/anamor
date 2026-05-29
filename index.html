@@ -1,31 +1,312 @@
-.cursor {position;width:26px; height:26px;border:2px solid currentColor;border-radius:50%;pointer-events;z-index:9999;transform(-50%,-50%);transition .15s, height .15s;}.cursor.click { width:12px; height:12px; }
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ana & Adrien</title>
+<link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body {
+    width:100%; height:100%;
+    overflow:hidden;
+    font-family:'Patrick Hand', cursive;
+    cursor:none;
+  }
 
-.hint {position; bottom:32px; left:50%;transform(-50%);font-size:0.88rem; letter-spacing:0.06em;z-index:200; pointer-events;animation 2.4s ease-in-out infinite;transition .4s;}@keyframes blink { 0%,100%{opacity:.25} 50%{opacity:.65} }
+  .cursor {
+    position:fixed;
+    width:26px; height:26px;
+    border:2px solid currentColor;
+    border-radius:50%;
+    pointer-events:none;
+    z-index:9999;
+    transform:translate(-50%,-50%);
+    transition:width .15s, height .15s;
+  }
+  .cursor.click { width:12px; height:12px; }
 
-.counter {position; top:24px; right:28px;font-size:0.82rem; z-index:200; opacity:0.25;}
+  .hint {
+    position:fixed; bottom:32px; left:50%;
+    transform:translateX(-50%);
+    font-size:0.88rem; letter-spacing:0.06em;
+    z-index:200; pointer-events:none;
+    animation:blink 2.4s ease-in-out infinite;
+    transition:opacity .4s;
+  }
+  @keyframes blink { 0%,100%{opacity:.25} 50%{opacity:.65} }
 
-.fade-cover {position; inset:0; z-index:500;opacity:0; pointer-events;transition .55s ease;}.fade-cover.on { opacity:1; pointer-events; }
+  .counter {
+    position:fixed; top:24px; right:28px;
+    font-size:0.82rem; z-index:200; opacity:0.25;
+  }
 
-/* ── SLIDES ── /.slide {position; inset:0;opacity:0;transition .95s ease;pointer-events;/ Centre tout par défaut */display;align-items;justify-content;}.slide.active { opacity:1; pointer-events; }.slide.out    { opacity:0; pointer-events; }
+  .fade-cover {
+    position:fixed; inset:0; z-index:500;
+    opacity:0; pointer-events:none;
+    transition:opacity .55s ease;
+  }
+  .fade-cover.on { opacity:1; pointer-events:all; }
 
-/* Fonds */.bg-b { background:#8B1A2B; color:#FAF8F4; }.bg-w { background:#FAF8F4; color:#8B1A2B; }
+  /* ── SLIDES ── */
+  .slide {
+    position:fixed; inset:0;
+    opacity:0;
+    transition:opacity .95s ease;
+    pointer-events:none;
+    /* Centre tout par défaut */
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .slide.active { opacity:1; pointer-events:all; }
+  .slide.out    { opacity:0; pointer-events:none; }
 
-/* ── IMAGE — toujours centrée, jamais de fond ── /.img-wrap {position;top:50%; left:50%;transform(-50%,-50%);width(52vw, 52vh);height(52vw, 52vh);z-index:1;}.img-wrap img {width:100%; height:100%;object-fit;display;}/ Placeholder discret pendant dev */.img-placeholder {width:100%; height:100%;border:1.5px dashed currentColor;opacity:0.18;display; align-items; justify-content;font-size:0.75rem; opacity:0.2; text-align;flex-direction; gap:6px;}
+  /* Fonds */
+  .bg-b { background:#8B1A2B; color:#FAF8F4; }
+  .bg-w { background:#FAF8F4; color:#8B1A2B; }
 
-/* ── TEXTES — positionnés librement, z-index au-dessus de l'image ── /.txt {position;z-index:2;font-family:'Patrick Hand', cursive;line-height:1.2;/ taille par défaut, surchargée par slide */font-size(1.4rem, 4vw, 2.8rem);}
+  /* ── IMAGE — toujours centrée, jamais de fond ── */
+  .img-wrap {
+    position:absolute;
+    top:50%; left:50%;
+    transform:translate(-50%,-50%);
+    width:min(52vw, 52vh);
+    height:min(52vw, 52vh);
+    z-index:1;
+  }
+  .img-wrap img {
+    width:100%; height:100%;
+    object-fit:contain;
+    display:block;
+  }
+  /* Placeholder discret pendant dev */
+  .img-placeholder {
+    width:100%; height:100%;
+    border:1.5px dashed currentColor;
+    opacity:0.18;
+    display:flex; align-items:center; justify-content:center;
+    font-size:0.75rem; opacity:0.2; text-align:center;
+    flex-direction:column; gap:6px;
+  }
 
-/* ── SLIDE 1 ── */#s1 .txt { top:38%; left:50%; transform(-50%); font-size(2rem,6vw,4rem); }
+  /* ── TEXTES — positionnés librement, z-index au-dessus de l'image ── */
+  .txt {
+    position:absolute;
+    z-index:2;
+    font-family:'Patrick Hand', cursive;
+    line-height:1.2;
+    /* taille par défaut, surchargée par slide */
+    font-size:clamp(1.4rem, 4vw, 2.8rem);
+  }
 
-/* ── SLIDE 2 — "hello" en haut de travers, "uh i guess" aussi en haut légèrement différent ── */#s2 .t-hello  {top:9%; left:7%;font-size(2rem,5.5vw,3.8rem);transform(-4deg);}#s2 .t-uh {top:18%; right:8%;font-size(1rem,2.8vw,2rem);transform(3deg);opacity:0.7;}
+  /* ── SLIDE 1 ── */
+  #s1 .txt { top:38%; left:50%; transform:translateX(-50%); font-size:clamp(2rem,6vw,4rem); }
 
-/* ── SLIDE 3 — deux textes ── */#s3 .t-what {top:12%; left:50%;transform(-50%);font-size(1.6rem,4.5vw,3.2rem);text-align;width:90%;}#s3 .t-you {bottom:12%; left:50%;transform(-50%);font-size(1rem,2.8vw,2rem);opacity:0.7;text-align;}
+  /* ── SLIDE 2 — "hello" en haut de travers, "uh i guess" aussi en haut légèrement différent ── */
+  #s2 .t-hello  {
+    top:9%; left:7%;
+    font-size:clamp(2rem,5.5vw,3.8rem);
+    transform:rotate(-4deg);
+  }
+  #s2 .t-uh {
+    top:18%; right:8%;
+    font-size:clamp(1rem,2.8vw,2rem);
+    transform:rotate(3deg);
+    opacity:0.7;
+  }
 
-/* ── SLIDE 4 — "cool i guess" en haut, "loneley" en bas à droite, penché ── */#s4 .t-cool {top:10%; left:50%;transform(-50%);font-size(1.8rem,5vw,3.5rem);text-align;}#s4 .t-lonely {bottom:10%; right:6%;font-size(1rem,2.8vw,2rem);transform(6deg);opacity:0.7;text-align;}
+  /* ── SLIDE 3 — deux textes ── */
+  #s3 .t-what {
+    top:12%; left:50%;
+    transform:translateX(-50%);
+    font-size:clamp(1.6rem,4.5vw,3.2rem);
+    text-align:center;
+    width:90%;
+  }
+  #s3 .t-you {
+    bottom:12%; left:50%;
+    transform:translateX(-50%);
+    font-size:clamp(1rem,2.8vw,2rem);
+    opacity:0.7;
+    text-align:center;
+  }
 
-/* ── SLIDE 5 ── */#s5 .t-thought {top:10%; left:50%;transform(-50%);font-size(1.8rem,4.5vw,3.2rem);text-align;width:90%;}#s5 .t-komputer {bottom:10%; left:50%;transform(-50%);font-size(1rem,2.6vw,1.9rem);opacity:0.7;text-align;}
+  /* ── SLIDE 4 — "cool i guess" en haut, "loneley" en bas à droite, penché ── */
+  #s4 .t-cool {
+    top:10%; left:50%;
+    transform:translateX(-50%);
+    font-size:clamp(1.8rem,5vw,3.5rem);
+    text-align:center;
+  }
+  #s4 .t-lonely {
+    bottom:10%; right:6%;
+    font-size:clamp(1rem,2.8vw,2rem);
+    transform:rotate(6deg);
+    opacity:0.7;
+    text-align:right;
+  }
 
-/* ── SLIDE 6 — deux textes ── */#s6 .t-create {top:10%; left:50%;transform(-50%);font-size(1.8rem,5vw,3.5rem);text-align;width:90%;}#s6 .t-friend {bottom:10%; left:50%;transform(-50%);font-size(1rem,2.8vw,2rem);opacity:0.7;text-align;}
+  /* ── SLIDE 5 ── */
+  #s5 .t-thought {
+    top:10%; left:50%;
+    transform:translateX(-50%);
+    font-size:clamp(1.8rem,4.5vw,3.2rem);
+    text-align:center;
+    width:90%;
+  }
+  #s5 .t-komputer {
+    bottom:10%; left:50%;
+    transform:translateX(-50%);
+    font-size:clamp(1rem,2.6vw,1.9rem);
+    opacity:0.7;
+    text-align:center;
+  }
 
-/* ── SLIDE 7 ── */#s7 .t-you {bottom:10%; left:50%;transform(-50%);font-size(3rem,11vw,8rem);letter-spacing:-0.01em;text-align;}
+  /* ── SLIDE 6 — deux textes ── */
+  #s6 .t-create {
+    top:10%; left:50%;
+    transform:translateX(-50%);
+    font-size:clamp(1.8rem,5vw,3.5rem);
+    text-align:center;
+    width:90%;
+  }
+  #s6 .t-friend {
+    bottom:10%; left:50%;
+    transform:translateX(-50%);
+    font-size:clamp(1rem,2.8vw,2rem);
+    opacity:0.7;
+    text-align:center;
+  }
 
-/* ── SLIDE 8 ── */#s8 .t-title {top:50%; left:50%;transform(-50%,-50%);font-size(2.8rem,9vw,7rem);letter-spacing:-0.02em;text-align;line-height:1;width:90%;}#s8 .t-enter {bottom:12%; left:50%;transform(-50%);font-size:0.88rem;letter-spacing:0.1em;opacity:0.35;animation 2s ease-in-out infinite;}
+  /* ── SLIDE 7 ── */
+  #s7 .t-you {
+    bottom:10%; left:50%;
+    transform:translateX(-50%);
+    font-size:clamp(3rem,11vw,8rem);
+    letter-spacing:-0.01em;
+    text-align:center;
+  }
+
+  /* ── SLIDE 8 ── */
+  #s8 .t-title {
+    top:50%; left:50%;
+    transform:translate(-50%,-50%);
+    font-size:clamp(2.8rem,9vw,7rem);
+    letter-spacing:-0.02em;
+    text-align:center;
+    line-height:1;
+    width:90%;
+  }
+  #s8 .t-enter {
+    bottom:12%; left:50%;
+    transform:translateX(-50%);
+    font-size:0.88rem;
+    letter-spacing:0.1em;
+    opacity:0.35;
+    animation:blink 2s ease-in-out infinite;
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor"     id="cursor"></div>
+<div class="counter"    id="counter">1 / 8</div>
+<div class="hint"       id="hint">cliquer pour continuer</div>
+<div class="fade-cover" id="fade"></div>
+
+<!-- SLIDE 1 -->
+<div class="img-wrap">
+  <img src="https://adrienrochestudio.github.io/1.png" alt="">
+</div>
+
+<!-- SLIDE 2 -->
+<div class="img-wrap">
+  <img src="https://adrienrochestudio.github.io/2.png" alt="">
+</div>
+
+<!-- SLIDE 3 -->
+<div class="img-wrap">
+  <img src="https://adrienrochestudio.github.io/3.png" alt="">
+</div>
+
+<!-- SLIDE 4 -->
+<div class="img-wrap">
+  <img src="https://adrienrochestudio.github.io/4.png" alt="">
+</div>
+
+<!-- SLIDE 5 -->
+<div class="img-wrap">
+  <img src="https://adrienrochestudio.github.io/5.png" alt="">
+</div>
+
+<!-- SLIDE 6 -->
+<div class="img-wrap">
+  <img src="https://adrienrochestudio.github.io/6.png" alt="">
+</div>
+
+<!-- SLIDE 7 -->
+<div class="img-wrap">
+  <img src="https://adrienrochestudio.github.io/7.png" alt="">
+</div>
+
+<script>
+// Curseur
+const curEl = document.getElementById('cursor');
+document.addEventListener('mousemove', e => {
+  curEl.style.left = e.clientX + 'px';
+  curEl.style.top  = e.clientY + 'px';
+  const active = document.querySelector('.slide.active');
+  curEl.style.borderColor = active?.classList.contains('bg-b') ? '#FAF8F4' : '#8B1A2B';
+});
+document.addEventListener('mousedown', () => curEl.classList.add('click'));
+document.addEventListener('mouseup',   () => curEl.classList.remove('click'));
+
+// Slides
+const slides = document.querySelectorAll('.slide');
+const N = slides.length;
+let current = 0, locked = false;
+
+function updateChrome(i) {
+  const isBord = slides[i].classList.contains('bg-b');
+  const fg     = isBord ? '#FAF8F4' : '#8B1A2B';
+  document.getElementById('hint').style.color    = fg;
+  document.getElementById('counter').style.color = fg;
+  curEl.style.borderColor = fg;
+  document.getElementById('counter').textContent = (i+1) + ' / ' + N;
+}
+
+function show(i) {
+  slides[i].classList.add('active');
+  updateChrome(i);
+}
+
+function next() {
+  if (locked) return;
+  locked = true;
+  document.getElementById('hint').style.opacity = '0';
+
+  if (current === N - 1) {
+    const fade = document.getElementById('fade');
+    fade.style.background = '#FAF8F4';
+    fade.classList.add('on');
+    setTimeout(() => {
+      window.location.href = 'home.html';
+    }, 650);
+    return;
+  }
+
+  slides[current].classList.add('out');
+  slides[current].classList.remove('active');
+  current++;
+  setTimeout(() => { show(current); locked = false; }, 320);
+}
+
+document.addEventListener('click',    next);
+document.addEventListener('touchend', e => { e.preventDefault(); next(); }, { passive: false });
+document.addEventListener('keydown',  e => { if ([' ','Enter','ArrowRight'].includes(e.key)) next(); });
+
+show(0);
+</script>
+</body>
+</html>
