@@ -177,6 +177,23 @@
   }
   .sol-close:hover { color:var(--bord); }
 
+
+
+  .more-crosswords-link {
+    display:block;
+    width:max-content;
+    margin:8px auto 0;
+    color:var(--muted);
+    text-decoration:none;
+    font-size:.86rem;
+    transition:color .15s, background .15s;
+  }
+
+  .more-crosswords-link:hover {
+    color:var(--bord);
+    background:rgba(139,26,43,.08);
+  }
+
   @media(max-width:700px) {
     .game-area { grid-template-columns:1fr; }
     .clues-col { border-left:none; border-top:var(--trait) solid var(--bord-l); padding:16px 0 0; max-height:none; }
@@ -210,7 +227,10 @@
   <div class="clues-col" id="clues-col"></div>
 </div>
 
-<footer>Ana & Adrien — the kompiuter</footer>
+<footer>
+  Ana & Adrien — the kompiuter
+  <a class="more-crosswords-link" href="https://metrodoku.fr/" target="_blank" rel="noopener noreferrer">more krowz wourds</a>
+</footer>
 
 <!-- SOLUTION MODAL -->
 <div class="sol-overlay" id="sol-overlay">
