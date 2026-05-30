@@ -178,15 +178,16 @@
   .sol-close:hover { color:var(--bord); }
 
 
-
   .more-crosswords-link {
     display:block;
     width:max-content;
-    margin:8px auto 0;
-    color:var(--muted);
+    margin:14px auto 0;
+    color:var(--bord);
     text-decoration:none;
-    font-size:.86rem;
+    font-size:1rem;
+    line-height:1.2;
     transition:color .15s, background .15s;
+    padding:2px 6px;
   }
 
   .more-crosswords-link:hover {
@@ -221,16 +222,14 @@
       <button class="btn" onclick="resetGrid()">clear</button>
       <button class="btn" onclick="startSol()">see the soluçaõ</button>
     </div>
+    <a class="more-crosswords-link" href="https://metrodoku.fr/" target="_blank" rel="noopener noreferrer">more krowz wourds</a>
     <div class="result-msg" id="result-msg"></div>
     <button class="share-btn" id="share-btn" onclick="shareResult()">share this win</button>
   </div>
   <div class="clues-col" id="clues-col"></div>
 </div>
 
-<footer>
-  Ana & Adrien — the kompiuter
-  <a class="more-crosswords-link" href="https://metrodoku.fr/" target="_blank" rel="noopener noreferrer">more krowz wourds</a>
-</footer>
+<footer>Ana & Adrien — the kompiuter</footer>
 
 <!-- SOLUTION MODAL -->
 <div class="sol-overlay" id="sol-overlay">
