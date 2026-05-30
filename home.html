@@ -59,6 +59,12 @@
   z-index: 10;
   pointer-events: none;
 }
+  .modal-main-title {
+  font-size: 1.1rem;
+  color: var(--bord);
+  margin-bottom: 6px;
+  text-align: center;
+}
   .wheel-section {
     padding: 40px 40px 32px;
     display: flex;
@@ -206,10 +212,11 @@
 
 <!-- Modal -->
 <div class="modal-overlay" id="modal">
-  <div class="modal">
-    <div class="modal-bar"></div>
-    <div class="modal-title-text" id="modal-title"></div>
-    <div class="modal-desc"       id="modal-desc"></div>
+ <div class="modal">
+  <div class="modal-bar"></div>
+  <div class="modal-main-title">bep</div>
+  <div class="modal-title-text" id="modal-title"></div>
+  <div class="modal-desc" id="modal-desc"></div>
     <div class="modal-warning"    id="modal-warning"></div>
     <div class="modal-btns">
       <a href="#" class="btn btn-full" id="modal-go">let's go</a>
