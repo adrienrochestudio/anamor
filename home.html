@@ -15,6 +15,7 @@
     color: var(--bord);
     line-height: 1;
   }
+
   .title-sub {
     margin-top: 10px;
     font-size: 1rem;
@@ -31,12 +32,14 @@
     gap: 18px;
     flex-wrap: wrap;
   }
+
   .citation-text {
     font-size: 1.05rem;
     color: var(--text);
     line-height: 1.65;
     text-align: center;
   }
+
   .citation-author {
     display: block;
     font-size: 0.82rem;
@@ -44,27 +47,31 @@
     margin-top: 6px;
     text-align: center;
   }
+
   .citation-aside {
     font-size: 0.88rem;
     color: var(--muted);
     white-space: nowrap;
     flex-shrink: 0;
   }
-.corner-character {
-  position: absolute;
-  bottom: -20px;
-  right: -60px;
-  width: 120px;
-  height: auto;
-  z-index: 10;
-  pointer-events: none;
-}
+
+  .corner-character {
+    position: absolute;
+    bottom: -20px;
+    right: -60px;
+    width: 120px;
+    height: auto;
+    z-index: 10;
+    pointer-events: none;
+  }
+
   .modal-main-title {
-  font-size: 1.1rem;
-  color: var(--bord);
-  margin-bottom: 6px;
-  text-align: center;
-}
+    font-size: 1.1rem;
+    color: var(--bord);
+    margin-bottom: 6px;
+    text-align: center;
+  }
+
   .wheel-section {
     padding: 40px 40px 32px;
     display: flex;
@@ -72,77 +79,145 @@
     align-items: center;
     gap: 24px;
   }
+
   .wheel-container {
     position: relative;
-    width: 420px; height: 420px;
-    max-width: 86vw; max-height: 86vw;
+    width: 420px;
+    height: 420px;
+    max-width: 86vw;
+    max-height: 86vw;
   }
-  #wheel-canvas { width:100%; height:100%; }
+
+  #wheel-canvas {
+    width: 100%;
+    height: 100%;
+  }
+
   .wheel-pointer {
     position: absolute;
-    top: -18px; left: 50%;
+    top: -18px;
+    left: 50%;
     transform: translateX(-50%);
-    width: 0; height: 0;
+    width: 0;
+    height: 0;
     border-left: 10px solid transparent;
     border-right: 10px solid transparent;
     border-top: 22px solid var(--bord);
     z-index: 6;
   }
+
   .wheel-center {
     position: absolute;
-    top: 50%; left: 50%;
+    top: 50%;
+    left: 50%;
     transform: translate(-50%,-50%);
-    width: 72px; height: 72px;
+    width: 72px;
+    height: 72px;
     border-radius: 50%;
     background: var(--blanc);
     border: var(--trait) solid var(--bord);
-    display: flex; align-items: center; justify-content: center;
-    z-index: 5; cursor: pointer;
-    font-size: 1rem; color: var(--bord);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 5;
+    cursor: pointer;
+    font-size: 1rem;
+    color: var(--bord);
     transition: background .18s, color .18s;
     overflow: hidden;
   }
-  .wheel-center:hover { background: var(--bord); color: var(--blanc); }
-  .wheel-center img   { width:100%; height:100%; object-fit:cover; border-radius:50%; display:none; }
+
+  .wheel-center:hover {
+    background: var(--bord);
+    color: var(--blanc);
+  }
+
+  .wheel-center img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    display: none;
+  }
 
   .cards-wrap {
-    padding: 16px 40px 64px;
-    max-width: 700px;
+    padding: 32px 40px 64px;
+    max-width: 1000px;
     margin: 0 auto;
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 14px;
+    align-items: center;
+    gap: 28px;
   }
+
   .mini-card {
+    width: 180px;
+    min-height: 86px;
     padding: 14px 22px;
     background: transparent;
     text-decoration: none;
     color: var(--text);
     font-family: 'Patrick Hand', cursive;
-    font-size: 1rem;
+    font-size: 1.35rem;
     cursor: pointer;
     transition: background .18s, color .18s;
     display: inline-flex;
-    flex-direction: column;
-    gap: 4px;
+    align-items: center;
+    justify-content: center;
     text-align: center;
     border: var(--trait) solid var(--bord);
+    box-sizing: border-box;
   }
-  .mini-card:hover { background: var(--bord); color: var(--blanc); }
 
-  .mini-card:nth-child(1) { transform: translateY(6px)   rotate(-1.2deg); }
-  .mini-card:nth-child(2) { transform: translateY(-8px)  rotate(0.8deg);  }
-  .mini-card:nth-child(3) { transform: translateY(12px)  rotate(-0.5deg); }
-  .mini-card:nth-child(4) { transform: translateY(-4px)  rotate(1.5deg);  }
-  .mini-card:nth-child(5) { transform: translateY(8px)   rotate(-1deg);   }
-  .mini-card:nth-child(6) { transform: translateY(-10px) rotate(0.6deg);  }
+  .mini-card:hover {
+    background: var(--bord);
+    color: var(--blanc);
+  }
 
-  .modal-bar        { width:32px; height:var(--trait); background:var(--bord); margin-bottom:20px; }
-  .modal-title-text { font-size:1.6rem; color:var(--bord); margin-bottom:10px; }
-  .modal-desc       { font-size:1rem; color:var(--muted); line-height:1.65; margin-bottom:28px; }
-  .modal-warning    { display:none; font-size:0.82rem; color:var(--bord); opacity:0.6; border-left:2px solid var(--bord); padding-left:10px; margin-bottom:20px; line-height:1.5; }
-  .modal-btns       { display:flex; gap:10px; flex-wrap:wrap; }
+  .mini-card:nth-child(1) { transform: rotate(-1.2deg); }
+  .mini-card:nth-child(2) { transform: rotate(0.8deg); }
+  .mini-card:nth-child(3) { transform: rotate(-0.5deg); }
+  .mini-card:nth-child(4) { transform: rotate(1.5deg); }
+  .mini-card:nth-child(5) { transform: rotate(-1deg); }
+  .mini-card:nth-child(6) { transform: rotate(0.6deg); }
+
+  .modal-bar {
+    width: 32px;
+    height: var(--trait);
+    background: var(--bord);
+    margin-bottom: 20px;
+  }
+
+  .modal-title-text {
+    font-size: 1.6rem;
+    color: var(--bord);
+    margin-bottom: 10px;
+  }
+
+  .modal-desc {
+    font-size: 1rem;
+    color: var(--muted);
+    line-height: 1.65;
+    margin-bottom: 28px;
+  }
+
+  .modal-warning {
+    display: none;
+    font-size: 0.82rem;
+    color: var(--bord);
+    opacity: 0.6;
+    border-left: 2px solid var(--bord);
+    padding-left: 10px;
+    margin-bottom: 20px;
+    line-height: 1.5;
+  }
+
+  .modal-btns {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
 
   .replay-link {
     display: block;
@@ -158,12 +233,16 @@
     transition: color .18s;
     padding: 0;
   }
-  .replay-link:hover { color: var(--bord); }
+
+  .replay-link:hover {
+    color: var(--bord);
+  }
 
   .not-ana-wrap {
     text-align: center;
     padding: 8px 40px 48px;
   }
+
   .not-ana-btn {
     font-family: 'Patrick Hand', cursive;
     font-size: 0.82rem;
@@ -174,7 +253,31 @@
     transition: opacity .18s, color .18s;
     letter-spacing: 0.04em;
   }
-  .not-ana-btn:hover { opacity: 1; color: var(--bord); }
+
+  .not-ana-btn:hover {
+    opacity: 1;
+    color: var(--bord);
+  }
+
+  @media (max-width: 700px) {
+    .cards-wrap {
+      gap: 18px;
+      padding: 24px 24px 56px;
+    }
+
+    .mini-card {
+      width: 145px;
+      min-height: 74px;
+      font-size: 1.15rem;
+      padding: 12px 16px;
+    }
+
+    .corner-character {
+      width: 88px;
+      right: -28px;
+      bottom: -12px;
+    }
+  }
 </style>
 </head>
 <body>
@@ -186,38 +289,38 @@
 
 <div class="citation-wrap">
   <div>
-    <div class="citation-text"   id="cit-text"></div>
+    <div class="citation-text" id="cit-text"></div>
     <span class="citation-author" id="cit-author"></span>
   </div>
   <div class="citation-aside">... i guess uh</div>
 </div>
 
 <section class="wheel-section">
- <div class="wheel-container">
-  <div class="wheel-pointer"></div>
+  <div class="wheel-container">
+    <div class="wheel-pointer"></div>
 
-  <canvas id="wheel-canvas" width="420" height="420"></canvas>
+    <canvas id="wheel-canvas" width="420" height="420"></canvas>
 
-  <img src="seated1.png" class="corner-character" alt="">
+    <img src="seated1.png" class="corner-character" alt="">
 
-  <div class="wheel-center" id="wheel-center" onclick="spinWheel()">
-    <span>A&A</span>
-    <img src="" alt="">
+    <div class="wheel-center" id="wheel-center" onclick="spinWheel()">
+      <span>A&A</span>
+      <img src="" alt="">
+    </div>
   </div>
-</div>
+
   <button class="btn btn-full" onclick="spinWheel()" id="spin-btn">spin it</button>
 </section>
 
 <div class="cards-wrap" id="cards-wrap"></div>
 
-<!-- Modal -->
 <div class="modal-overlay" id="modal">
- <div class="modal">
-  <div class="modal-bar"></div>
-  <div class="modal-main-title">bep</div>
-  <div class="modal-title-text" id="modal-title"></div>
-  <div class="modal-desc" id="modal-desc"></div>
-    <div class="modal-warning"    id="modal-warning"></div>
+  <div class="modal">
+    <div class="modal-bar"></div>
+    <div class="modal-main-title">bep</div>
+    <div class="modal-title-text" id="modal-title"></div>
+    <div class="modal-desc" id="modal-desc"></div>
+    <div class="modal-warning" id="modal-warning"></div>
     <div class="modal-btns">
       <a href="#" class="btn btn-full" id="modal-go">let's go</a>
       <button class="btn" onclick="closeModal()">nah</button>
@@ -231,10 +334,9 @@
   <a href="stranger.html" class="not-ana-btn">I am not Ana ????</a>
 </div>
 
-<footer>Ana & Adrien — the kompiuter</footer>
+<footer>Ana & Adrien, the kompiuter</footer>
 
 <script>
-/* ── CITATION ── */
 const MOTS = [
   { text:"Aimer, ce n'est pas se regarder l'un l'autre, c'est regarder ensemble dans la même direction.", author:"Antoine de Saint-Exupéry" },
   { text:"O amor é uma força que une dois corações e os faz bater como um só.", author:"Drummond de Andrade" },
@@ -249,7 +351,7 @@ const MOTS = [
   { text:"Là où tu vas, j'irai. Là où tu mourras, je mourrai.", author:"Livre de Ruth" },
   { text:"Amar é a única coisa que cresce quanto mais se divide.", author:"Paulo Coelho" },
   { text:"L'amour est la poésie des sens.", author:"Honoré de Balzac" },
-  { text:"Quem ama não calcula, não mede, não pesa — apenas ama.", author:"Fernando Pessoa" },
+  { text:"Quem ama não calcula, não mede, não pesa, apenas ama.", author:"Fernando Pessoa" },
   { text:"Aimer, c'est trouver sa richesse hors de soi.", author:"Alain" },
 ];
 
@@ -257,38 +359,41 @@ const MOTS = [
   const sh  = new Date(Date.now() - 2*3600*1000);
   const key = sh.getFullYear()*10000 + (sh.getMonth()+1)*100 + sh.getDate();
   const m   = MOTS[key % MOTS.length];
-  document.getElementById('cit-text').textContent   = '\u201c' + m.text + '\u201d';
-  document.getElementById('cit-author').textContent = '— ' + m.author;
+  document.getElementById('cit-text').textContent = '\u201c' + m.text + '\u201d';
+  document.getElementById('cit-author').textContent = '- ' + m.author;
 })();
 
-/* ── SECTIONS ── */
 const SECTIONS = [
-  { label:"poems",      url:"poeme.html",          desc:"A love poem, picked at random. French or Brazilian, oh là là." },
-  { label:"trivia",     url:"quiz-histoire.html",   desc:"France & Brazil mixed — who knows the most, huh ?" },
-  { label:"crossword",  url:"mots-croises.html",    desc:"Fill in the grids. Score is saved, bah oui." },
-  { label:"absolute cinema",     url:"filmographie.html",    desc:"Adrien's films, sorted by director." },
-  { label:"geoguessr",  url:"https://www.worldguessr.com/", desc:"c'est the free version, i am a rats uh ratatouille.", external:true },
-  { label:"todo",       url:"https://www.icloud.com/notes/038_LgyD3tTC4I2XbACKHyCzA#To_do_AA", desc:"Our shared list. the important stuff.", external:true, warning:"if you are not ana or adrien it will not work — cherche pas. otherwise have fun !" },
+  { label:"poems", url:"poeme.html", desc:"A love poem, picked at random. French or Brazilian, oh là là." },
+  { label:"trivia", url:"quiz-histoire.html", desc:"France & Brazil mixed, who knows the most, huh ?" },
+  { label:"crossword", url:"mots-croises.html", desc:"Fill in the grids. Score is saved, bah oui." },
+  { label:"absolute cinema", url:"filmographie.html", desc:"Adrien's films, sorted by director." },
+  { label:"geoguessr", url:"https://www.worldguessr.com/", desc:"c'est the free version, i am a rats uh ratatouille.", external:true },
+  { label:"todo", url:"https://www.icloud.com/notes/038_LgyD3tTC4I2XbACKHyCzA#To_do_AA", desc:"Our shared list. the important stuff.", external:true, warning:"if you are not ana or adrien it will not work, cherche pas. otherwise have fun !" },
 ];
 
 const wrap = document.getElementById('cards-wrap');
+
 SECTIONS.forEach(s => {
   const a = document.createElement('a');
-  a.href      = s.url;
+  a.href = s.url;
   a.className = 'mini-card';
-  if (s.external) a.target = '_blank';
+  if (s.external) {
+    a.target = '_blank';
+    a.rel = 'noopener';
+  }
   a.textContent = s.label;
   wrap.appendChild(a);
 });
 
-/* ── ROUE ── */
 const canvas = document.getElementById('wheel-canvas');
-const ctx    = canvas.getContext('2d');
-const N      = SECTIONS.length;
-const ARC    = (2 * Math.PI) / N;
-let angle    = 0, spinning = false;
-const BORD   = '#8B1A2B';
-const BLANC  = '#FAF8F4';
+const ctx = canvas.getContext('2d');
+const N = SECTIONS.length;
+const ARC = (2 * Math.PI) / N;
+let angle = 0;
+let spinning = false;
+const BORD = '#8B1A2B';
+const BLANC = '#FAF8F4';
 
 function softWobble(baseR, angle, sliceIdx) {
   const phase = sliceIdx * 2.3;
@@ -301,42 +406,51 @@ function drawSlice(cx, cy, baseR, s0, s1, sliceIdx, fill, stroke) {
   const steps = 48;
   ctx.beginPath();
   ctx.moveTo(cx, cy);
+
   for (let k = 0; k <= steps; k++) {
     const a = s0 + (s1 - s0) * (k / steps);
     const r = softWobble(baseR, a, sliceIdx);
     ctx.lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r);
   }
+
   ctx.closePath();
-  ctx.fillStyle   = fill;
+  ctx.fillStyle = fill;
   ctx.fill();
   ctx.strokeStyle = stroke;
-  ctx.lineWidth   = 2;
+  ctx.lineWidth = 2;
   ctx.stroke();
 }
 
 function drawWheel(a) {
-  const cx = canvas.width / 2, cy = canvas.height / 2, r = cx - 10;
+  const cx = canvas.width / 2;
+  const cy = canvas.height / 2;
+  const r = cx - 10;
+
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+
   for (let i = 0; i < N; i++) {
-    const s0   = a + i * ARC - Math.PI / 2;
-    const s1   = s0 + ARC;
+    const s0 = a + i * ARC - Math.PI / 2;
+    const s1 = s0 + ARC;
     const even = i % 2 === 0;
+
     drawSlice(cx, cy, r, s0, s1, i, even ? BORD : BLANC, BORD);
+
     ctx.save();
     ctx.translate(cx, cy);
     ctx.rotate(s0 + ARC / 2);
     ctx.textAlign = 'right';
     ctx.fillStyle = even ? BLANC : BORD;
-    ctx.font      = 'bold 18px "Patrick Hand", cursive';
+    ctx.font = 'bold 18px "Patrick Hand", cursive';
     ctx.fillText(SECTIONS[i].label, r - 20, 7);
     ctx.restore();
   }
+
   ctx.beginPath();
   ctx.arc(cx, cy, 40, 0, 2 * Math.PI);
-  ctx.fillStyle   = BLANC;
+  ctx.fillStyle = BLANC;
   ctx.fill();
   ctx.strokeStyle = BORD;
-  ctx.lineWidth   = 2;
+  ctx.lineWidth = 2;
   ctx.stroke();
 }
 
@@ -344,37 +458,62 @@ drawWheel(angle);
 
 function spinWheel() {
   if (spinning) return;
+
   spinning = true;
   document.getElementById('spin-btn').disabled = true;
+
   const extra = 2 * Math.PI * (7 + Math.random() * 6);
-  const dur   = 3600 + Math.random() * 1200;
-  const t0    = performance.now();
-  const a0    = angle;
-  const ease  = t => 1 - Math.pow(1 - t, 4);
+  const dur = 3600 + Math.random() * 1200;
+  const t0 = performance.now();
+  const a0 = angle;
+  const ease = t => 1 - Math.pow(1 - t, 4);
+
   function frame(now) {
     const t = Math.min((now - t0) / dur, 1);
     angle = a0 + extra * ease(t);
     drawWheel(angle);
-    if (t < 1) { requestAnimationFrame(frame); return; }
+
+    if (t < 1) {
+      requestAnimationFrame(frame);
+      return;
+    }
+
     spinning = false;
     document.getElementById('spin-btn').disabled = false;
     showResult();
   }
+
   requestAnimationFrame(frame);
 }
 
 function showResult() {
   const norm = (((-angle) % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
-  const idx  = Math.floor(norm / ARC) % N;
-  const s    = SECTIONS[idx];
+  const idx = Math.floor(norm / ARC) % N;
+  const s = SECTIONS[idx];
+
   document.getElementById('modal-title').textContent = s.label;
-  document.getElementById('modal-desc').textContent  = s.desc;
+  document.getElementById('modal-desc').textContent = s.desc;
+
   const warnEl = document.getElementById('modal-warning');
-  if (s.warning) { warnEl.textContent = s.warning; warnEl.style.display = 'block'; }
-  else           { warnEl.textContent = '';          warnEl.style.display = 'none';  }
-  const lnk  = document.getElementById('modal-go');
-  lnk.href   = s.url;
+
+  if (s.warning) {
+    warnEl.textContent = s.warning;
+    warnEl.style.display = 'block';
+  } else {
+    warnEl.textContent = '';
+    warnEl.style.display = 'none';
+  }
+
+  const lnk = document.getElementById('modal-go');
+  lnk.href = s.url;
   lnk.target = s.external ? '_blank' : '';
+
+  if (s.external) {
+    lnk.rel = 'noopener';
+  } else {
+    lnk.removeAttribute('rel');
+  }
+
   document.getElementById('modal').classList.add('active');
 }
 
@@ -385,6 +524,7 @@ function closeModal() {
 document.getElementById('modal').addEventListener('click', e => {
   if (e.target === document.getElementById('modal')) closeModal();
 });
+
 document.getElementById('wheel-center').addEventListener('click', spinWheel);
 
 function replayIntro() {
