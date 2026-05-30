@@ -12,7 +12,43 @@
   .filter-btn { padding:8px 18px; border:var(--trait) solid var(--bord-l); background:transparent; font-family:'Patrick Hand',cursive; font-size:0.85rem; cursor:pointer; color:var(--muted); transition:all .15s; white-space:nowrap; }
   .filter-btn.active, .filter-btn:hover { background:var(--bord); color:var(--blanc); border-color:var(--bord); }
   .stats { font-size:0.8rem; color:var(--muted); white-space:nowrap; }
-  .film-list { max-width:960px; margin:0 auto; padding:28px 40px 100px; }
+.film-area {
+  max-width:1200px;
+  margin:0 auto;
+  padding:28px 40px 100px;
+  display:grid;
+  grid-template-columns:180px 1fr;
+  gap:28px;
+  align-items:start;
+}
+
+.tv-img {
+  width:160px;
+  margin-top:42px;
+  position:sticky;
+  top:120px;
+  opacity:0.95;
+}
+
+.film-list {
+  max-width:960px;
+  margin:0;
+  padding:0;
+}
+
+@media(max-width:800px){
+  .film-area {
+    display:block;
+    max-width:960px;
+  }
+
+  .tv-img {
+    width:120px;
+    display:block;
+    margin:0 0 20px 0;
+    position:static;
+  }
+}
   .letter-sep { font-size:1.4rem; color:var(--bord); padding:20px 0 8px; border-bottom:var(--trait) solid var(--bord); margin-bottom:2px; }
   .director-group { margin-bottom:2px; }
   .director-row { display:grid; grid-template-columns:200px 1fr; }
@@ -102,8 +138,10 @@
   <button class="filter-btn"        id="f-added" onclick="setFilter('added')">added</button>
   <div class="stats" id="stats"></div>
 </div>
-
-<div class="film-list" id="film-list"></div>
+<div class="film-area">
+  <img src="devantlatv.png" alt="" class="tv-img">
+  <div class="film-list" id="film-list"></div>
+</div>
 
 <footer>Ana &amp; Adrien</footer>
 
