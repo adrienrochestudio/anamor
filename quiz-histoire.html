@@ -6,87 +6,128 @@
 <title>Trivia — Ana & Adrien</title>
 <link rel="stylesheet" href="style.css">
 <style>
-  /* ── fallback variables (au cas où style.css n'est pas là) ── */
-  :root{
-    --bord:#8b1a2b; --bord-l:#e3d9cf; --blanc:#faf8f4;
-    --text:#2c2622; --muted:#9a8f84; --trait:1.5px;
-  }
+  /* ── fallback (au cas où style.css manque) ── */
+  :root{ --bord:#8b1a2b; --bord-l:#e3d9cf; --blanc:#faf8f4; --text:#2c2622; --muted:#9a8f84; --trait:1.5px; }
   @import url('https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap');
   body{ font-family:'Patrick Hand',cursive; background:var(--blanc); color:var(--text); margin:0; }
-  .nav{ display:flex; align-items:center; justify-content:space-between; padding:14px 24px; border-bottom:var(--trait) solid var(--bord-l); }
-  .nav-title{ color:var(--bord); font-size:1.1rem; }
-  .back-btn{ color:var(--muted); text-decoration:none; font-size:.95rem; }
-  .back-btn:hover{ color:var(--bord); }
   .btn{ font-family:'Patrick Hand',cursive; font-size:1rem; padding:11px 22px; border:var(--trait) solid var(--bord); background:transparent; color:var(--bord); cursor:pointer; transition:all .15s; }
   .btn:hover{ background:var(--bord); color:var(--blanc); }
   .btn-full{ width:100%; }
   footer{ text-align:center; padding:30px; color:var(--muted); font-size:.85rem; }
 
-  .page-header { padding:28px 40px 8px; }
+  /* ── nav + widget score ── */
+  .nav{ display:flex; align-items:center; justify-content:space-between; padding:12px 22px; border-bottom:var(--trait) solid var(--bord-l); gap:12px; }
+  .nav-title{ color:var(--bord); font-size:1.1rem; }
+  .back-btn{ color:var(--muted); text-decoration:none; font-size:.95rem; white-space:nowrap; }
+  .back-btn:hover{ color:var(--bord); }
+
+  .site-score{ position:relative; }
+  .ss-bar{
+    display:flex; align-items:center; gap:8px;
+    background:transparent; border:var(--trait) solid var(--bord-l);
+    padding:6px 10px; cursor:pointer; font-family:'Patrick Hand',cursive;
+    color:var(--muted); transition:all .15s;
+  }
+  .ss-bar:hover{ border-color:var(--bord); color:var(--bord); }
+  .ss-track{ width:90px; height:6px; background:var(--bord-l); position:relative; }
+  .ss-fill{ position:absolute; inset:0 auto 0 0; width:0%; background:var(--bord); transition:width .4s; }
+  .ss-frac{ font-size:.72rem; white-space:nowrap; }
+  .ss-caret{ font-size:.7rem; }
+
+  .ss-panel{
+    display:none; position:absolute; right:0; top:calc(100% + 8px); z-index:200;
+    width:260px; background:var(--blanc);
+    border:var(--trait) solid var(--bord); padding:16px;
+    box-shadow:4px 4px 0 var(--bord-l);
+  }
+  .site-score.open .ss-panel{ display:block; }
+  .ss-row{ display:flex; justify-content:space-between; align-items:baseline; font-size:.9rem; color:var(--muted); margin-bottom:6px; }
+  .ss-row strong{ color:var(--bord); font-size:1.05rem; }
+  .ss-bigtrack{ height:8px; background:var(--bord-l); margin:6px 0 14px; }
+  .ss-bigfill{ height:100%; width:0%; background:var(--bord); transition:width .4s; }
+  .ss-cats{ display:flex; flex-direction:column; gap:5px; margin-bottom:14px; max-height:180px; overflow-y:auto; }
+  .ss-cat{ display:grid; grid-template-columns:74px 1fr 34px; align-items:center; gap:7px; font-size:.74rem; color:var(--muted); }
+  .ss-cat.done .ss-cn{ color:var(--bord); }
+  .ss-cn{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .ss-cb{ height:5px; background:var(--bord-l); position:relative; }
+  .ss-cb span{ position:absolute; inset:0 auto 0 0; background:var(--bord); }
+  .ss-cf{ text-align:right; font-size:.7rem; }
+  .ss-done-msg{ font-size:.8rem; color:var(--bord); text-align:center; margin-bottom:10px; display:none; }
+  .site-score.allDone .ss-done-msg{ display:block; }
+
+  .page-header { padding:26px 40px 6px; }
   .page-header h1 { font-size:2rem; color:var(--bord); margin:0; }
   .page-header p  { font-size:0.9rem; color:var(--muted); margin:6px 0 0; }
 
-  /* ── onglets de thèmes ── */
+  /* ── onglets thèmes (sans emoji) ── */
   .theme-tabs{ padding:18px 40px 4px; display:flex; gap:6px; flex-wrap:wrap; }
-  .ttab{
-    padding:8px 14px; border:var(--trait) solid var(--bord-l); background:transparent;
-    font-family:'Patrick Hand',cursive; font-size:.85rem; cursor:pointer; color:var(--muted);
-    transition:all .15s; display:flex; flex-direction:column; gap:2px; align-items:center; min-width:74px;
-  }
+  .ttab{ padding:8px 14px; border:var(--trait) solid var(--bord-l); background:transparent; font-family:'Patrick Hand',cursive; font-size:.85rem; cursor:pointer; color:var(--muted); transition:all .15s; display:flex; flex-direction:column; gap:3px; align-items:center; min-width:70px; }
   .ttab .tn{ font-size:.86rem; }
-  .ttab .td{ font-size:.62rem; color:var(--muted); }
+  .ttab .td{ font-size:.6rem; color:var(--muted); letter-spacing:1px; }
   .ttab.active,.ttab:hover{ background:var(--bord); color:var(--blanc); }
   .ttab.active .td,.ttab:hover .td{ color:rgba(250,248,244,.6); }
-  .ttab .em{ font-size:1.05rem; line-height:1; }
+  .ttab.done .tn::after{ content:' ✓'; }
   .difflbl{ padding:2px 40px 4px; font-size:.78rem; color:var(--muted); }
 
-  .quiz-wrap { max-width:600px; margin:0 auto; padding:24px 40px 80px; }
-
+  .quiz-wrap { max-width:600px; margin:0 auto; padding:22px 40px 80px; }
   .progress { height:3px; background:var(--bord-l); margin-bottom:8px; }
   .progress-fill { height:100%; background:var(--bord); transition:width .4s; }
-  .progress-label { font-size:0.8rem; color:var(--muted); margin-bottom:24px; display:flex; justify-content:space-between; }
+  .progress-label { font-size:0.8rem; color:var(--muted); margin-bottom:22px; display:flex; justify-content:space-between; }
 
   .q-card { border:var(--trait) solid var(--bord-l); padding:28px; margin-bottom:20px; }
-  .q-flag { font-size:1.4rem; margin-bottom:10px; }
+  .q-flag { font-size:.72rem; letter-spacing:1px; text-transform:uppercase; color:var(--muted); margin-bottom:12px; }
   .q-text { font-size:1.15rem; color:var(--text); line-height:1.5; }
-
   .choices { display:flex; flex-direction:column; gap:8px; margin-top:24px; }
-  .choice {
-    padding:13px 18px; border:var(--trait) solid var(--bord-l);
-    background:transparent; text-align:left;
-    font-family:'Patrick Hand',cursive; font-size:1rem;
-    cursor:pointer; color:var(--text); transition:all .15s;
-  }
+  .choice { padding:13px 18px; border:var(--trait) solid var(--bord-l); background:transparent; text-align:left; font-family:'Patrick Hand',cursive; font-size:1rem; cursor:pointer; color:var(--text); transition:all .15s; }
   .choice:hover:not(:disabled) { border-color:var(--bord); background:var(--bord-l); }
   .choice.correct { background:var(--bord); color:var(--blanc); border-color:var(--bord); }
   .choice.wrong   { background:var(--bord-l); color:var(--bord); border-color:var(--bord); text-decoration:line-through; }
   .choice:disabled { cursor:default; }
-
   .feedback { padding:14px 18px; border-left:var(--trait) solid var(--bord); font-size:0.95rem; color:var(--muted); margin-top:8px; display:none; line-height:1.6; }
   .feedback.show { display:block; }
-
   .btn-next { margin-top:20px; display:none; }
   .btn-next.show { display:inline-block; }
 
-  /* Score */
   .score-screen { display:none; text-align:center; padding:50px 40px; }
   .score-screen.show { display:block; }
   .score-num { font-size:5rem; color:var(--bord); line-height:1; }
-  .score-msg { font-size:1.1rem; color:var(--muted); margin:16px 0 8px; }
-  .score-best { font-size:.9rem; color:var(--muted); margin-bottom:32px; }
-  .score-actions{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; max-width:360px; margin:0 auto; }
+  .score-msg { font-size:1.1rem; color:var(--muted); margin:16px 0 6px; }
+  .score-best { font-size:.9rem; color:var(--muted); margin-bottom:30px; }
+  .score-best b{ color:var(--bord); }
+  .score-actions{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; max-width:380px; margin:0 auto; }
+
+  @media(max-width:600px){
+    .nav{ flex-wrap:wrap; }
+    .ss-track{ width:64px; }
+    .ss-panel{ width:240px; }
+    .page-header,.theme-tabs,.difflbl,.quiz-wrap{ padding-left:20px; padding-right:20px; }
+  }
 </style>
 </head>
 <body>
 <nav class="nav">
   <a href="index.html" class="back-btn">← retour</a>
   <div class="nav-title">Trivia</div>
-  <div></div>
+  <div class="site-score" id="site-score">
+    <button class="ss-bar" id="ss-toggle" onclick="toggleScore(event)">
+      <div class="ss-track"><div class="ss-fill" id="ss-fill"></div></div>
+      <span class="ss-frac" id="ss-frac">0/180</span>
+      <span class="ss-caret">▾</span>
+    </button>
+    <div class="ss-panel" id="ss-panel">
+      <div class="ss-done-msg">site complété — chapeau bah</div>
+      <div class="ss-row"><span>score du site</span><strong id="ss-total">0 / 180</strong></div>
+      <div class="ss-row"><span>record du site</span><strong id="ss-record">0 / 180</strong></div>
+      <div class="ss-bigtrack"><div class="ss-bigfill" id="ss-bigfill"></div></div>
+      <div class="ss-cats" id="ss-cats"></div>
+      <button class="btn btn-full" onclick="shareScore()">partager mon score</button>
+    </div>
+  </div>
 </nav>
 
 <div class="page-header">
   <h1>Trivia</h1>
-  <p>choisis un thème — et accroche-toi, c'est pas donné</p>
+  <p>choisis un thème — 20 questions par catégorie, et c'est du costaud</p>
 </div>
 
 <div class="theme-tabs" id="theme-tabs"></div>
@@ -95,7 +136,7 @@
 <div class="quiz-wrap">
   <div id="quiz-section">
     <div class="progress"><div class="progress-fill" id="pfill" style="width:0%"></div></div>
-    <div class="progress-label"><span id="plabel">Question 1 / 10</span><span id="pscore">0 ✓</span></div>
+    <div class="progress-label"><span id="plabel">Question 1 / 20</span><span id="pscore">score : 0</span></div>
     <div class="q-card">
       <div class="q-flag" id="qflag"></div>
       <div class="q-text" id="qtext"></div>
@@ -118,243 +159,336 @@
 
 <script>
 // ════════════════════════════════════════════════════════════════
-//   BANQUE DE QUESTIONS  —  trivia difficile
-//   correct = index de la bonne réponse (0-3)
+//   BANQUE — 20 questions par thème, niveau corsé.  correct = index 0-3
 // ════════════════════════════════════════════════════════════════
 const THEMES = [
 {
-  key:"geo", name:"géo", em:"🌍", diff:3, label:"Géographie — la planète dans ses moindres recoins",
+  key:"geo", name:"géo", diff:4, label:"Géographie — la planète dans ses recoins",
   questions:[
-    {q:"Quel pays possède la plus grande zone économique exclusive (ZEE) du monde ?",choices:["France","Australie","États-Unis","Russie"],correct:0,expl:"Grâce à ses territoires d'outre-mer répartis dans tous les océans, la France contrôle la plus grande ZEE du monde, plus de 10 millions de km²."},
-    {q:"Quel désert reçoit moins de précipitations annuelles que l'Antarctique ?",choices:["Désert d'Atacama","Désert de Gobi","Désert du Kalahari","Désert du Namib"],correct:0,expl:"Certaines zones de l'Atacama au Chili sont restées des décennies sans pluie mesurable."},
-    {q:"Quel pays compte le plus grand nombre de volcans ?",choices:["Indonésie","Japon","États-Unis","Islande"],correct:0,expl:"L'Indonésie est posée sur la ceinture de feu du Pacifique et compte plus de 130 volcans actifs."},
-    {q:"Quel fleuve traverse le plus grand nombre de pays ?",choices:["Danube","Nil","Congo","Mékong"],correct:0,expl:"Le Danube traverse ou borde 10 pays, plus que tout autre fleuve."},
-    {q:"Quelle capitale est située à la plus haute altitude ?",choices:["La Paz","Quito","Thimphou","Addis-Abeba"],correct:0,expl:"La capitale administrative de la Bolivie culmine à environ 3 650 mètres."},
-    {q:"Quel pays a un territoire en Europe et en Asie mais aucune capitale dans l'un de ces deux continents… enfin presque ?",choices:["Russie","Kazakhstan","Turquie","Azerbaïdjan"],correct:1,expl:"Astana est entièrement en Asie, alors que le Kazakhstan s'étend à l'ouest de l'Oural, donc en Europe."},
-    {q:"Quelle mer n'a aucun débouché naturel vers les océans ?",choices:["Mer Noire","Mer Caspienne","Mer Baltique","Mer Rouge"],correct:1,expl:"Malgré son nom, la Caspienne est en réalité le plus grand plan d'eau intérieur fermé du monde."},
-    {q:"Quelle île est partagée entre trois pays ?",choices:["Bornéo","Nouvelle-Guinée","Hispaniola","Chypre"],correct:0,expl:"Bornéo est partagée entre l'Indonésie, la Malaisie et Brunei."},
-    {q:"Quel pays africain a le plus grand nombre de pays voisins ?",choices:["RD Congo","Soudan","Tanzanie","Tchad"],correct:0,expl:"La RDC partage ses frontières avec neuf pays."},
-    {q:"Quel pays a le plus long littoral du monde ?",choices:["Canada","Russie","Indonésie","Australie"],correct:0,expl:"Le littoral canadien dépasse les 200 000 km grâce à son immense archipel arctique."},
-    {q:"Quelle est la plus haute montagne hors d'Asie ?",choices:["Denali","Aconcagua","Kilimandjaro","Mont Elbrouz"],correct:1,expl:"L'Aconcagua, en Argentine, culmine à 6 961 m, sommet des Amériques."},
-    {q:"Quel pays contient le centre géographique de l'Europe selon une définition reconnue ?",choices:["Pologne","Lituanie","Slovaquie","Biélorussie"],correct:1,expl:"Un calcul de l'IGN français a placé le centre de l'Europe près de Vilnius."},
-    {q:"Quel lac contient environ 20 % de l'eau douce non gelée du monde ?",choices:["Lac Victoria","Lac Tanganyika","Lac Supérieur","Lac Baïkal"],correct:3,expl:"Le Baïkal, en Sibérie, est à la fois le plus profond et l'un des plus vieux lacs de la planète."},
-    {q:"Quel pays compte le plus grand nombre de fuseaux horaires ?",choices:["Russie","France","États-Unis","Australie"],correct:1,expl:"Avec ses outre-mer, la France couvre 12 fuseaux horaires, record mondial."},
-    {q:"Quel détroit sépare l'Asie de l'Amérique du Nord ?",choices:["Gibraltar","Bosphore","Béring","Passage de Drake"],correct:2,expl:"Le détroit de Béring sépare la Russie de l'Alaska, d'environ 85 km au plus étroit."},
-    {q:"Quel pays est traversé à la fois par l'équateur et par le méridien de Greenwich ?",choices:["Gabon","São Tomé-et-Príncipe","RD Congo","Indonésie"],correct:1,expl:"Le petit archipel se trouve près de l'intersection des deux lignes de référence."},
-    {q:"Quel pays compte le plus grand nombre d'îles ?",choices:["Indonésie","Philippines","Suède","Japon"],correct:2,expl:"La Suède compte plus de 260 000 îles, dont une infime fraction est habitée."},
-    {q:"Quelle ville est la plus au nord ?",choices:["Reykjavik","Helsinki","Anchorage","Saint-Pétersbourg"],correct:0,expl:"La capitale de l'Islande, juste sous le cercle polaire, est la capitale souveraine la plus septentrionale."},
-    {q:"Quel pays a la plus haute altitude moyenne ?",choices:["Népal","Bhoutan","Suisse","Tadjikistan"],correct:1,expl:"L'altitude moyenne du Bhoutan dépasse 3 000 m."},
-    {q:"Quel fleuve déverse le plus grand volume d'eau dans l'océan ?",choices:["Congo","Yangtsé","Mississippi","Amazone"],correct:3,expl:"L'Amazone rejette plus d'eau dans l'Atlantique que les fleuves suivants réunis."}
+    {q:"Quel pays possède la plus grande zone économique exclusive (ZEE) du monde ?",choices:["France","Australie","États-Unis","Russie"],correct:0,expl:"Grâce à ses territoires d'outre-mer dispersés dans tous les océans (Pacifique, Indien, Atlantique, austral), la France contrôle plus de 10 millions de km² de ZEE. Les États-Unis suivent de près, surtout grâce au Pacifique."},
+    {q:"Quel est le plus grand désert du monde, tous types confondus ?",choices:["Sahara","Antarctique","Désert d'Arabie","Gobi"],correct:1,expl:"Un désert se définit par ses faibles précipitations, pas par sa chaleur : l'Antarctique, avec ses 14 millions de km², est le plus grand désert (froid) de la planète. Le Sahara n'est que le plus grand désert chaud."},
+    {q:"Quel désert reçoit, par endroits, moins de précipitations annuelles que l'Antarctique ?",choices:["Atacama","Kalahari","Namib","Thar"],correct:0,expl:"Certaines stations de l'Atacama, au Chili, n'ont jamais enregistré de pluie. Son sol minéral si proche de Mars que la NASA y teste ses rovers."},
+    {q:"Quel pays compte le plus grand nombre de volcans ?",choices:["Indonésie","Japon","États-Unis","Islande"],correct:0,expl:"Posée sur la ceinture de feu du Pacifique, l'Indonésie compte plus de 130 volcans actifs. C'est là qu'eut lieu en 1883 l'éruption du Krakatoa, dont la détonation fut entendue à des milliers de kilomètres."},
+    {q:"Quel fleuve traverse ou borde le plus grand nombre de pays ?",choices:["Danube","Nil","Congo","Mékong"],correct:0,expl:"Le Danube concerne 10 pays, d'Allemagne jusqu'à la mer Noire. C'est le seul grand fleuve d'Europe à couler d'ouest en est sur une telle distance."},
+    {q:"Quelle capitale administrative est située à la plus haute altitude ?",choices:["La Paz","Quito","Thimphou","Bogotá"],correct:0,expl:"La Paz, siège du gouvernement bolivien, culmine à environ 3 650 m. Son altitude est telle que les moteurs y perdent en puissance et que l'eau y bout autour de 88 °C."},
+    {q:"Quel pays s'étend en Europe et en Asie mais a sa capitale entièrement en Asie ?",choices:["Russie","Kazakhstan","Turquie","Azerbaïdjan"],correct:1,expl:"Le Kazakhstan déborde à l'ouest de l'Oural, donc en Europe, mais Astana se trouve bien en Asie. La Turquie a l'inverse : une capitale (Ankara) en Asie et une grande ville (Istanbul) à cheval sur les deux continents."},
+    {q:"Quelle mer n'a aucun débouché naturel vers les océans ?",choices:["Mer Noire","Mer Caspienne","Mer Baltique","Mer d'Aral"],correct:1,expl:"La Caspienne, malgré son nom, est le plus grand plan d'eau intérieur fermé du monde — techniquement un lac. Son statut juridique (mer ou lac) a opposé pendant des décennies les cinq pays riverains pour le partage du pétrole."},
+    {q:"Quelle île est partagée entre trois pays différents ?",choices:["Bornéo","Nouvelle-Guinée","Hispaniola","Tierra del Fuego"],correct:0,expl:"Bornéo est divisée entre l'Indonésie, la Malaisie et le sultanat de Brunei. La Nouvelle-Guinée, elle, n'est partagée qu'entre deux États (Indonésie et Papouasie-Nouvelle-Guinée)."},
+    {q:"Quel pays possède le plus long littoral du monde ?",choices:["Canada","Russie","Indonésie","Norvège"],correct:0,expl:"Le littoral canadien dépasse 200 000 km, soit plus de la moitié du total mondial, à cause de son immense archipel arctique. La Norvège n'est devancée que par la dentelle de ses fjords."},
+    {q:"Quelle est la plus haute montagne située en dehors de l'Asie ?",choices:["Denali","Aconcagua","Kilimandjaro","Mont Elbrouz"],correct:1,expl:"L'Aconcagua, en Argentine, atteint 6 961 m : c'est le toit des Amériques et du monde hors d'Asie. Le Denali (Alaska) et le Kilimandjaro restent largement en dessous."},
+    {q:"Quel lac contient à lui seul environ 20 % de l'eau douce non gelée de la planète ?",choices:["Lac Victoria","Lac Tanganyika","Lac Supérieur","Lac Baïkal"],correct:3,expl:"Le Baïkal, en Sibérie, est le plus profond (plus de 1 600 m) et le plus ancien lac du monde (~25 millions d'années). Il abrite une faune endémique, dont le seul phoque d'eau douce."},
+    {q:"Quel pays couvre le plus grand nombre de fuseaux horaires ?",choices:["Russie","France","États-Unis","Chine"],correct:1,expl:"Avec ses outre-mer répartis sur tout le globe, la France couvre 12 fuseaux horaires, devant la Russie (11). La Chine, à l'inverse, impose une heure unique sur tout son territoire."},
+    {q:"Quel détroit sépare l'Asie de l'Amérique du Nord ?",choices:["Détroit de Gibraltar","Bosphore","Détroit de Béring","Passage de Drake"],correct:2,expl:"Le détroit de Béring sépare la Sibérie de l'Alaska d'à peine 85 km. Pendant les glaciations, un pont terrestre y permit le premier peuplement humain des Amériques."},
+    {q:"Quel pays est traversé à la fois par l'équateur et par le méridien de Greenwich ?",choices:["Gabon","São Tomé-et-Príncipe","RD Congo","Indonésie"],correct:1,expl:"Le point de latitude 0°, longitude 0° tombe dans le golfe de Guinée, et c'est São Tomé-et-Príncipe qui s'en approche le plus. Aucune terre ne se trouve exactement à l'intersection."},
+    {q:"Quel pays compte le plus grand nombre d'îles ?",choices:["Indonésie","Philippines","Suède","Finlande"],correct:2,expl:"La Suède recense plus de 260 000 îles, héritage de la dernière glaciation qui a morcelé sa côte ; une infime fraction est habitée. L'Indonésie en compte « seulement » environ 17 000."},
+    {q:"Quel pays a l'altitude moyenne la plus élevée au monde ?",choices:["Népal","Bhoutan","Suisse","Tadjikistan"],correct:1,expl:"L'altitude moyenne du Bhoutan dépasse 3 000 m, ce qui en fait le pays le plus « haut » en moyenne. C'est aussi le seul État au bilan carbone négatif, ses forêts absorbant plus de CO2 qu'il n'en émet."},
+    {q:"Quel fleuve déverse le plus grand volume d'eau dans l'océan ?",choices:["Congo","Yangtsé","Mississippi","Amazone"],correct:3,expl:"L'Amazone rejette à elle seule environ 20 % de l'eau douce qui entre dans les océans, plus que les sept fleuves suivants réunis. Son débit est si puissant qu'on trouve de l'eau douce en pleine mer, loin de la côte."},
+    {q:"Où se trouve le point de terre ferme le plus bas du globe ?",choices:["Vallée de la Mort","Rivage de la mer Morte","Dépression de Qattara","Lac Assal"],correct:1,expl:"Le rivage de la mer Morte se situe à environ 430 m sous le niveau de la mer, point émergé le plus bas de la Terre. Et il continue de baisser, la mer s'asséchant de près d'un mètre par an."},
+    {q:"Quel pays est entièrement enclavé à l'intérieur d'un seul autre pays ?",choices:["Eswatini","Lesotho","Botswana","Gambie"],correct:1,expl:"Le Lesotho est totalement entouré par l'Afrique du Sud — l'un des trois seuls États au monde dans ce cas, avec Saint-Marin et le Vatican (enclavés dans l'Italie). L'Eswatini, lui, touche aussi le Mozambique."}
   ]
 },
 {
-  key:"fr", name:"culture FR", em:"🇫🇷", diff:3, label:"Culture française — rois, peintres et bons mots",
+  key:"fr", name:"culture FR", diff:4, label:"Culture française — rois, idées et chefs-d'œuvre",
   questions:[
-    {q:"Quel roi de France était surnommé le « Roi-Soleil » ?",choices:["Louis XIII","Louis XIV","Louis XV","Henri IV"],correct:1,expl:"Louis XIV a régné 72 ans et a fait de Versailles le centre du pouvoir royal."},
-    {q:"Quel auteur a écrit À la recherche du temps perdu ?",choices:["Émile Zola","Victor Hugo","Marcel Proust","Albert Camus"],correct:2,expl:"Publié en sept volumes, c'est l'une des plus grandes œuvres de la littérature moderne."},
-    {q:"Quelle région est traditionnellement associée au cassoulet ?",choices:["Bretagne","Normandie","Occitanie","Alsace"],correct:2,expl:"Le cassoulet vient du Sud-Ouest, autour de Toulouse, Castelnaudary et Carcassonne."},
-    {q:"Quel peintre a réalisé Le Radeau de la Méduse ?",choices:["Eugène Delacroix","Théodore Géricault","Gustave Courbet","Ingres"],correct:1,expl:"Le tableau représente un naufrage réel et devint un jalon du romantisme français."},
-    {q:"Quelle ville fut la capitale de la Bourgogne au Moyen Âge ?",choices:["Lyon","Dijon","Reims","Tours"],correct:1,expl:"Dijon fut l'une des villes les plus riches d'Europe sous les ducs de Bourgogne."},
-    {q:"Quel philosophe a écrit De l'esprit des lois ?",choices:["Voltaire","Montesquieu","Rousseau","Diderot"],correct:1,expl:"Ses idées sur la séparation des pouvoirs ont fortement influencé les démocraties modernes."},
-    {q:"Quelle cathédrale servait au sacre des rois de France ?",choices:["Notre-Dame de Paris","Chartres","Reims","Amiens"],correct:2,expl:"La plupart des rois y furent couronnés à partir du XIe siècle."},
-    {q:"Quel territoire d'outre-mer français se situe en Amérique du Sud ?",choices:["La Réunion","Martinique","Guadeloupe","Guyane française"],correct:3,expl:"C'est la plus vaste région française et le site du principal port spatial européen."},
-    {q:"Quel compositeur a écrit Carmen ?",choices:["Claude Debussy","Georges Bizet","Maurice Ravel","Hector Berlioz"],correct:1,expl:"Carmen est l'un des opéras les plus joués au monde."},
-    {q:"Quel monarque a révoqué l'édit de Nantes ?",choices:["Louis XIII","Louis XIV","Charles X","Louis XVI"],correct:1,expl:"En 1685, il révoque les libertés religieuses accordées aux protestants."},
-    {q:"Quelle île est surnommée « l'Île de Beauté » ?",choices:["Belle-Île","Oléron","Corse","Noirmoutier"],correct:2,expl:"Le surnom évoque ses montagnes, son littoral et ses paysages spectaculaires."},
-    {q:"Quelle scientifique a découvert la radioactivité avec son mari Pierre ?",choices:["Sophie Germain","Marie Curie","Irène Joliot-Curie","Marguerite Perey"],correct:1,expl:"Première personne à recevoir deux prix Nobel dans deux disciplines différentes."},
-    {q:"Quelle bataille marqua la défaite finale de Napoléon ?",choices:["Austerlitz","Borodino","Leipzig","Waterloo"],correct:3,expl:"En 1815, en Belgique actuelle, fin définitive de son règne."},
-    {q:"Quelle ville accueille chaque année la Fête des Lumières ?",choices:["Lyon","Strasbourg","Nice","Bordeaux"],correct:0,expl:"La Fête des Lumières attire des millions de visiteurs chaque décembre."},
-    {q:"Quel écrivain reçut le prix Nobel de littérature en 1957 ?",choices:["Jean-Paul Sartre","Albert Camus","André Malraux","François Mauriac"],correct:1,expl:"Camus n'avait que 44 ans au moment du prix."},
-    {q:"Quel château inspira de nombreux éléments architecturaux de Versailles ?",choices:["Chambord","Chenonceau","Vaux-le-Vicomte","Blois"],correct:2,expl:"Louis XIV l'admira tant qu'il débaucha son architecte, son jardinier et son décorateur."},
-    {q:"Quel département porte le numéro 2A ?",choices:["Corse-du-Sud","Haute-Corse","Alpes-Maritimes","Aisne"],correct:0,expl:"La Corse est divisée en 2A (Corse-du-Sud) et 2B (Haute-Corse)."},
-    {q:"Quel intellectuel coordonna l'Encyclopédie sous les Lumières ?",choices:["Rousseau","Voltaire","Diderot","Condorcet"],correct:2,expl:"Le projet visait à rassembler et diffuser le savoir de tous les domaines."},
-    {q:"Quelle ville fut le siège de la papauté durant une grande partie du XIVe siècle ?",choices:["Arles","Toulouse","Avignon","Montpellier"],correct:2,expl:"Sept papes y résidèrent entre 1309 et 1377."},
-    {q:"Quel roi fut exécuté pendant la Révolution française ?",choices:["Louis XV","Charles X","Louis XVI","Louis-Philippe"],correct:2,expl:"Guillotiné en janvier 1793 après condamnation pour trahison."}
+    {q:"Quel auteur a écrit À la recherche du temps perdu ?",choices:["Émile Zola","Victor Hugo","Marcel Proust","Stendhal"],correct:2,expl:"Proust déploie son œuvre sur sept volumes et plus de 3 000 pages, autour de la mémoire involontaire déclenchée par une madeleine. C'est l'un des plus longs romans jamais publiés."},
+    {q:"Quel peintre a réalisé Le Radeau de la Méduse ?",choices:["Eugène Delacroix","Théodore Géricault","Gustave Courbet","Jacques-Louis David"],correct:1,expl:"Géricault s'inspira d'un naufrage réel et scandaleux de 1816 ; pour le peindre, il étudia des cadavres à la morgue. Le tableau devint un manifeste du romantisme français."},
+    {q:"Quel philosophe a écrit De l'esprit des lois ?",choices:["Voltaire","Montesquieu","Rousseau","Diderot"],correct:1,expl:"Montesquieu y théorise la séparation des pouvoirs (exécutif, législatif, judiciaire), socle des démocraties modernes. L'ouvrage influença directement la Constitution américaine."},
+    {q:"Dans quelle cathédrale les rois de France étaient-ils traditionnellement sacrés ?",choices:["Notre-Dame de Paris","Chartres","Reims","Saint-Denis"],correct:2,expl:"Reims accueillit la quasi-totalité des sacres depuis le XIe siècle, en mémoire du baptême de Clovis. Saint-Denis, lui, servait de nécropole royale, pas de lieu de couronnement."},
+    {q:"Quel roi révoqua l'édit de Nantes en 1685 ?",choices:["Louis XIII","Louis XIV","Charles IX","Henri III"],correct:1,expl:"Louis XIV supprime les libertés accordées aux protestants par Henri IV, provoquant l'exil de centaines de milliers de huguenots. Cette fuite priva la France d'une part de son élite artisanale et financière."},
+    {q:"Quelle bataille marqua la défaite finale de Napoléon en 1815 ?",choices:["Austerlitz","Borodino","Leipzig","Waterloo"],correct:3,expl:"Waterloo, en Belgique actuelle, mit fin aux Cent-Jours et au règne de Napoléon, qui fut exilé à Sainte-Hélène. La défaite est souvent attribuée à l'arrivée tardive de Grouchy et à celle, décisive, des Prussiens de Blücher."},
+    {q:"Quel écrivain reçut le prix Nobel de littérature en 1957 ?",choices:["Jean-Paul Sartre","Albert Camus","André Gide","François Mauriac"],correct:1,expl:"Camus l'obtint à 44 ans, l'un des plus jeunes lauréats. Sartre, lui, refusera le sien en 1964 par principe d'indépendance de l'écrivain."},
+    {q:"Quel château inspira directement de nombreux éléments de Versailles ?",choices:["Chambord","Chenonceau","Vaux-le-Vicomte","Fontainebleau"],correct:2,expl:"Louis XIV admira tant Vaux-le-Vicomte qu'il en débaucha l'architecte Le Vau, le jardinier Le Nôtre et le peintre Le Brun. Il fit aussi arrêter son propriétaire, le ministre Fouquet, jugé trop fastueux."},
+    {q:"Quel intellectuel coordonna l'Encyclopédie des Lumières ?",choices:["Rousseau","Voltaire","Diderot","Condorcet"],correct:2,expl:"Diderot dirigea l'entreprise pendant plus de 20 ans, avec d'Alembert pour les mathématiques. L'ouvrage, censuré à plusieurs reprises, visait à « changer la façon commune de penser »."},
+    {q:"Quelle ville fut le siège de la papauté durant une grande partie du XIVe siècle ?",choices:["Arles","Lyon","Avignon","Reims"],correct:2,expl:"Sept papes résidèrent à Avignon entre 1309 et 1377, période surnommée la « captivité de Babylone » de l'Église. Le palais des Papes en reste l'imposant témoignage."},
+    {q:"Quel roi fut guillotiné en janvier 1793 ?",choices:["Louis XV","Charles X","Louis XVI","Louis-Philippe"],correct:2,expl:"Louis XVI fut condamné par la Convention pour trahison, sa tentative de fuite à Varennes l'ayant gravement compromis. Sa femme Marie-Antoinette le suivit sur l'échafaud quelques mois plus tard."},
+    {q:"Quelle région est traditionnellement associée au cassoulet ?",choices:["Bretagne","Normandie","Occitanie","Alsace"],correct:2,expl:"Le cassoulet vient du Sud-Ouest, et trois villes s'en disputent la paternité : Castelnaudary, Carcassonne et Toulouse. Son nom dérive de la « cassole », le plat en terre cuite dans lequel il mijote."},
+    {q:"Quelle ordonnance de 1539 imposa le français comme langue officielle des actes administratifs ?",choices:["Villers-Cotterêts","l'édit de Nantes","la Pragmatique Sanction","l'édit de Fontainebleau"],correct:0,expl:"L'ordonnance de Villers-Cotterêts, signée par François Ier, remplaça le latin par le français dans la justice et l'administration. C'est l'un des plus anciens textes de loi encore partiellement en vigueur."},
+    {q:"Quel philosophe a écrit Le Discours de la méthode et son fameux « je pense, donc je suis » ?",choices:["Pascal","Descartes","Spinoza","Malebranche"],correct:1,expl:"Descartes y pose les bases du rationalisme moderne et du doute méthodique. Fait notable : il rédigea l'ouvrage en français, et non en latin, pour le rendre accessible au plus grand nombre."},
+    {q:"Quel écrivain de la Renaissance est l'auteur de Gargantua et Pantagruel ?",choices:["Montaigne","Ronsard","Rabelais","Du Bellay"],correct:2,expl:"Rabelais, moine puis médecin, mêle géants, savoir humaniste et truculence populaire. Son nom a donné l'adjectif « rabelaisien », synonyme de démesure joyeuse."},
+    {q:"Quel cardinal fut le principal ministre de Louis XIII ?",choices:["Mazarin","Richelieu","de Retz","Fleury"],correct:1,expl:"Richelieu renforça le pouvoir royal, mata les complots de la noblesse et fonda l'Académie française en 1635. Mazarin lui succéda et forma le jeune Louis XIV."},
+    {q:"Quelle bataille de 1214 consolida le royaume de Philippe Auguste face à une coalition ?",choices:["Bouvines","Crécy","Azincourt","Marignan"],correct:0,expl:"À Bouvines, Philippe Auguste écrasa l'empereur germanique et ses alliés, assurant l'unité du royaume de France. C'est l'une des premières grandes victoires du sentiment national français."},
+    {q:"Quel sculpteur a réalisé Le Penseur ?",choices:["Camille Claudel","Auguste Rodin","Aristide Maillol","Jean-Baptiste Carpeaux"],correct:1,expl:"Le Penseur faisait à l'origine partie de La Porte de l'Enfer de Rodin, inspirée de Dante. La figure devait représenter le poète méditant sur les damnés."},
+    {q:"Quel peintre impressionniste a réalisé l'immense série des Nymphéas ?",choices:["Pierre-Auguste Renoir","Claude Monet","Camille Pissarro","Alfred Sisley"],correct:1,expl:"Monet peignit ces toiles dans son jardin de Giverny, jusqu'à devenir presque aveugle. Les plus grandes sont exposées dans deux salles ovales du musée de l'Orangerie, à Paris."},
+    {q:"Quel roi de France était surnommé « le Bien-Aimé » ?",choices:["Louis XIV","Louis XV","Henri IV","François Ier"],correct:1,expl:"Louis XV reçut ce surnom après une grave maladie en 1744 qui inquiéta tout le royaume. La popularité s'évapora ensuite, sa fin de règne étant marquée par les revers militaires et les difficultés financières."}
   ]
 },
 {
-  key:"br", name:"culture BR", em:"🇧🇷", diff:4, label:"Culture brésilienne — de Cabral à la bossa nova",
+  key:"br", name:"culture BR", diff:4, label:"Culture brésilienne — de Cabral à la bossa nova",
   questions:[
-    {q:"Quel navigateur portugais débarqua au Brésil en 1500 ?",choices:["Christophe Colomb","Vasco de Gama","Pedro Álvares Cabral","Fernand de Magellan"],correct:2,expl:"Cabral accosta au Brésil le 22 avril 1500."},
-    {q:"Quel écrivain brésilien a écrit Dom Casmurro ?",choices:["Jorge Amado","Machado de Assis","Guimarães Rosa","Clarice Lispector"],correct:1,expl:"Machado de Assis est considéré comme le plus grand romancier brésilien."},
-    {q:"Quel mot portugais intraduisible désigne une nostalgie douce-amère ?",choices:["Saudade","Cafuné","Jeitinho","Desenrascanço"],correct:0,expl:"La saudade est un mélange de manque, de tendresse et de mélancolie."},
-    {q:"Quel art afro-brésilien mêle combat, danse et musique ?",choices:["Frevo","Capoeira","Maculelê","Forró"],correct:1,expl:"Née de la résistance des esclaves, la capoeira mêle lutte et ginga sur fond de berimbau."},
-    {q:"Quel plat national brésilien associe haricots noirs et porc ?",choices:["Moqueca","Feijoada","Acarajé","Vatapá"],correct:1,expl:"La feijoada, ragoût de haricots noirs et de viandes, se sert le mercredi et le samedi."},
-    {q:"Le Sambódromo, où défilent les écoles de samba, se trouve dans quelle ville ?",choices:["Salvador","Recife","Rio de Janeiro","São Paulo"],correct:2,expl:"Le Sambódromo de Rio fut conçu par Oscar Niemeyer et inauguré en 1984."},
-    {q:"Quel architecte a conçu les bâtiments monumentaux de Brasília ?",choices:["Lúcio Costa","Oscar Niemeyer","Burle Marx","Paulo Mendes da Rocha"],correct:1,expl:"Niemeyer signa le Congrès, le Palais de l'Aube et de nombreux édifices courbes."},
-    {q:"Qui dessina le plan urbanistique (plano piloto) de Brasília ?",choices:["Oscar Niemeyer","Lúcio Costa","Burle Marx","Juscelino Kubitschek"],correct:1,expl:"Lúcio Costa dessina la ville en forme d'avion ; Niemeyer en bâtit les monuments."},
-    {q:"Quel écrivain brésilien, auteur de L'Alchimiste, est l'un des plus traduits au monde ?",choices:["Jorge Amado","Paulo Coelho","Machado de Assis","Rubem Fonseca"],correct:1,expl:"Paulo Coelho a vendu des centaines de millions de livres."},
-    {q:"Quel genre musical est né à Rio dans les années 1950, popularisé par João Gilberto ?",choices:["Samba","Bossa nova","Forró","Tropicália"],correct:1,expl:"La bossa nova mêle samba et harmonies de jazz, voix murmurée et guitare syncopée."},
-    {q:"Qui a composé la musique de « Garota de Ipanema » ?",choices:["Tom Jobim","Vinicius de Moraes","Chico Buarque","Caetano Veloso"],correct:0,expl:"Antônio Carlos (Tom) Jobim signa la musique ; Vinicius de Moraes en écrivit les paroles."},
-    {q:"Quelle religion afro-brésilienne syncrétique est centrée sur les orixás ?",choices:["Candomblé","Umbanda","Quimbanda","Espiritismo"],correct:0,expl:"Le candomblé, né à Bahia, vénère les orixás hérités des traditions yoruba."},
-    {q:"Combien d'États fédérés compte le Brésil (hors district fédéral) ?",choices:["23","26","27","30"],correct:1,expl:"Le Brésil compte 26 États plus le district fédéral de Brasília."},
-    {q:"Quel mouvement culturel des années 1960, mené par Caetano Veloso et Gilberto Gil, mêla pop et avant-garde ?",choices:["Bossa nova","Tropicália","Jovem Guarda","Sertanejo"],correct:1,expl:"Le tropicalisme bouscula la musique et la culture brésiliennes sous la dictature."},
-    {q:"Quelle ville historique du Minas Gerais, classée UNESCO, fut le cœur de la ruée vers l'or au XVIIIe siècle ?",choices:["Salvador","Olinda","Ouro Preto","Paraty"],correct:2,expl:"Ouro Preto (« or noir ») conserve un ensemble baroque exceptionnel."},
-    {q:"Qui est la sainte patronne du Brésil ?",choices:["Nossa Senhora Aparecida","Sainte Rose de Lima","São Jorge","Sainte Thérèse"],correct:0,expl:"Nossa Senhora Aparecida est vénérée dans le plus grand sanctuaire marial du pays."},
-    {q:"Quel peuple indigène était le plus répandu sur la côte à l'arrivée des Portugais ?",choices:["Les Guaranis","Les Tupis","Les Yanomamis","Les Kayapós"],correct:1,expl:"Les Tupis peuplaient la majeure partie du littoral brésilien en 1500."},
-    {q:"En quelle année l'esclavage fut-il aboli au Brésil, dernier pays d'Amérique à le faire ?",choices:["1848","1865","1871","1888"],correct:3,expl:"La Lei Áurea (Loi d'Or) du 13 mai 1888 abolit l'esclavage."}
+    {q:"Quel navigateur portugais débarqua au Brésil en 1500 ?",choices:["Christophe Colomb","Vasco de Gama","Pedro Álvares Cabral","Bartolomeu Dias"],correct:2,expl:"Cabral accosta le 22 avril 1500, officiellement par hasard en route vers les Indes. Le traité de Tordesillas (1494) avait déjà attribué la région au Portugal, avant même sa découverte."},
+    {q:"Quel romancier brésilien du XIXe siècle a écrit Dom Casmurro ?",choices:["Jorge Amado","Machado de Assis","Guimarães Rosa","Graciliano Ramos"],correct:1,expl:"Machado de Assis, fils d'un peintre métis et petit-fils d'esclaves affranchis, est considéré comme le plus grand écrivain brésilien. Dom Casmurro entretient un doute célèbre : Capitu a-t-elle trompé son mari ?"},
+    {q:"Quel mot portugais intraduisible désigne une nostalgie douce-amère ?",choices:["Saudade","Cafuné","Jeitinho","Desbunde"],correct:0,expl:"La saudade mêle manque, tendresse et mélancolie d'un être ou d'un temps absent. Le « cafuné », autre mot intraduisible, désigne le geste de caresser doucement les cheveux de quelqu'un."},
+    {q:"Quel art afro-brésilien mêle combat, danse et musique au son du berimbau ?",choices:["Frevo","Capoeira","Maculelê","Maracatu"],correct:1,expl:"Née de la résistance des esclaves, la capoeira fut longtemps interdite avant d'être reconnue patrimoine culturel. Ses mouvements de combat étaient déguisés en danse pour échapper à la répression."},
+    {q:"Quel plat national brésilien associe haricots noirs et viandes de porc ?",choices:["Moqueca","Feijoada","Acarajé","Vatapá"],correct:1,expl:"La feijoada se sert traditionnellement le mercredi et le samedi, accompagnée de riz, de chou et d'oranges. L'origine populaire veut qu'elle soit née des bas morceaux laissés aux esclaves, théorie aujourd'hui nuancée par les historiens."},
+    {q:"Dans quelle ville se trouve le Sambódromo, conçu par Oscar Niemeyer ?",choices:["Salvador","Recife","Rio de Janeiro","São Paulo"],correct:2,expl:"Le Sambódromo de Rio, inauguré en 1984, est l'avenue-stade où défilent les écoles de samba pendant le carnaval. Niemeyer le dessina en seulement quelques mois."},
+    {q:"Quel architecte a conçu les bâtiments monumentaux de Brasília ?",choices:["Lúcio Costa","Oscar Niemeyer","Roberto Burle Marx","Paulo Mendes da Rocha"],correct:1,expl:"Niemeyer signa le Congrès, le palais de l'Aube et la cathédrale aux courbes spectaculaires. Communiste convaincu, il disait préférer « la courbe sensuelle » à l'angle droit."},
+    {q:"Qui dessina le plan urbanistique (plano piloto) de Brasília ?",choices:["Oscar Niemeyer","Lúcio Costa","Roberto Burle Marx","Juscelino Kubitschek"],correct:1,expl:"Lúcio Costa conçut le tracé en forme d'avion (ou de croix) ; Niemeyer en bâtit les monuments. La ville sortit de terre en moins de quatre ans, sous l'impulsion du président Kubitschek."},
+    {q:"Quel genre musical est né à Rio dans les années 1950, popularisé par João Gilberto ?",choices:["Samba","Bossa nova","Forró","Tropicália"],correct:1,expl:"La bossa nova marie la samba à des harmonies de jazz, avec une voix murmurée et une guitare syncopée. « Garota de Ipanema » en est l'hymne planétaire."},
+    {q:"Qui a composé la musique de « Garota de Ipanema » (La Fille d'Ipanema) ?",choices:["Tom Jobim","Vinicius de Moraes","Chico Buarque","Caetano Veloso"],correct:0,expl:"Antônio Carlos « Tom » Jobim composa la musique ; Vinicius de Moraes écrivit les paroles. La chanson est l'une des plus enregistrées de l'histoire, derrière « Yesterday »."},
+    {q:"Quelle religion afro-brésilienne syncrétique vénère les orixás ?",choices:["Candomblé","Espiritismo","Pentecôtisme","Catholicisme"],correct:0,expl:"Le candomblé, né à Bahia, vénère des divinités héritées des traditions yoruba. Sous l'esclavage, les orixás furent associés à des saints catholiques pour pouvoir être pratiqués en secret."},
+    {q:"Quel mouvement culturel des années 1960, mené par Caetano Veloso et Gilberto Gil, mêla pop et avant-garde ?",choices:["Bossa nova","Tropicália","Jovem Guarda","Sertanejo"],correct:1,expl:"Le tropicalisme bouscula la musique et les arts sous la dictature militaire, ce qui valut à ses leaders prison puis exil. Il mêlait guitares électriques, rythmes afro-brésiliens et provocation."},
+    {q:"Quelle ville historique du Minas Gerais fut le cœur de la ruée vers l'or au XVIIIe siècle ?",choices:["Salvador","Olinda","Ouro Preto","Paraty"],correct:2,expl:"Ouro Preto (« or noir ») conserve un ensemble baroque classé à l'UNESCO. C'est là que l'artiste mulâtre Aleijadinho, malgré une maladie qui le déformait, sculpta ses chefs-d'œuvre."},
+    {q:"Qui est la sainte patronne du Brésil ?",choices:["Nossa Senhora Aparecida","Sainte Rose de Lima","Sainte Thérèse","Notre-Dame de Fatima"],correct:0,expl:"Nossa Senhora Aparecida est une statuette noire de la Vierge, repêchée par des pêcheurs au XVIIIe siècle. Son sanctuaire est l'un des plus grands lieux de pèlerinage marial au monde."},
+    {q:"Quel empereur régna sur le Brésil pendant près de cinquante ans avant d'être renversé en 1889 ?",choices:["Pedro Ier","Pedro II","Deodoro da Fonseca","Getúlio Vargas"],correct:1,expl:"Pedro II, monté sur le trône enfant, fit du Brésil le seul grand empire stable d'Amérique au XIXe siècle. Il fut renversé un an après l'abolition de l'esclavage, par un coup d'État proclamant la République."},
+    {q:"Quelle ville fut la capitale du Brésil colonial avant Rio de Janeiro ?",choices:["Recife","Salvador","Olinda","São Paulo"],correct:1,expl:"Salvador de Bahia fut la capitale de 1549 à 1763, principal port de la traite négrière atlantique. Son centre historique, le Pelourinho, en garde l'architecture coloniale colorée."},
+    {q:"Quel écrivain brésilien est l'auteur de Gabriela, girofle et cannelle ?",choices:["Machado de Assis","Jorge Amado","Paulo Coelho","Clarice Lispector"],correct:1,expl:"Jorge Amado, originaire de Bahia, peignit le peuple, la sensualité et les couleurs du Nordeste. Ses romans ont été adaptés en films et en feuilletons à succès."},
+    {q:"Quel architecte paysagiste a conçu les jardins de Brasília et la promenade de Copacabana ?",choices:["Lúcio Costa","Roberto Burle Marx","Oscar Niemeyer","Lina Bo Bardi"],correct:1,expl:"Burle Marx introduisit la flore tropicale brésilienne dans l'art des jardins, traités comme des tableaux abstraits. Les pavés ondulés noir et blanc de Copacabana sont son œuvre la plus connue."},
+    {q:"Quel genre musical du Nordeste, joué à l'accordéon, est associé à Luiz Gonzaga ?",choices:["Choro","Forró","Pagode","Axé"],correct:1,expl:"Luiz Gonzaga, surnommé le « roi du baião », popularisa le forró bien au-delà du sertão aride. On le danse en couple serré, sur un trio accordéon, triangle et zabumba."},
+    {q:"Combien d'États fédérés compte le Brésil, en plus du district fédéral ?",choices:["23","26","27","30"],correct:1,expl:"Le Brésil compte 26 États plus le district fédéral de Brasília. Le plus peuplé est São Paulo, le plus vaste l'Amazonas."}
   ]
 },
 {
-  key:"sport", name:"sport", em:"⚽", diff:4, label:"Sport — records, légendes et coupes",
+  key:"sport", name:"sport", diff:4, label:"Sport — records, légendes et coupes",
   questions:[
-    {q:"Combien de fois le Brésil a-t-il remporté la Coupe du monde de football ?",choices:["4","5","6","3"],correct:1,expl:"Cinq titres (1958, 62, 70, 94, 2002), record absolu."},
-    {q:"Quel pays a accueilli les premiers Jeux olympiques modernes, en 1896 ?",choices:["France","Grèce","Royaume-Uni","États-Unis"],correct:1,expl:"Athènes, berceau des Jeux antiques, accueillit la renaissance olympique."},
-    {q:"Quel pays a remporté la toute première Coupe du monde de football, en 1930 ?",choices:["Brésil","Uruguay","Argentine","Italie"],correct:1,expl:"L'Uruguay, pays hôte, battit l'Argentine en finale à Montevideo."},
-    {q:"Quel pilote belge, surnommé « le Cannibale », a remporté cinq Tours de France ?",choices:["Eddy Merckx","Bernard Hinault","Miguel Indurain","Jacques Anquetil"],correct:0,expl:"Eddy Merckx dévorait toutes les courses : Tours, Giri, classiques."},
-    {q:"Quel joueur de tennis détenait le record masculin de titres du Grand Chelem en 2024 (24) ?",choices:["Roger Federer","Rafael Nadal","Novak Djokovic","Pete Sampras"],correct:2,expl:"Djokovic comptait 24 titres du Grand Chelem en 2024."},
-    {q:"Quelle est la distance officielle d'un marathon ?",choices:["40 km","42,195 km","45 km","38 km"],correct:1,expl:"Les 195 mètres furent ajoutés en 1908 pour finir devant la loge royale à Londres."},
-    {q:"Combien de joueurs compte une équipe de rugby à XV sur le terrain ?",choices:["11","13","15","7"],correct:2,expl:"Quinze joueurs : huit avants et sept arrières."},
-    {q:"Quel boxeur se proclamait lui-même « The Greatest » ?",choices:["Mike Tyson","Mohamed Ali","Joe Frazier","George Foreman"],correct:1,expl:"Mohamed Ali, triple champion du monde des lourds et icône mondiale."},
-    {q:"Dans quel pays le football moderne fut-il codifié en 1863 ?",choices:["Angleterre","Écosse","Brésil","Italie"],correct:0,expl:"La Football Association de Londres fixa les premières règles unifiées."},
-    {q:"Quel pilote brésilien, triple champion du monde de F1, est mort en course à Imola en 1994 ?",choices:["Emerson Fittipaldi","Ayrton Senna","Nelson Piquet","Rubens Barrichello"],correct:1,expl:"La mort de Senna bouleversa le sport automobile et tout le Brésil."},
-    {q:"Quelle est la seule équipe à avoir disputé toutes les Coupes du monde de football ?",choices:["Allemagne","Italie","Brésil","Argentine"],correct:2,expl:"Le Brésil a participé à toutes les éditions depuis 1930."},
-    {q:"Quel basketteur est surnommé « His Airness » ?",choices:["Kareem Abdul-Jabbar","Michael Jordan","Magic Johnson","LeBron James"],correct:1,expl:"Michael Jordan, six titres NBA avec les Chicago Bulls."},
-    {q:"Quel pays a remporté l'Euro de football 2020 (joué en 2021) ?",choices:["Angleterre","Italie","France","Espagne"],correct:1,expl:"L'Italie battit l'Angleterre aux tirs au but à Wembley."},
-    {q:"Dans quel sport décerne-t-on la Coupe Stanley ?",choices:["Hockey sur glace","Basketball","Baseball","Football américain"],correct:0,expl:"La Coupe Stanley récompense le champion de la NHL."},
-    {q:"Combien de pilotes partagent le record de 7 titres mondiaux de Formule 1 ?",choices:["1","2","3","4"],correct:1,expl:"Michael Schumacher et Lewis Hamilton, sept couronnes chacun."},
-    {q:"Dans quelle ville se dispute le tournoi de tennis de Roland-Garros ?",choices:["Londres","Paris","New York","Melbourne"],correct:1,expl:"Roland-Garros, seul Grand Chelem sur terre battue, se joue à Paris."},
-    {q:"Quel nageur détient le record du plus grand nombre de médailles olympiques de l'histoire ?",choices:["Mark Spitz","Michael Phelps","Ian Thorpe","Caeleb Dressel"],correct:1,expl:"Michael Phelps totalise 28 médailles olympiques, dont 23 en or."}
+    {q:"Combien de fois le Brésil a-t-il remporté la Coupe du monde de football ?",choices:["4","5","6","3"],correct:1,expl:"Cinq titres (1958, 1962, 1970, 1994, 2002), record absolu. Le Brésil est aussi la seule sélection à avoir disputé toutes les éditions depuis 1930."},
+    {q:"Quel pays a remporté la toute première Coupe du monde de football, en 1930 ?",choices:["Brésil","Uruguay","Argentine","Italie"],correct:1,expl:"L'Uruguay, pays hôte, battit l'Argentine 4-2 en finale à Montevideo. Le tournoi se joua avec seulement 13 équipes, plusieurs nations européennes ayant renoncé au long voyage en bateau."},
+    {q:"Quel cycliste belge, surnommé « le Cannibale », a remporté cinq Tours de France ?",choices:["Eddy Merckx","Bernard Hinault","Miguel Indurain","Fausto Coppi"],correct:0,expl:"Merckx gagnait tout : Tours, Giri, classiques, record de l'heure. Son surnom vient de son appétit insatiable de victoires, qui ne laissait rien à ses adversaires."},
+    {q:"Quel joueur détenait, en 2024, le record masculin de titres du Grand Chelem (24) ?",choices:["Roger Federer","Rafael Nadal","Novak Djokovic","Pete Sampras"],correct:2,expl:"Djokovic comptait 24 titres en 2024, devant Nadal (22) et Federer (20). Il est aussi le seul homme à avoir remporté chacun des quatre tournois majeurs au moins trois fois."},
+    {q:"Quel pilote brésilien, triple champion du monde de F1, est mort en course à Imola en 1994 ?",choices:["Emerson Fittipaldi","Ayrton Senna","Nelson Piquet","Rubens Barrichello"],correct:1,expl:"La mort de Senna lors du Grand Prix de Saint-Marin endeuilla le Brésil entier et bouleversa la sécurité en F1. Aucun pilote n'est mort en course dans ce championnat pendant les vingt années suivantes."},
+    {q:"Quel boxeur se proclamait lui-même « The Greatest » ?",choices:["Mike Tyson","Mohamed Ali","Joe Frazier","Sugar Ray Robinson"],correct:1,expl:"Triple champion du monde des lourds, Ali refusa la guerre du Vietnam et perdit son titre par décision politique avant de le reconquérir. Son combat de 1974 contre Foreman, le « Rumble in the Jungle », est resté légendaire."},
+    {q:"Dans quel pays le football moderne fut-il codifié, en 1863 ?",choices:["Angleterre","Écosse","Italie","Pays de Galles"],correct:0,expl:"La Football Association, fondée à Londres, sépara définitivement le football du rugby en interdisant le jeu à la main. C'est de là que vient le mot « soccer », abréviation d'« association »."},
+    {q:"Combien de pilotes partagent le record de sept titres mondiaux de Formule 1 ?",choices:["1","2","3","4"],correct:1,expl:"Michael Schumacher et Lewis Hamilton détiennent chacun sept couronnes. Hamilton détient en plus le record du nombre de victoires en Grands Prix."},
+    {q:"Quel nageur détient le record du plus grand nombre de médailles olympiques de l'histoire ?",choices:["Mark Spitz","Michael Phelps","Ian Thorpe","Caeleb Dressel"],correct:1,expl:"Phelps totalise 28 médailles olympiques, dont 23 en or, un record toutes disciplines confondues. Aux seuls Jeux de Pékin 2008, il en remporta huit en or."},
+    {q:"Quel basketteur est surnommé « His Airness » ?",choices:["Kareem Abdul-Jabbar","Michael Jordan","Magic Johnson","Wilt Chamberlain"],correct:1,expl:"Jordan remporta six titres NBA avec les Chicago Bulls et deux fois l'or olympique. Sa marque Air Jordan reste l'une des plus lucratives du sport."},
+    {q:"Quel pays a remporté l'Euro de football 2020 (disputé en 2021) ?",choices:["Angleterre","Italie","France","Espagne"],correct:1,expl:"L'Italie battit l'Angleterre aux tirs au but, à Wembley, dans le stade même de son adversaire. Le tournoi avait été reporté d'un an à cause de la pandémie."},
+    {q:"Dans quel sport décerne-t-on la Coupe Stanley ?",choices:["Hockey sur glace","Basketball","Baseball","Football américain"],correct:0,expl:"La Coupe Stanley, plus vieux trophée du sport professionnel nord-américain, récompense le champion de la NHL. Les noms des vainqueurs y sont gravés année après année."},
+    {q:"Quel sport olympique fut créé par Jigoro Kano en 1882 ?",choices:["Aïkido","Judo","Karaté","Taekwondo"],correct:1,expl:"Kano synthétisa d'anciennes techniques de jiu-jitsu en une méthode éducative, le judo (« voie de la souplesse »). C'est le premier art martial japonais devenu discipline olympique."},
+    {q:"Combien de joueurs compte une équipe de water-polo dans l'eau ?",choices:["6","7","9","11"],correct:1,expl:"Sept joueurs par équipe, dont le gardien. Le sport est réputé pour son intensité physique et les nombreuses fautes qui se règlent sous la surface, hors de vue de l'arbitre."},
+    {q:"Quel sprinteur jamaïcain détient toujours les records du monde du 100 m et du 200 m ?",choices:["Yohan Blake","Usain Bolt","Asafa Powell","Tyson Gay"],correct:1,expl:"Bolt courut le 100 m en 9 s 58 et le 200 m en 19 s 19, à Berlin en 2009. Aucun athlète ne s'en est approché depuis."},
+    {q:"Quelle ville a accueilli les premiers Jeux olympiques d'été d'Amérique du Sud, en 2016 ?",choices:["Buenos Aires","Rio de Janeiro","São Paulo","Lima"],correct:1,expl:"Rio organisa les Jeux de 2016, sur fond de crise économique et politique brésilienne. C'est aussi là que le surf et l'escalade firent leur entrée parmi les sports envisagés pour l'avenir olympique."},
+    {q:"Quel pays a remporté la première Coupe du monde de rugby, en 1987 ?",choices:["Australie","Afrique du Sud","Nouvelle-Zélande","France"],correct:2,expl:"Les All Blacks néo-zélandais s'imposèrent à domicile lors de cette première édition. Ils sont, avec l'Afrique du Sud, les plus titrés de l'histoire du tournoi."},
+    {q:"Sur le Tour de France, quelle est la couleur du maillot du meilleur grimpeur ?",choices:["jaune","vert","à pois rouges","blanc"],correct:2,expl:"Le maillot à pois rouges récompense le meilleur grimpeur ; le vert va au meilleur sprinteur et le jaune au leader du classement général. Le blanc distingue, lui, le meilleur jeune."},
+    {q:"Quel boxeur poids lourd termina sa carrière invaincu, avec un bilan de 49 victoires et aucune défaite ?",choices:["Joe Louis","Rocky Marciano","Larry Holmes","Jack Dempsey"],correct:1,expl:"Marciano se retira en 1956 sans avoir jamais perdu, fait unique pour un champion du monde des lourds. Son record d'invincibilité a inspiré le personnage de cinéma Rocky Balboa."},
+    {q:"Quelle est la distance officielle d'un marathon ?",choices:["40 km","42,195 km","45 km","38 km"],correct:1,expl:"Les 195 mètres surnuméraires furent ajoutés aux Jeux de Londres de 1908 pour que l'arrivée se fasse devant la loge royale. La distance fut ensuite figée pour toutes les compétitions."}
   ]
 },
 {
-  key:"cine", name:"cinéma", em:"🎬", diff:4, label:"Cinéma — de la Nouvelle Vague à Hollywood",
+  key:"cine", name:"cinéma", diff:5, label:"Cinéma — de la Nouvelle Vague à Hollywood",
   questions:[
-    {q:"Quel réalisateur a tourné Les 400 coups et Jules et Jim ?",choices:["Jean-Luc Godard","François Truffaut","Éric Rohmer","Claude Chabrol"],correct:1,expl:"Truffaut, figure majeure de la Nouvelle Vague."},
-    {q:"Quelle récompense suprême est décernée au Festival de Cannes ?",choices:["Lion d'or","Ours d'or","Palme d'or","Coquille d'or"],correct:2,expl:"La Palme d'or couronne le meilleur film depuis 1955."},
-    {q:"Quel film sud-coréen a remporté l'Oscar du meilleur film en 2020 ?",choices:["Roma","Parasite","Minari","Drive My Car"],correct:1,expl:"Parasite de Bong Joon-ho, premier film non anglophone sacré meilleur film."},
-    {q:"Qui a réalisé Pulp Fiction ?",choices:["Martin Scorsese","Quentin Tarantino","Francis Ford Coppola","David Fincher"],correct:1,expl:"Tarantino remporta la Palme d'or à Cannes en 1994 avec ce film."},
-    {q:"Quel acteur français a gagné l'Oscar du meilleur acteur pour The Artist ?",choices:["Vincent Cassel","Jean Dujardin","Omar Sy","Romain Duris"],correct:1,expl:"Jean Dujardin, premier Français oscarisé comme meilleur acteur, en 2012."},
-    {q:"Quel réalisateur faisait des caméos dans ses propres films de suspense ?",choices:["Alfred Hitchcock","Stanley Kubrick","Steven Spielberg","David Lynch"],correct:0,expl:"Hitchcock apparaissait furtivement dans presque tous ses films."},
-    {q:"Combien d'Oscars a remporté Titanic (1997) ?",choices:["9","11","14","7"],correct:1,expl:"Onze Oscars, record partagé avec Ben-Hur et Le Retour du roi."},
-    {q:"Qui a réalisé La Cité de Dieu (Cidade de Deus), film brésilien culte de 2002 ?",choices:["Walter Salles","Fernando Meirelles","Glauber Rocha","José Padilha"],correct:1,expl:"Meirelles dépeint la violence des favelas de Rio avec une énergie fulgurante."},
-    {q:"Quel réalisateur brésilien a dirigé Central do Brasil ?",choices:["Fernando Meirelles","Walter Salles","Kleber Mendonça Filho","Anna Muylaert"],correct:1,expl:"Walter Salles, Ours d'or à Berlin en 1998 pour ce film."},
-    {q:"Quel film muet de 1927 de Fritz Lang est un classique de la science-fiction ?",choices:["Nosferatu","Metropolis","Le Cabinet du Dr Caligari","M le maudit"],correct:1,expl:"Metropolis, vision dystopique d'une cité futuriste."},
-    {q:"Quelle actrice incarne Amélie Poulain ?",choices:["Audrey Tautou","Marion Cotillard","Juliette Binoche","Sophie Marceau"],correct:0,expl:"Audrey Tautou dans Le Fabuleux Destin d'Amélie Poulain (2001)."},
-    {q:"Quel réalisateur japonais a réalisé Les Sept Samouraïs ?",choices:["Yasujirō Ozu","Akira Kurosawa","Kenji Mizoguchi","Hayao Miyazaki"],correct:1,expl:"Kurosawa influença profondément le cinéma mondial, jusqu'aux westerns."},
-    {q:"Quel studio d'animation a produit Le Voyage de Chihiro ?",choices:["Pixar","Studio Ghibli","DreamWorks","Toei"],correct:1,expl:"Studio Ghibli, fondé par Miyazaki et Takahata ; le film décrocha l'Oscar."},
-    {q:"Quel film brésilien avec Fernanda Torres, sur la dictature, a triomphé en 2024-2025 ?",choices:["Bacurau","Ainda Estou Aqui (Je suis toujours là)","Aquarius","Marighella"],correct:1,expl:"Le film de Walter Salles a remporté l'Oscar du meilleur film international."},
-    {q:"Quel mouvement français des années 1960 est associé à Godard et Truffaut ?",choices:["Néoréalisme","Nouvelle Vague","Expressionnisme","Dogme95"],correct:1,expl:"La Nouvelle Vague révolutionna le tournage : caméra légère, son direct, liberté de ton."},
-    {q:"Quel cinéaste a réalisé Pickpocket et Au hasard Balthazar ?",choices:["Jacques Tati","Robert Bresson","Jean Renoir","Alain Resnais"],correct:1,expl:"Bresson, maître d'un style épuré et spirituel."}
+    {q:"Quel réalisateur a tourné Les 400 coups et Jules et Jim ?",choices:["Jean-Luc Godard","François Truffaut","Éric Rohmer","Claude Chabrol"],correct:1,expl:"Truffaut, ancien critique aux Cahiers du cinéma, fit des 400 coups un récit largement autobiographique sur l'enfance. Le film révéla l'acteur Jean-Pierre Léaud, son double à l'écran."},
+    {q:"Quelle récompense suprême est décernée au Festival de Cannes ?",choices:["Lion d'or","Ours d'or","Palme d'or","Coquille d'or"],correct:2,expl:"La Palme d'or récompense le meilleur film depuis 1955 ; le Lion d'or revient à Venise et l'Ours d'or à Berlin. Sa forme s'inspire des palmiers des armoiries de la ville de Cannes."},
+    {q:"Quel film sud-coréen a remporté l'Oscar du meilleur film en 2020 ?",choices:["Roma","Parasite","Minari","Drive My Car"],correct:1,expl:"Parasite, de Bong Joon-ho, fut le premier film non anglophone sacré meilleur film de l'histoire des Oscars. Il avait déjà remporté la Palme d'or l'année précédente."},
+    {q:"Qui a réalisé Pulp Fiction ?",choices:["Martin Scorsese","Quentin Tarantino","Francis Ford Coppola","David Fincher"],correct:1,expl:"Tarantino remporta la Palme d'or à Cannes en 1994 avec ce récit au montage éclaté. Le film relança la carrière de John Travolta, alors en plein creux."},
+    {q:"Quel acteur français a remporté l'Oscar du meilleur acteur pour The Artist ?",choices:["Vincent Cassel","Jean Dujardin","Omar Sy","Romain Duris"],correct:1,expl:"Dujardin devint en 2012 le premier Français sacré meilleur acteur, pour un film muet en noir et blanc. The Artist remporta au total cinq Oscars, dont celui du meilleur film."},
+    {q:"Quel réalisateur apparaissait furtivement en caméo dans presque tous ses films de suspense ?",choices:["Alfred Hitchcock","Stanley Kubrick","Orson Welles","Billy Wilder"],correct:0,expl:"Hitchcock s'amusait à se glisser dans ses films, parfois dès les premières minutes pour ne pas distraire le spectateur. Repérer son apparition est devenu un jeu pour ses admirateurs."},
+    {q:"Quel film d'Orson Welles, sorti en 1941, est régulièrement classé parmi les meilleurs de tous les temps ?",choices:["La Splendeur des Amberson","Citizen Kane","La Soif du mal","Le Troisième Homme"],correct:1,expl:"Welles, à 25 ans, réalisa, coécrivit et interpréta Citizen Kane, inspiré du magnat de presse Hearst. Furieux, ce dernier tenta de faire disparaître le film, ce qui nuit longtemps à sa carrière."},
+    {q:"Qui a réalisé La Cité de Dieu (Cidade de Deus), film brésilien culte de 2002 ?",choices:["Walter Salles","Fernando Meirelles","Glauber Rocha","José Padilha"],correct:1,expl:"Meirelles dépeint la spirale de violence d'une favela de Rio sur trois décennies. Beaucoup d'acteurs étaient des habitants des quartiers, sans expérience professionnelle."},
+    {q:"Quel réalisateur brésilien a dirigé Central do Brasil, Ours d'or à Berlin en 1998 ?",choices:["Fernando Meirelles","Walter Salles","Kleber Mendonça Filho","Héctor Babenco"],correct:1,expl:"Walter Salles y suit une femme aigrie et un enfant à travers le Brésil rural. Le même cinéaste réalisera Carnets de voyage sur la jeunesse de Che Guevara."},
+    {q:"Quel film muet de Fritz Lang, sorti en 1927, est un classique de la science-fiction ?",choices:["Nosferatu","Metropolis","Le Cabinet du docteur Caligari","M le maudit"],correct:1,expl:"Metropolis imagine une cité futuriste divisée entre élites et ouvriers, dominée par un robot à visage humain. Son esthétique a influencé d'innombrables films, de Blade Runner à Star Wars."},
+    {q:"Quelle actrice incarne Amélie Poulain ?",choices:["Audrey Tautou","Marion Cotillard","Juliette Binoche","Charlotte Gainsbourg"],correct:0,expl:"Audrey Tautou porte le film de Jean-Pierre Jeunet, devenu l'un des plus grands succès français à l'étranger. La Montmartre idéalisée du film attira ensuite des touristes du monde entier."},
+    {q:"Quel réalisateur japonais a réalisé Les Sept Samouraïs ?",choices:["Yasujirō Ozu","Akira Kurosawa","Kenji Mizoguchi","Hayao Miyazaki"],correct:1,expl:"Kurosawa influença profondément le cinéma mondial : Les Sept Samouraïs fut transposé en western sous le titre Les Sept Mercenaires. George Lucas reconnut sa dette envers son film La Forteresse cachée pour Star Wars."},
+    {q:"Quel studio d'animation a produit Le Voyage de Chihiro ?",choices:["Pixar","Studio Ghibli","Toei Animation","DreamWorks"],correct:1,expl:"Réalisé par Hayao Miyazaki, le film décrocha l'Oscar du meilleur film d'animation et l'Ours d'or à Berlin. Le Studio Ghibli tire son nom d'un mot désignant un vent chaud du Sahara."},
+    {q:"Quel film brésilien avec Fernanda Torres, sur la dictature militaire, a triomphé en 2024-2025 ?",choices:["Bacurau","Ainda Estou Aqui (Je suis toujours là)","Aquarius","Marighella"],correct:1,expl:"Réalisé par Walter Salles, le film raconte la disparition d'un opposant sous la dictature, du point de vue de sa femme. Il remporta l'Oscar du meilleur film international, une première pour le Brésil."},
+    {q:"Quel réalisateur italien a réalisé La Dolce Vita et 8½ ?",choices:["Roberto Rossellini","Federico Fellini","Vittorio De Sica","Michelangelo Antonioni"],correct:1,expl:"Fellini mêla rêve, souvenirs et démesure baroque dans un style si personnel qu'on parle de « fellinien ». La Dolce Vita a aussi donné au monde le mot « paparazzi », du nom d'un photographe du film."},
+    {q:"Quel acteur incarne Don Vito Corleone dans Le Parrain de Coppola ?",choices:["Al Pacino","Marlon Brando","Robert De Niro","James Caan"],correct:1,expl:"Brando improvisa la voix rauque du parrain en se bourrant les joues de coton lors des essais. Il refusa l'Oscar du meilleur acteur en signe de protestation contre le traitement des Amérindiens à Hollywood."},
+    {q:"Qui fut la première femme à recevoir l'Oscar du meilleur réalisateur, pour Démineurs ?",choices:["Sofia Coppola","Kathryn Bigelow","Jane Campion","Greta Gerwig"],correct:1,expl:"Bigelow l'obtint en 2010, battant notamment son ex-mari James Cameron et son Avatar. Il fallut attendre 2021 pour qu'une deuxième femme, Chloé Zhao, soit primée."},
+    {q:"Quel cinéaste soviétique a réalisé Le Cuirassé Potemkine et sa célèbre scène des escaliers d'Odessa ?",choices:["Andreï Tarkovski","Sergueï Eisenstein","Dziga Vertov","Vsevolod Poudovkine"],correct:1,expl:"Eisenstein théorisa le montage comme choc d'images créant du sens. La scène du landau dévalant les marches a été citée et parodiée d'innombrables fois."},
+    {q:"Quel chef-d'œuvre antimilitariste de Jean Renoir date de 1937 ?",choices:["La Règle du jeu","La Grande Illusion","La Bête humaine","French Cancan"],correct:1,expl:"La Grande Illusion suit des prisonniers français durant la Première Guerre mondiale, par-delà les frontières de classe et de nation. Goebbels le qualifia d'« ennemi cinématographique numéro un » et tenta de le faire détruire."},
+    {q:"Quel film remporta la première cérémonie des Oscars, en 1929, comme meilleure production ?",choices:["Le Chanteur de jazz","Les Ailes (Wings)","L'Aurore","Ben-Hur"],correct:1,expl:"Wings, film de guerre aérienne, fut le seul film muet primé comme meilleure « production » jusqu'à The Artist, 84 ans plus tard. Une seconde statuette « artistique » récompensa cette année-là L'Aurore de Murnau."}
   ]
 },
 {
-  key:"archi", name:"archi", em:"🏛️", diff:5, label:"Architecture — du gothique à Niemeyer",
+  key:"archi", name:"archi", diff:5, label:"Architecture — du gothique à Niemeyer",
   questions:[
-    {q:"Quel architecte a conçu la Sagrada Família à Barcelone ?",choices:["Antoni Gaudí","Mies van der Rohe","Le Corbusier","Santiago Calatrava"],correct:0,expl:"Gaudí, génie du modernisme catalan ; la basilique est toujours en chantier."},
-    {q:"Quelle école allemande fondée par Walter Gropius a révolutionné le design ?",choices:["Bauhaus","Vhutemas","De Stijl","Wiener Werkstätte"],correct:0,expl:"Le Bauhaus (1919) unit art, artisanat et industrie."},
-    {q:"Quel style se caractérise par l'arc brisé, la croisée d'ogives et les grands vitraux ?",choices:["Roman","Gothique","Baroque","Rococo"],correct:1,expl:"Le gothique permit d'élever des nefs lumineuses et vertigineuses."},
-    {q:"Quel architecte sino-américain a conçu la pyramide du Louvre ?",choices:["Frank Gehry","Ieoh Ming Pei","Norman Foster","Renzo Piano"],correct:1,expl:"I. M. Pei livra la pyramide de verre en 1989."},
-    {q:"Quel architecte a énoncé le principe « Less is more » ?",choices:["Le Corbusier","Mies van der Rohe","Frank Lloyd Wright","Adolf Loos"],correct:1,expl:"Mies van der Rohe, figure du modernisme et directeur du Bauhaus."},
-    {q:"La maison sur la cascade (Fallingwater) est l'œuvre de quel architecte ?",choices:["Frank Lloyd Wright","Louis Sullivan","Philip Johnson","Eero Saarinen"],correct:0,expl:"Frank Lloyd Wright posa la maison à cheval sur une chute d'eau, en 1935."},
-    {q:"Quel matériau a permis la révolution architecturale du XIXe siècle, illustré par la Tour Eiffel ?",choices:["Béton","Fer","Verre","Aluminium"],correct:1,expl:"La Tour Eiffel est en fer puddlé, assemblé par plus de deux millions de rivets."},
-    {q:"Quel duo a conçu le Centre Pompidou à Paris ?",choices:["Piano & Rogers","Herzog & de Meuron","SANAA","Foster & Partners"],correct:0,expl:"Renzo Piano et Richard Rogers exposèrent la tuyauterie sur la façade."},
-    {q:"Quel ordre de colonne grecque, le plus orné, s'orne de feuilles d'acanthe ?",choices:["Dorique","Ionique","Corinthien","Toscan"],correct:2,expl:"Le corinthien, le plus tardif et le plus décoratif des ordres antiques."},
-    {q:"Quel architecte danois a dessiné l'Opéra de Sydney ?",choices:["Jørn Utzon","Zaha Hadid","Renzo Piano","Frei Otto"],correct:0,expl:"Utzon imagina les voiles de béton qui font la silhouette de l'opéra."},
-    {q:"Quelle architecte irako-britannique fut la première femme à recevoir le prix Pritzker ?",choices:["Zaha Hadid","Kazuyo Sejima","Odile Decq","Jeanne Gang"],correct:0,expl:"Zaha Hadid, célèbre pour ses formes fluides et déconstruites, primée en 2004."},
-    {q:"Quel architecte brésilien a signé les courbes de Brasília et le MAC de Niterói ?",choices:["Lúcio Costa","Oscar Niemeyer","Paulo Mendes da Rocha","Lina Bo Bardi"],correct:1,expl:"Niemeyer disait préférer la courbe sensuelle à l'angle droit."},
-    {q:"Le baron Haussmann a transformé Paris sous quel régime ?",choices:["Napoléon Ier","Louis-Philippe","Napoléon III","la IIIe République"],correct:2,expl:"Sous le Second Empire, Haussmann perça les grands boulevards parisiens."},
-    {q:"Quel mouvement pictural et formel, né au début du XXe siècle, est porté par Picasso et Braque ?",choices:["Fauvisme","Cubisme","Futurisme","Suprématisme"],correct:1,expl:"Le cubisme décompose les volumes en facettes géométriques."},
-    {q:"Quel style, né en France au XIIe siècle, précède le gothique avec ses arcs en plein cintre ?",choices:["Roman","Byzantin","Baroque","Renaissance"],correct:0,expl:"L'art roman se reconnaît à ses murs épais et ses voûtes en berceau."}
+    {q:"Quel architecte a conçu la Sagrada Família à Barcelone ?",choices:["Antoni Gaudí","Mies van der Rohe","Le Corbusier","Santiago Calatrava"],correct:0,expl:"Gaudí consacra les dernières décennies de sa vie à cette basilique inspirée des formes de la nature. Commencée en 1882, elle n'est toujours pas achevée plus d'un siècle après sa mort."},
+    {q:"Quelle école allemande, fondée par Walter Gropius en 1919, a révolutionné design et architecture ?",choices:["Bauhaus","Vhutemas","De Stijl","Wiener Werkstätte"],correct:0,expl:"Le Bauhaus unit art, artisanat et industrie autour de la fonction et de la simplicité. Fermée par les nazis en 1933, l'école essaima dans le monde entier, notamment aux États-Unis."},
+    {q:"Quel architecte sino-américain a conçu la pyramide de verre du Louvre ?",choices:["Frank Gehry","Ieoh Ming Pei","Norman Foster","Renzo Piano"],correct:1,expl:"I. M. Pei livra la pyramide en 1989, au milieu d'une vive polémique sur le mélange moderne-classique. Aujourd'hui, elle est devenue l'un des symboles incontestés de Paris."},
+    {q:"Quel architecte a popularisé le principe « Less is more » ?",choices:["Le Corbusier","Mies van der Rohe","Frank Lloyd Wright","Adolf Loos"],correct:1,expl:"Mies van der Rohe, dernier directeur du Bauhaus, défendit une architecture épurée d'acier et de verre. Son pavillon de Barcelone (1929) en reste le manifeste."},
+    {q:"La maison sur la cascade (Fallingwater) est l'œuvre de quel architecte ?",choices:["Frank Lloyd Wright","Louis Sullivan","Philip Johnson","Richard Neutra"],correct:0,expl:"Wright posa cette maison à cheval sur une chute d'eau, en pleine forêt de Pennsylvanie, en 1935. Elle incarne son idéal d'« architecture organique » fondue dans la nature."},
+    {q:"Quel matériau a permis la révolution architecturale du XIXe siècle, illustré par la Tour Eiffel ?",choices:["Béton","Fer","Verre","Aluminium"],correct:1,expl:"La Tour Eiffel est faite de fer puddlé, assemblé par plus de deux millions de rivets. Conçue pour l'Exposition de 1889, elle devait être démontée au bout de vingt ans."},
+    {q:"Quel duo a conçu le Centre Pompidou à Paris ?",choices:["Piano et Rogers","Herzog et de Meuron","Venturi et Scott Brown","Foster et Rogers"],correct:0,expl:"Renzo Piano et Richard Rogers exposèrent toute la tuyauterie et les escaliers sur la façade, libérant l'intérieur. Les couleurs codent les fonctions : bleu pour l'air, vert pour l'eau, jaune pour l'électricité."},
+    {q:"Quel ordre de colonne grecque, le plus orné, se distingue par ses feuilles d'acanthe ?",choices:["Dorique","Ionique","Corinthien","Toscan"],correct:2,expl:"Le corinthien est le plus tardif et le plus décoratif des ordres antiques. Selon la légende, son chapiteau fut inspiré par des feuilles d'acanthe poussant autour d'un panier."},
+    {q:"Quel architecte danois a dessiné l'Opéra de Sydney ?",choices:["Jørn Utzon","Arne Jacobsen","Bjarke Ingels","Eero Saarinen"],correct:0,expl:"Utzon imagina ces voiles de béton blanc évoquant des coques de bateaux. Le chantier, terriblement complexe, prit tant de retard et de surcoûts qu'il quitta le projet avant l'inauguration."},
+    {q:"Quelle architecte irako-britannique fut la première femme à recevoir le prix Pritzker ?",choices:["Zaha Hadid","Kazuyo Sejima","Odile Decq","Jeanne Gang"],correct:0,expl:"Zaha Hadid, primée en 2004, est célèbre pour ses formes fluides et déconstruites qui semblent défier la gravité. Ses projets furent longtemps jugés irréalisables avant que la technologie ne les rende possibles."},
+    {q:"Quel architecte brésilien a signé les courbes de Brasília et le musée de Niterói ?",choices:["Lúcio Costa","Oscar Niemeyer","Paulo Mendes da Rocha","Lina Bo Bardi"],correct:1,expl:"Niemeyer travailla jusqu'à plus de 100 ans, fidèle à la courbe inspirée, disait-il, des montagnes et du corps féminin. Le musée d'art contemporain de Niterói ressemble à une soucoupe volante posée sur la baie."},
+    {q:"Sous quel régime le baron Haussmann transforma-t-il Paris ?",choices:["Napoléon Ier","Louis-Philippe","Napoléon III","la IIIe République"],correct:2,expl:"Sous le Second Empire, Haussmann perça les grands boulevards et imposa des immeubles uniformes en pierre de taille. Ces percées améliorèrent l'hygiène mais facilitaient aussi le déplacement des troupes contre les émeutes."},
+    {q:"Quel architecte de la Renaissance a conçu la coupole de la cathédrale de Florence ?",choices:["Brunelleschi","Alberti","Bramante","Michel-Ange"],correct:0,expl:"Brunelleschi releva un défi jugé impossible : couvrir l'immense nef sans cintre de bois pour soutenir le chantier. Il inventa pour cela une double coque et un système de briques en arête de poisson."},
+    {q:"Quel architecte a conçu le musée Guggenheim de Bilbao, aux formes de titane ?",choices:["Daniel Libeskind","Frank Gehry","Jean Nouvel","Rem Koolhaas"],correct:1,expl:"Gehry livra en 1997 ce bâtiment aux courbes métalliques qui relança toute une ville sinistrée. On parle depuis d'« effet Bilbao » pour décrire une architecture spectaculaire censée régénérer un territoire."},
+    {q:"Quel manifeste du modernisme, sur pilotis et toit-terrasse, Le Corbusier a-t-il bâti à Poissy ?",choices:["Villa Savoye","Villa La Roche","Unité d'habitation","Notre-Dame-du-Haut"],correct:0,expl:"La Villa Savoye illustre ses « cinq points de l'architecture moderne » : pilotis, plan libre, façade libre, fenêtre en bandeau et toit-jardin. Conçue comme une « machine à habiter », elle a faillé être démolie avant d'être classée."},
+    {q:"Quel monument antique de Rome est un temple à coupole percée d'un oculus ?",choices:["Colisée","Panthéon","Forum","Thermes de Caracalla"],correct:1,expl:"Le Panthéon possède la plus grande coupole en béton non armé jamais construite, ouverte en son centre. L'oculus laisse entrer la lumière — et la pluie, évacuée par des trous dans le sol."},
+    {q:"Quel grand architecte ottoman a conçu la mosquée Süleymaniye à Istanbul ?",choices:["Sinan","Hayreddin","Davud Aga","Mehmed Aga"],correct:0,expl:"Sinan, actif au XVIe siècle, signa des centaines d'édifices et porta l'art de la coupole ottomane à son apogée. Il s'était lancé pour défi de surpasser Sainte-Sophie."},
+    {q:"Quel style décoratif du XVIIIe siècle se reconnaît à ses rocailles, courbes et asymétries ?",choices:["Baroque","Rococo","Néoclassique","Gothique"],correct:1,expl:"Le rococo, plus léger et intime que le baroque, privilégie l'ornement délicat et les tons pastel. Il fut associé aux salons aristocratiques avant d'être rejeté par le retour au sérieux néoclassique."},
+    {q:"Le Crystal Palace de Londres (1851) fut une prouesse réalisée avec quels matériaux ?",choices:["pierre et bois","fer et verre","béton et acier","brique et fonte"],correct:1,expl:"Conçu par Joseph Paxton pour la première Exposition universelle, ce palais de fer et de verre fut monté en quelques mois comme un kit géant. Il préfigura l'architecture industrielle et les grandes serres modernes."},
+    {q:"Quel style médiéval se caractérise par l'arc brisé, la croisée d'ogives et les grands vitraux ?",choices:["Roman","Gothique","Byzantin","Carolingien"],correct:1,expl:"Le gothique permit d'élever des nefs lumineuses et vertigineuses, en reportant les poussées sur des arcs-boutants extérieurs. Il naquit en Île-de-France au XIIe siècle, notamment à la basilique de Saint-Denis."}
   ]
 },
 {
-  key:"perso", name:"persos", em:"👤", diff:4, label:"Personnages célèbres — qui a fait quoi",
+  key:"perso", name:"persos", diff:4, label:"Personnages célèbres — qui a fait quoi",
   questions:[
-    {q:"Quel scientifique a formulé la théorie de la relativité générale ?",choices:["Isaac Newton","Albert Einstein","Niels Bohr","Max Planck"],correct:1,expl:"Einstein publia la relativité générale en 1915."},
-    {q:"Quelle Première ministre britannique était surnommée la « Dame de fer » ?",choices:["Theresa May","Margaret Thatcher","Indira Gandhi","Golda Meir"],correct:1,expl:"Thatcher dirigea le Royaume-Uni de 1979 à 1990."},
-    {q:"Quel artiste de la Renaissance a peint le plafond de la chapelle Sixtine ?",choices:["Raphaël","Léonard de Vinci","Michel-Ange","Le Titien"],correct:2,expl:"Michel-Ange y travailla allongé sur des échafaudages, de 1508 à 1512."},
-    {q:"Quel leader indien a prôné la résistance non violente contre la domination britannique ?",choices:["Nehru","Gandhi","Ambedkar","Bose"],correct:1,expl:"Gandhi mena la satyagraha jusqu'à l'indépendance de 1947."},
-    {q:"Quel empereur français se fit couronner en 1804 ?",choices:["Louis XVI","Napoléon Ier","Napoléon III","Charlemagne"],correct:1,expl:"Napoléon se posa lui-même la couronne, en présence du pape."},
-    {q:"Quel président brésilien, ancien syndicaliste, a dirigé le pays à partir de 2003 ?",choices:["Dilma Rousseff","Lula","Fernando Henrique Cardoso","Fernando Collor"],correct:1,expl:"Luiz Inácio Lula da Silva, premier président ouvrier du Brésil."},
-    {q:"Quel physicien britannique en fauteuil roulant a écrit Une brève histoire du temps ?",choices:["Roger Penrose","Stephen Hawking","Paul Dirac","Peter Higgs"],correct:1,expl:"Hawking, théoricien des trous noirs et vulgarisateur mondial."},
-    {q:"Quel peintre néerlandais s'est tranché une partie de l'oreille ?",choices:["Rembrandt","Vermeer","Van Gogh","Mondrian"],correct:2,expl:"Vincent van Gogh, mort à 37 ans, n'a vendu presque aucune toile de son vivant."},
-    {q:"Quel conquérant macédonien fonda un empire de la Grèce à l'Inde ?",choices:["Jules César","Alexandre le Grand","Darius","Hannibal"],correct:1,expl:"Alexandre ne perdit aucune bataille rangée et mourut à 32 ans."},
-    {q:"Quelle reine d'Égypte s'allia à César puis à Marc Antoine ?",choices:["Néfertiti","Cléopâtre","Hatchepsout","Néfertari"],correct:1,expl:"Cléopâtre VII, dernière souveraine de l'Égypte ptolémaïque."},
-    {q:"Quel aviateur français, auteur du Petit Prince, a disparu en mission en 1944 ?",choices:["Jean Mermoz","Antoine de Saint-Exupéry","Georges Guynemer","Louis Blériot"],correct:1,expl:"Saint-Exupéry disparut au large de Marseille lors d'un vol de reconnaissance."},
-    {q:"Quelle militante pakistanaise est la plus jeune lauréate du prix Nobel de la paix ?",choices:["Malala Yousafzai","Benazir Bhutto","Wangari Maathai","Tawakkol Karman"],correct:0,expl:"Malala reçut le Nobel à 17 ans, en 2014, pour le droit des filles à l'éducation."},
-    {q:"De quel pharaon Howard Carter découvrit-il la tombe quasi intacte en 1922 ?",choices:["Ramsès II","Toutânkhamon","Khéops","Akhenaton"],correct:1,expl:"La tombe de Toutânkhamon livra des milliers d'objets et son masque d'or."},
-    {q:"Quel écrivain britannique a créé Sherlock Holmes ?",choices:["Agatha Christie","Arthur Conan Doyle","Wilkie Collins","G. K. Chesterton"],correct:1,expl:"Conan Doyle, médecin de formation, s'inspira d'un de ses professeurs."},
-    {q:"Quel mathématicien britannique contribua à casser le code Enigma ?",choices:["Alan Turing","John von Neumann","Claude Shannon","Bertrand Russell"],correct:0,expl:"Turing, pionnier de l'informatique, travailla à Bletchley Park."},
-    {q:"Quelle Française fut la première héroïne à lever le siège d'Orléans en 1429 ?",choices:["Aliénor d'Aquitaine","Jeanne d'Arc","Catherine de Médicis","Olympe de Gouges"],correct:1,expl:"Jeanne d'Arc, brûlée vive en 1431, fut réhabilitée puis canonisée."}
+    {q:"Quel scientifique a formulé la théorie de la relativité générale ?",choices:["Isaac Newton","Albert Einstein","Niels Bohr","James Clerk Maxwell"],correct:1,expl:"Einstein publia la relativité générale en 1915, décrivant la gravité comme une courbure de l'espace-temps. Sa confirmation lors d'une éclipse, en 1919, le rendit célèbre dans le monde entier."},
+    {q:"Quelle Première ministre britannique était surnommée la « Dame de fer » ?",choices:["Theresa May","Margaret Thatcher","Indira Gandhi","Golda Meir"],correct:1,expl:"Thatcher dirigea le Royaume-Uni de 1979 à 1990, menant des réformes libérales radicales. Le surnom lui fut donné par la presse soviétique, à cause de sa fermeté envers l'URSS."},
+    {q:"Quel artiste de la Renaissance a peint le plafond de la chapelle Sixtine ?",choices:["Raphaël","Léonard de Vinci","Michel-Ange","Le Titien"],correct:2,expl:"Michel-Ange y travailla près de quatre ans, debout sur des échafaudages, le cou renversé. Il se considérait pourtant avant tout comme sculpteur, et accepta la commande à contrecœur."},
+    {q:"Quel conquérant macédonien fonda un empire allant de la Grèce jusqu'à l'Inde ?",choices:["Jules César","Alexandre le Grand","Darius","Hannibal"],correct:1,expl:"Élève d'Aristote, Alexandre ne perdit aucune bataille rangée et mourut à seulement 32 ans, à Babylone. Son empire éclata aussitôt entre ses généraux."},
+    {q:"Quelle reine d'Égypte s'allia successivement à César puis à Marc Antoine ?",choices:["Néfertiti","Cléopâtre VII","Hatchepsout","Néfertari"],correct:1,expl:"Dernière souveraine de l'Égypte ptolémaïque, Cléopâtre parlait plusieurs langues et se présentait comme l'incarnation d'Isis. Sa mort, en 30 av. J.-C., marqua l'annexion de l'Égypte par Rome."},
+    {q:"Quel aviateur français, auteur du Petit Prince, a disparu en mission en 1944 ?",choices:["Jean Mermoz","Antoine de Saint-Exupéry","Georges Guynemer","Roland Garros"],correct:1,expl:"Saint-Exupéry disparut au large de Marseille lors d'un vol de reconnaissance. L'épave de son avion ne fut localisée que des décennies plus tard, au début des années 2000."},
+    {q:"Quelle militante pakistanaise est la plus jeune lauréate du prix Nobel de la paix ?",choices:["Malala Yousafzai","Benazir Bhutto","Wangari Maathai","Tawakkol Karman"],correct:0,expl:"Malala reçut le prix en 2014, à 17 ans, deux ans après avoir survécu à une balle des talibans. Elle militait pour le droit des filles à l'éducation."},
+    {q:"De quel pharaon Howard Carter découvrit-il la tombe quasi intacte en 1922 ?",choices:["Ramsès II","Toutânkhamon","Khéops","Akhenaton"],correct:1,expl:"La tombe de Toutânkhamon livra des milliers d'objets et son célèbre masque d'or, échappée aux pilleurs. La « malédiction du pharaon » fut largement inventée par la presse de l'époque."},
+    {q:"Quel écrivain britannique a créé le personnage de Sherlock Holmes ?",choices:["Agatha Christie","Arthur Conan Doyle","Wilkie Collins","G. K. Chesterton"],correct:1,expl:"Médecin de formation, Conan Doyle s'inspira d'un de ses professeurs au don d'observation. Lassé de son héros, il tenta de le tuer, avant de devoir le ressusciter sous la pression du public."},
+    {q:"Quel mathématicien britannique contribua de façon décisive à casser le code Enigma ?",choices:["Alan Turing","John von Neumann","Claude Shannon","Bertrand Russell"],correct:0,expl:"Turing, pionnier de l'informatique, conçut à Bletchley Park des machines pour déchiffrer les messages nazis. Persécuté pour son homosexualité après la guerre, il fut réhabilité officiellement bien après sa mort."},
+    {q:"Quel astronome italien défendit l'héliocentrisme et fut condamné par l'Inquisition ?",choices:["Copernic","Galilée","Kepler","Tycho Brahe"],correct:1,expl:"Galilée perfectionna la lunette et observa les lunes de Jupiter, confirmant que tout ne tourne pas autour de la Terre. Forcé d'abjurer, il aurait murmuré « et pourtant elle tourne »."},
+    {q:"Quelle scientifique fournit le « cliché 51 », image cruciale pour la découverte de la structure de l'ADN ?",choices:["Rosalind Franklin","Barbara McClintock","Dorothy Hodgkin","Lise Meitner"],correct:0,expl:"Le cliché de diffraction de Franklin révéla la forme en double hélice de l'ADN. Morte jeune, elle ne put recevoir le Nobel attribué à Watson, Crick et Wilkins."},
+    {q:"Quel chancelier « de fer » réalisa l'unification de l'Allemagne en 1871 ?",choices:["Metternich","Otto von Bismarck","Guillaume II","Adenauer"],correct:1,expl:"Bismarck unifia les États allemands autour de la Prusse, par « le fer et le sang », au terme de plusieurs guerres. Il proclama l'Empire allemand dans la galerie des Glaces de Versailles, humiliation que la France n'oublia pas."},
+    {q:"Quel leader sud-africain passa vingt-sept ans en prison avant de devenir président ?",choices:["Desmond Tutu","Nelson Mandela","Steve Biko","Thabo Mbeki"],correct:1,expl:"Mandela, emprisonné pour sa lutte contre l'apartheid, fut libéré en 1990 puis élu président en 1994. Il partagea le prix Nobel de la paix avec De Klerk, l'artisan de sa libération."},
+    {q:"Quel compositeur, devenu sourd, a écrit la Neuvième Symphonie et son « Hymne à la joie » ?",choices:["Mozart","Beethoven","Bach","Brahms"],correct:1,expl:"Beethoven composa une partie de son œuvre alors qu'il n'entendait plus, dont cette symphonie chorale révolutionnaire. L'« Hymne à la joie » est aujourd'hui l'hymne officiel de l'Union européenne."},
+    {q:"Quel philosophe grec fut le précepteur d'Alexandre le Grand ?",choices:["Platon","Aristote","Socrate","Épicure"],correct:1,expl:"Aristote, élève de Platon, enseigna au jeune Alexandre la politique, la rhétorique et les sciences. Son œuvre encyclopédique domina la pensée occidentale pendant près de deux mille ans."},
+    {q:"Quel président brésilien, ancien ouvrier métallurgiste et syndicaliste, accéda au pouvoir en 2003 ?",choices:["Dilma Rousseff","Lula","Fernando Henrique Cardoso","Fernando Collor"],correct:1,expl:"Luiz Inácio Lula da Silva fut le premier président d'origine ouvrière du Brésil. Sa trajectoire politique, marquée par l'emprisonnement puis le retour au pouvoir, en fait une figure très clivante."},
+    {q:"Quel peintre néerlandais, mort dans la misère, s'est tranché une partie de l'oreille ?",choices:["Rembrandt","Vermeer","Van Gogh","Mondrian"],correct:2,expl:"Van Gogh ne vendit presque aucune toile de son vivant et mourut à 37 ans. Ses lettres à son frère Theo, marchand d'art, sont un témoignage bouleversant sur sa création et sa détresse."},
+    {q:"Quel physicien britannique en fauteuil roulant a écrit Une brève histoire du temps ?",choices:["Roger Penrose","Stephen Hawking","Paul Dirac","Peter Higgs"],correct:1,expl:"Atteint d'une maladie neurodégénérative dès ses 21 ans, Hawking révolutionna la compréhension des trous noirs. Son livre de vulgarisation s'est vendu à des millions d'exemplaires."},
+    {q:"Quelle figure française leva le siège d'Orléans en 1429 ?",choices:["Aliénor d'Aquitaine","Jeanne d'Arc","Christine de Pizan","Olympe de Gouges"],correct:1,expl:"Jeanne d'Arc, jeune paysanne disant entendre des voix, redonna espoir au camp français durant la guerre de Cent Ans. Capturée puis brûlée vive à 19 ans, elle fut réhabilitée, puis canonisée cinq siècles plus tard."}
   ]
 },
 {
-  key:"invent", name:"inventions", em:"💡", diff:4, label:"Inventions — qui a changé le monde",
+  key:"invent", name:"inventions", diff:5, label:"Inventions — qui a changé le monde",
   questions:[
-    {q:"Qui a inventé l'imprimerie à caractères mobiles en Europe au XVe siècle ?",choices:["Gutenberg","Caxton","Alde Manuce","Plantin"],correct:0,expl:"La Bible de Gutenberg (vers 1455) lança l'ère de l'imprimé."},
-    {q:"Quels frères ont réalisé le premier vol motorisé contrôlé, en 1903 ?",choices:["Frères Wright","Frères Montgolfier","Frères Lumière","Frères Voisin"],correct:0,expl:"Orville et Wilbur Wright volèrent à Kitty Hawk, en Caroline du Nord."},
-    {q:"Quels frères français sont considérés comme les pionniers du cinéma ?",choices:["Frères Lumière","Frères Pathé","Frères Gaumont","Frères Skladanowsky"],correct:0,expl:"Les frères Lumière organisèrent la première projection payante en 1895."},
-    {q:"Qui a développé le premier vaccin, contre la variole ?",choices:["Louis Pasteur","Edward Jenner","Robert Koch","Alexander Fleming"],correct:1,expl:"Jenner utilisa la vaccine (cowpox) pour immuniser contre la variole, en 1796."},
-    {q:"Qui a découvert la pénicilline, en 1928 ?",choices:["Louis Pasteur","Alexander Fleming","Robert Koch","Joseph Lister"],correct:1,expl:"Fleming remarqua qu'une moisissure tuait les bactéries de ses boîtes de culture."},
-    {q:"Quel inventeur fit breveter le téléphone en 1876 ?",choices:["Thomas Edison","Alexander Graham Bell","Antonio Meucci","Guglielmo Marconi"],correct:1,expl:"Bell déposa le brevet quelques heures avant un concurrent."},
-    {q:"Qui a inventé la dynamite ?",choices:["Alfred Nobel","Ascanio Sobrero","Éleuthère du Pont","Wilhelm Brandt"],correct:0,expl:"Nobel stabilisa la nitroglycérine ; sa fortune finança les prix Nobel."},
-    {q:"Quel inventeur américain est associé à l'ampoule commercialisable et au phonographe ?",choices:["Nikola Tesla","Thomas Edison","George Westinghouse","Alexander Bell"],correct:1,expl:"Edison déposa plus de mille brevets de son vivant."},
-    {q:"Qui a inventé le World Wide Web, en 1989 ?",choices:["Bill Gates","Tim Berners-Lee","Vint Cerf","Steve Jobs"],correct:1,expl:"Berners-Lee conçut le Web au CERN, à Genève."},
-    {q:"Dans quel pays la poudre à canon a-t-elle été inventée ?",choices:["Inde","Chine","Perse","Égypte"],correct:1,expl:"Les alchimistes chinois découvrirent la poudre vers le IXe siècle."},
-    {q:"Qui a conçu la machine analytique, ancêtre de l'ordinateur, au XIXe siècle ?",choices:["Alan Turing","Charles Babbage","Blaise Pascal","John von Neumann"],correct:1,expl:"Babbage imagina une machine programmable jamais achevée de son vivant."},
-    {q:"Qui est considérée comme la première programmeuse de l'histoire ?",choices:["Grace Hopper","Ada Lovelace","Hedy Lamarr","Katherine Johnson"],correct:1,expl:"Ada Lovelace écrivit un algorithme pour la machine de Babbage."},
-    {q:"Quelle actrice hollywoodienne a co-inventé une technique d'étalement de spectre, ancêtre du Wi-Fi ?",choices:["Marilyn Monroe","Hedy Lamarr","Greta Garbo","Rita Hayworth"],correct:1,expl:"Hedy Lamarr breveta avec G. Antheil un système de saut de fréquence."},
-    {q:"Qui a inventé le paratonnerre ?",choices:["Benjamin Franklin","Alessandro Volta","Michael Faraday","André-Marie Ampère"],correct:0,expl:"Franklin démontra la nature électrique de la foudre."},
-    {q:"Quel ingénieur écossais a perfectionné la machine à vapeur, déclenchant la révolution industrielle ?",choices:["James Watt","George Stephenson","Thomas Newcomen","Richard Arkwright"],correct:0,expl:"Watt ajouta le condenseur séparé, multipliant le rendement de la machine."},
-    {q:"Quelle invention de Louis Braille permet aux aveugles de lire ?",choices:["L'alphabet morse","Le braille","La sténographie","Le télégraphe"],correct:1,expl:"Aveugle dès l'enfance, Braille mit au point son système de points en relief à 15 ans."}
+    {q:"Qui a inventé l'imprimerie à caractères mobiles en Europe, au XVe siècle ?",choices:["Johannes Gutenberg","William Caxton","Alde Manuce","Nicolas Jenson"],correct:0,expl:"La Bible de Gutenberg, vers 1455, marqua le début de la diffusion massive du savoir en Europe. Les Chinois et les Coréens avaient toutefois développé des techniques d'impression bien avant lui."},
+    {q:"Quels frères ont réalisé le premier vol motorisé contrôlé, en 1903 ?",choices:["Frères Wright","Frères Montgolfier","Frères Lumière","Frères Voisin"],correct:0,expl:"Orville et Wilbur Wright, fabricants de bicyclettes, volèrent à Kitty Hawk pendant quelques secondes. Leur vraie innovation fut le contrôle en vol par gauchissement des ailes."},
+    {q:"Quels frères français sont considérés comme les pionniers du cinéma ?",choices:["Frères Lumière","Frères Pathé","Frères Gaumont","Frères Skladanowsky"],correct:0,expl:"Les frères Lumière organisèrent à Paris, en 1895, la première projection publique payante de films. Ils croyaient pourtant que le cinéma était une invention « sans avenir »."},
+    {q:"Qui développa le premier vaccin, dirigé contre la variole ?",choices:["Louis Pasteur","Edward Jenner","Robert Koch","Joseph Lister"],correct:1,expl:"Jenner remarqua que les fermières ayant attrapé la vaccine, bénigne, étaient protégées de la variole. Le mot « vaccin » vient d'ailleurs de vacca, la vache."},
+    {q:"Qui découvrit la pénicilline, en 1928 ?",choices:["Louis Pasteur","Alexander Fleming","Paul Ehrlich","Gerhard Domagk"],correct:1,expl:"Fleming s'aperçut qu'une moisissure contaminant ses boîtes de culture tuait les bactéries autour d'elle. La production de masse de l'antibiotique n'arriva qu'au cours de la Seconde Guerre mondiale."},
+    {q:"Quel inventeur fit breveter le téléphone en 1876 ?",choices:["Thomas Edison","Alexander Graham Bell","Antonio Meucci","Guglielmo Marconi"],correct:1,expl:"Bell déposa son brevet quelques heures avant un concurrent, Elisha Gray. Le rôle pionnier de l'Italien Meucci, plus pauvre et sans brevet valable, fut reconnu bien plus tard."},
+    {q:"Qui a inventé la dynamite ?",choices:["Alfred Nobel","Ascanio Sobrero","Éleuthère du Pont","Christian Schönbein"],correct:0,expl:"Nobel stabilisa la dangereuse nitroglycérine en la mélangeant à une terre absorbante. Horrifié de voir sa fortune liée aux explosifs, il institua par testament les prix Nobel."},
+    {q:"Qui développa le World Wide Web, en 1989 ?",choices:["Bill Gates","Tim Berners-Lee","Vint Cerf","Steve Jobs"],correct:1,expl:"Berners-Lee conçut le Web au CERN, à Genève, pour partager des documents entre chercheurs. Il choisit de ne pas le breveter, afin que la technologie reste libre et universelle."},
+    {q:"Dans quel pays la poudre à canon a-t-elle été inventée ?",choices:["Inde","Chine","Perse","Égypte"],correct:1,expl:"Les alchimistes chinois découvrirent la poudre vers le IXe siècle, en cherchant... un élixir d'immortalité. Elle servit d'abord aux feux d'artifice avant d'être employée à la guerre."},
+    {q:"Qui conçut la « machine analytique », ancêtre conceptuel de l'ordinateur, au XIXe siècle ?",choices:["Alan Turing","Charles Babbage","Blaise Pascal","Herman Hollerith"],correct:1,expl:"Babbage imagina une machine programmable par cartes perforées, jamais achevée de son vivant faute de moyens. Ses plans contenaient déjà l'idée de mémoire et d'unité de calcul."},
+    {q:"Qui est considérée comme la première programmeuse de l'histoire ?",choices:["Grace Hopper","Ada Lovelace","Hedy Lamarr","Katherine Johnson"],correct:1,expl:"Ada Lovelace, fille du poète Byron, écrivit un algorithme destiné à la machine de Babbage. Elle pressentit qu'une telle machine pourrait un jour manipuler bien plus que des nombres."},
+    {q:"Qui a inventé le paratonnerre ?",choices:["Benjamin Franklin","Alessandro Volta","Michael Faraday","André-Marie Ampère"],correct:0,expl:"Franklin démontra la nature électrique de la foudre, dit-on, par sa célèbre expérience du cerf-volant. Le paratonnerre protégea dès lors bâtiments et navires."},
+    {q:"Quel ingénieur écossais perfectionna la machine à vapeur, déclenchant la révolution industrielle ?",choices:["James Watt","George Stephenson","Thomas Newcomen","Richard Arkwright"],correct:0,expl:"Watt ajouta un condenseur séparé qui décupla le rendement des machines existantes. L'unité de puissance, le watt, porte son nom."},
+    {q:"Quelle invention de Louis Braille permet aux aveugles de lire ?",choices:["L'alphabet morse","Le braille","La sténographie","Le télégraphe"],correct:1,expl:"Aveugle dès l'enfance, Braille mit au point son système de points en relief à seulement 15 ans. Il s'inspira d'un code militaire conçu pour lire des messages dans le noir."},
+    {q:"Qui a inventé la pile électrique, en 1800 ?",choices:["Luigi Galvani","Alessandro Volta","Michael Faraday","Georg Ohm"],correct:1,expl:"Volta empila des disques de métaux différents séparés par du tissu imbibé d'acide, créant un courant continu. L'unité de tension, le volt, lui rend hommage."},
+    {q:"Quel ingénieur allemand a donné son nom à un célèbre moteur à combustion ?",choices:["Rudolf Diesel","Nikolaus Otto","Karl Benz","Gottlieb Daimler"],correct:0,expl:"Diesel breveta un moteur fonctionnant par auto-inflammation, sans bougies, plus efficace que ses concurrents. Il disparut mystérieusement en mer en 1913, avant d'avoir vu son invention triompher."},
+    {q:"Qui a découvert les rayons X, en 1895 ?",choices:["Henri Becquerel","Wilhelm Röntgen","Marie Curie","Nikola Tesla"],correct:1,expl:"Röntgen découvrit par hasard ce rayonnement capable de traverser la chair, et en fit la première radiographie : la main de sa femme. Il reçut pour cela le tout premier prix Nobel de physique, en 1901."},
+    {q:"Quel inventeur reçut le prix Nobel de physique en 1909 pour la télégraphie sans fil ?",choices:["Nikola Tesla","Guglielmo Marconi","Heinrich Hertz","Lee de Forest"],correct:1,expl:"Marconi réalisa la première transmission radio transatlantique en 1901. Tesla, dont les travaux furent essentiels, lui contesta longtemps la paternité de la radio."},
+    {q:"Quel savant français donna son nom à un procédé de conservation par la chaleur ?",choices:["Louis Pasteur","Claude Bernard","Antoine Lavoisier","Nicolas Appert"],correct:0,expl:"La pasteurisation chauffe brièvement un liquide pour détruire les microbes sans le dénaturer. Pasteur démontra aussi que les maladies infectieuses sont causées par des micro-organismes."},
+    {q:"Qui passa le premier appel depuis un téléphone portable, en 1973 ?",choices:["Steve Jobs","Martin Cooper","Jack Kilby","Andy Grove"],correct:1,expl:"Martin Cooper, ingénieur chez Motorola, appela un concurrent depuis une rue de New York avec un combiné de près d'un kilo. Il fallut encore dix ans avant la commercialisation du premier mobile."}
   ]
 },
 {
-  key:"estim", name:"estimation", em:"🔢", diff:6, label:"Estimation — l'ordre de grandeur le plus proche (style Fermi)",
+  key:"estim", name:"estimation", diff:6, label:"Estimation — l'ordre de grandeur le plus proche (style Fermi)",
   questions:[
-    {q:"Combien de parts de pizza sont mangées chaque seconde aux États-Unis (estimation classique) ?",choices:["35","350","3 500","35 000"],correct:1,expl:"La statistique culte : environ 350 parts de pizza englouties chaque seconde rien qu'aux États-Unis."},
-    {q:"Combien de coups d'État et tentatives la Bolivie a-t-elle connus depuis 1825 (estimation souvent citée) ?",choices:["~50","~100","~190","~250"],correct:2,expl:"On cite souvent plus de 190 coups et tentatives, ce qui en ferait un quasi-record mondial."},
-    {q:"Combien de fois le cœur humain bat-il environ en une journée ?",choices:["~10 000","~50 000","~100 000","~500 000"],correct:2,expl:"À ~70 battements/min sur 1 440 minutes, on tourne autour de 100 000 battements par jour."},
-    {q:"Combien y a-t-il environ d'arbres sur Terre (étude de 2015) ?",choices:["~400 millions","~3 milliards","~300 milliards","~3 000 milliards"],correct:3,expl:"Une étude de 2015 a estimé le nombre d'arbres à environ 3 000 milliards (3 × 10¹²)."},
-    {q:"Combien de langues sont parlées dans le monde aujourd'hui (environ) ?",choices:["~700","~2 000","~7 000","~20 000"],correct:2,expl:"On recense environ 7 000 langues vivantes, dont beaucoup menacées de disparition."},
-    {q:"Combien de cellules composent environ le corps humain ?",choices:["~37 millions","~37 milliards","~37 000 milliards","~37 quintillions"],correct:2,expl:"Environ 37 000 milliards de cellules (3,7 × 10¹³)."},
-    {q:"Combien de grains de sable y a-t-il environ sur toutes les plages de la Terre (ordre de grandeur souvent cité) ?",choices:["~7,5 × 10¹²","~7,5 × 10¹⁸","~7,5 × 10²⁴","~7,5 × 10³⁰"],correct:1,expl:"L'estimation la plus reprise tourne autour de 7,5 × 10¹⁸ grains."},
-    {q:"Combien de personnes naissent environ chaque seconde dans le monde ?",choices:["~0,5","~4","~20","~100"],correct:1,expl:"Environ 140 millions de naissances par an ÷ 31,5 millions de secondes ≈ 4 par seconde."},
-    {q:"Combien d'étoiles compte environ la Voie lactée ?",choices:["~1 million","~1 milliard","~100 milliards","~10 000 milliards"],correct:2,expl:"Les estimations vont de 100 à 400 milliards d'étoiles."},
-    {q:"En moyenne, combien de fois une personne cligne-t-elle des yeux par jour ?",choices:["~1 000","~5 000","~15 000","~50 000"],correct:2,expl:"Environ 15 000 à 20 000 clignements quotidiens."},
-    {q:"Combien de tasses de café sont bues environ chaque jour dans le monde ?",choices:["~200 millions","~2 milliards","~10 milliards","~50 milliards"],correct:1,expl:"On cite régulièrement plus de 2 milliards de tasses par jour."},
-    {q:"Combien d'e-mails sont envoyés environ chaque jour dans le monde (vers 2023) ?",choices:["~3 milliards","~30 milliards","~300 milliards","~3 000 milliards"],correct:2,expl:"Environ 300 à 350 milliards d'e-mails par jour, spam compris."},
-    {q:"Combien de fourmis y a-t-il environ sur Terre (étude de 2022) ?",choices:["~200 millions","~2 milliards","~20 millions de milliards","~20 milliards de milliards"],correct:2,expl:"Une étude de 2022 estime ~20 millions de milliards de fourmis (2 × 10¹⁶)."},
-    {q:"Combien de battements de cœur une personne fait-elle environ dans toute sa vie ?",choices:["~30 millions","~300 millions","~3 milliards","~30 milliards"],correct:2,expl:"Sur une vie entière, on approche les 2,5 à 3 milliards de battements."},
-    {q:"Combien de litres de sang le cœur humain pompe-t-il environ en une journée ?",choices:["~70 L","~700 L","~7 000 L","~70 000 L"],correct:2,expl:"À ~5 L/min sur 1 440 minutes, on atteint environ 7 000 litres par jour."}
+    {q:"Combien de parts de pizza sont mangées chaque seconde aux États-Unis (statistique classique) ?",choices:["35","350","3 500","35 000"],correct:1,expl:"La statistique culte avance environ 350 parts englouties chaque seconde rien qu'aux États-Unis. Rapporté à l'année, cela représente des milliards de pizzas."},
+    {q:"Combien de coups d'État et tentatives la Bolivie a-t-elle connus depuis 1825 (estimation souvent citée) ?",choices:["~50","~100","~190","~250"],correct:2,expl:"On cite régulièrement plus de 190 coups et tentatives, ce qui en ferait un quasi-record mondial. Cette instabilité chronique reflète des fractures profondes entre régions, élites et peuples autochtones."},
+    {q:"Combien de fois le cœur humain bat-il environ en une journée ?",choices:["~10 000","~50 000","~100 000","~500 000"],correct:2,expl:"À environ 70 battements par minute sur 1 440 minutes, on tourne autour de 100 000 battements quotidiens. Cela représente près de trois milliards de battements sur une vie entière."},
+    {q:"Combien y a-t-il environ d'arbres sur Terre (étude de 2015) ?",choices:["~400 millions","~3 milliards","~300 milliards","~3 000 milliards"],correct:3,expl:"Une étude publiée en 2015 a estimé le nombre d'arbres à environ 3 000 milliards (3 × 10¹²), bien plus que les estimations précédentes. Cela fait tout de même environ 375 arbres par être humain."},
+    {q:"Combien de langues sont parlées dans le monde aujourd'hui (environ) ?",choices:["~700","~2 000","~7 000","~20 000"],correct:2,expl:"On recense environ 7 000 langues vivantes, mais une grande partie est menacée de disparition. Une langue s'éteindrait en moyenne toutes les deux semaines."},
+    {q:"Combien de cellules composent environ le corps humain ?",choices:["~37 millions","~37 milliards","~37 000 milliards","~37 trillions de trillions"],correct:2,expl:"Le corps humain compte environ 37 000 milliards de cellules (3,7 × 10¹³). Curieusement, il héberge à peu près autant de bactéries, surtout dans l'intestin."},
+    {q:"Combien de grains de sable y a-t-il environ sur toutes les plages de la Terre (ordre de grandeur souvent cité) ?",choices:["~7,5 × 10¹²","~7,5 × 10¹⁸","~7,5 × 10²⁴","~7,5 × 10³⁰"],correct:1,expl:"L'estimation la plus reprise tourne autour de 7,5 × 10¹⁸ grains, soit 7,5 milliards de milliards. C'est pourtant bien moins que le nombre estimé d'étoiles dans l'univers observable."},
+    {q:"Combien de personnes naissent environ chaque seconde dans le monde ?",choices:["~0,5","~4","~20","~100"],correct:1,expl:"Avec environ 140 millions de naissances par an, divisées par les 31,5 millions de secondes d'une année, on obtient environ 4 par seconde. Dans le même temps, près de 2 personnes meurent chaque seconde."},
+    {q:"Combien d'étoiles compte environ la Voie lactée ?",choices:["~1 million","~1 milliard","~100 milliards","~10 000 milliards"],correct:2,expl:"Les estimations vont de 100 à 400 milliards d'étoiles dans notre seule galaxie. Et l'univers observable contiendrait des centaines de milliards de galaxies."},
+    {q:"En moyenne, combien de fois une personne cligne-t-elle des yeux par jour ?",choices:["~1 000","~5 000","~15 000","~50 000"],correct:2,expl:"On estime entre 15 000 et 20 000 clignements quotidiens. Fait curieux : on cligne nettement moins en lisant ou en fixant un écran, ce qui assèche les yeux."},
+    {q:"Combien de tasses de café sont bues environ chaque jour dans le monde ?",choices:["~200 millions","~2 milliards","~10 milliards","~50 milliards"],correct:1,expl:"On cite couramment plus de 2 milliards de tasses bues quotidiennement. Le café est l'une des marchandises les plus échangées au monde, derrière le pétrole."},
+    {q:"Combien d'e-mails sont envoyés environ chaque jour dans le monde (vers 2023) ?",choices:["~3 milliards","~30 milliards","~300 milliards","~3 000 milliards"],correct:2,expl:"On estime à environ 300 à 350 milliards le nombre d'e-mails envoyés chaque jour, spam compris. Plus de la moitié de ce volume serait justement constitué de courriers indésirables."},
+    {q:"Combien de fourmis y a-t-il environ sur Terre (étude de 2022) ?",choices:["~200 millions","~2 milliards","~20 millions de milliards","~20 milliards de milliards"],correct:2,expl:"Une étude de 2022 a estimé leur nombre à environ 20 millions de milliards (2 × 10¹⁶). Leur biomasse totale rivaliserait avec celle de l'ensemble des humains."},
+    {q:"Combien de battements de cœur une personne accumule-t-elle environ au cours de toute une vie ?",choices:["~30 millions","~300 millions","~3 milliards","~30 milliards"],correct:2,expl:"Sur une vie complète, on approche les 2,5 à 3 milliards de battements. Curieusement, la plupart des mammifères, du hamster à l'éléphant, en font à peu près autant sur leur durée de vie."},
+    {q:"Combien de litres de sang le cœur humain pompe-t-il environ en une journée ?",choices:["~70 L","~700 L","~7 000 L","~70 000 L"],correct:2,expl:"À environ 5 litres par minute sur 1 440 minutes, on atteint près de 7 000 litres par jour. Pourtant, le corps ne contient à un instant donné qu'environ 5 litres de sang, recyclés en boucle."},
+    {q:"Combien de cheveux compte en moyenne une tête humaine ?",choices:["~10 000","~100 000","~1 million","~10 millions"],correct:1,expl:"On estime à environ 100 000 le nombre de cheveux sur un cuir chevelu. On en perd naturellement entre 50 et 100 par jour, aussitôt remplacés."},
+    {q:"Combien de respirations un adulte prend-il environ par jour ?",choices:["~2 000","~20 000","~200 000","~2 millions"],correct:1,expl:"À environ 12 à 16 respirations par minute, cela représente près de 20 000 cycles par jour. Soit plus de 600 millions de respirations sur une vie."},
+    {q:"Combien de litres d'eau contient environ le corps d'un adulte de 70 kg ?",choices:["~4 L","~42 L","~120 L","~420 L"],correct:1,expl:"L'eau représente environ 60 % de la masse corporelle, soit environ 42 litres pour 70 kg. Cette proportion baisse avec l'âge et est plus faible chez les personnes ayant davantage de masse grasse."},
+    {q:"Combien de litres d'eau faut-il environ pour produire 1 kg de viande de bœuf (empreinte totale) ?",choices:["~150 L","~1 500 L","~15 000 L","~150 000 L"],correct:2,expl:"On cite souvent environ 15 000 litres, en comptant l'eau bue par l'animal, celle des cultures fourragères et de l'élevage. C'est l'un des chiffres clés du débat sur l'impact environnemental de l'alimentation."},
+    {q:"Combien de personnes meurent environ chaque seconde dans le monde ?",choices:["~0,2","~2","~20","~200"],correct:1,expl:"Avec environ 60 millions de décès par an, divisés par les 31,5 millions de secondes d'une année, on obtient environ 2 par seconde. La population mondiale continue pourtant d'augmenter, les naissances l'emportant largement."}
   ]
 }
 ];
 
 // ════════════════════════════════════════════════════════════════
-//   ÉTAT
+//   PERSISTANCE  (localStorage, protégé)
 // ════════════════════════════════════════════════════════════════
-const QUIZ_LEN = 10;
+const MAX_PER   = 20;
+const MAX_TOTAL = THEMES.length * MAX_PER; // 180
+
+function lsGet(k,d){ try{ const v=localStorage.getItem(k); return v===null?d:v; }catch(e){ return d; } }
+function lsSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+function loadBest(){ try{ return JSON.parse(localStorage.getItem('trivia-best')||'{}'); }catch(e){ return {}; } }
+function saveBest(o){ try{ localStorage.setItem('trivia-best', JSON.stringify(o)); }catch(e){} }
+function totalScore(best){ return THEMES.reduce((s,t)=> s + (best[t.key]||0), 0); }
+
+// ════════════════════════════════════════════════════════════════
+//   WIDGET SCORE DU SITE
+// ════════════════════════════════════════════════════════════════
+function toggleScore(e){ if(e) e.stopPropagation(); document.getElementById('site-score').classList.toggle('open'); }
+document.addEventListener('click', function(e){
+  const w=document.getElementById('site-score');
+  if(w && !w.contains(e.target)) w.classList.remove('open');
+});
+
+function refreshWidget(){
+  const best = loadBest();
+  const total = totalScore(best);
+  let record = parseInt(lsGet('trivia-record','0'),10)||0;
+  if(total>record){ record=total; lsSet('trivia-record', String(record)); } // n'enregistre que si meilleur
+  const pct = Math.round(total/MAX_TOTAL*100);
+  document.getElementById('ss-fill').style.width = pct+'%';
+  document.getElementById('ss-bigfill').style.width = pct+'%';
+  document.getElementById('ss-frac').textContent = total+'/'+MAX_TOTAL;
+  document.getElementById('ss-total').textContent = total+' / '+MAX_TOTAL;
+  document.getElementById('ss-record').textContent = record+' / '+MAX_TOTAL;
+
+  const catsEl = document.getElementById('ss-cats'); catsEl.innerHTML='';
+  THEMES.forEach(function(t){
+    const b = best[t.key]||0;
+    const done = b>=MAX_PER;
+    const row = document.createElement('div');
+    row.className = 'ss-cat'+(done?' done':'');
+    row.innerHTML =
+      '<span class="ss-cn">'+t.name+'</span>'+
+      '<span class="ss-cb"><span style="width:'+(b/MAX_PER*100)+'%"></span></span>'+
+      '<span class="ss-cf">'+b+'/'+MAX_PER+'</span>';
+    catsEl.appendChild(row);
+  });
+
+  // onglets terminés + état "tout fini"
+  document.querySelectorAll('.ttab').forEach(function(tab,i){
+    tab.classList.toggle('done', (best[THEMES[i].key]||0)>=MAX_PER);
+  });
+  document.getElementById('site-score').classList.toggle('allDone', total>=MAX_TOTAL);
+}
+
+function shareScore(){
+  const best = loadBest();
+  const total = totalScore(best);
+  const record = parseInt(lsGet('trivia-record','0'),10)||0;
+  const txt = "Mon score au Trivia d'Ana & Adrien : "+total+"/"+MAX_TOTAL+
+              " (record du site : "+record+"/"+MAX_TOTAL+"). À toi de faire mieux, bah.\n"+window.location.href;
+  if(navigator.share){ navigator.share({text:txt}).catch(function(){ copyTxt(txt); }); }
+  else copyTxt(txt);
+}
+function copyTxt(txt){
+  if(navigator.clipboard){ navigator.clipboard.writeText(txt).then(function(){ flashShare("copié — va le partager !"); }).catch(function(){ prompt('copie ça :',txt); }); }
+  else prompt('copie ça :',txt);
+}
+function flashShare(msg){
+  const btn = document.querySelector('.ss-panel .btn');
+  if(!btn) return;
+  const old = btn.textContent; btn.textContent = msg;
+  setTimeout(function(){ btn.textContent = old; }, 1800);
+}
+
+// ════════════════════════════════════════════════════════════════
+//   QUIZ
+// ════════════════════════════════════════════════════════════════
 let currentTheme = 0;
 let qs = [], cur = 0, score = 0;
 
-function lsGet(k,d){ try{ return localStorage.getItem(k) ?? d; }catch(e){ return d; } }
-function lsSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
-
 function shuffle(a){ const b=[...a]; for(let i=b.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [b[i],b[j]]=[b[j],b[i]]; } return b; }
 
-// ── onglets ───────────────────────────────────────────────────
+// onglets
 const tabsEl = document.getElementById('theme-tabs');
-THEMES.forEach((t,i)=>{
+THEMES.forEach(function(t,i){
   const btn = document.createElement('button');
-  btn.className = 'ttab' + (i===0?' active':'');
-  btn.innerHTML = '<span class="em">'+t.em+'</span><span class="tn">'+t.name+'</span>'+
-                  '<span class="td">'+Array(t.diff+1).join('·')+'</span>';
-  btn.onclick = ()=>{
+  btn.className = 'ttab'+(i===0?' active':'');
+  btn.innerHTML = '<span class="tn">'+t.name+'</span><span class="td">'+Array(t.diff+1).join('·')+'</span>';
+  btn.onclick = function(){
     currentTheme = i;
-    document.querySelectorAll('.ttab').forEach((x,j)=>x.classList.toggle('active',j===i));
+    document.querySelectorAll('.ttab').forEach(function(x,j){ x.classList.toggle('active',j===i); });
     startQuiz();
     document.querySelector('.quiz-wrap').scrollIntoView({behavior:'smooth',block:'start'});
   };
   tabsEl.appendChild(btn);
 });
 
-// ── déroulé du quiz ───────────────────────────────────────────
 function startQuiz(){
   const t = THEMES[currentTheme];
   document.getElementById('difflbl').textContent = t.label + '  ·  difficulté ' + Array(t.diff+1).join('★');
-  qs = shuffle(t.questions).slice(0, Math.min(QUIZ_LEN, t.questions.length));
+  qs = shuffle(t.questions);            // les 20 questions, dans un ordre aléatoire
   cur = 0; score = 0;
   document.getElementById('score-screen').classList.remove('show');
   document.getElementById('quiz-section').style.display = '';
@@ -365,13 +499,13 @@ function showQ(){
   const q = qs[cur];
   document.getElementById('pfill').style.width = (cur/qs.length*100)+'%';
   document.getElementById('plabel').textContent = 'Question '+(cur+1)+' / '+qs.length;
-  document.getElementById('pscore').textContent = score+' ✓';
-  document.getElementById('qflag').textContent = THEMES[currentTheme].em;
+  document.getElementById('pscore').textContent = 'score : '+score;
+  document.getElementById('qflag').textContent = THEMES[currentTheme].label.split(' — ')[0];
   document.getElementById('qtext').textContent = q.q;
   const ch = document.getElementById('choices'); ch.innerHTML='';
-  q.choices.forEach((c,i)=>{
+  q.choices.forEach(function(c,i){
     const b = document.createElement('button');
-    b.className='choice'; b.textContent=c; b.onclick=()=>answer(i);
+    b.className='choice'; b.textContent=c; b.onclick=function(){ answer(i); };
     ch.appendChild(b);
   });
   document.getElementById('feedback').classList.remove('show');
@@ -381,14 +515,14 @@ function showQ(){
 function answer(i){
   const q = qs[cur];
   const btns = document.querySelectorAll('.choice');
-  btns.forEach(b=>b.disabled=true);
+  btns.forEach(function(b){ b.disabled=true; });
   const ok = i===q.correct;
   btns[i].classList.add(ok?'correct':'wrong');
   btns[q.correct].classList.add('correct');
   document.getElementById('feedback').textContent = (ok?'Bravo ! ':'Dommage. ') + q.expl;
   document.getElementById('feedback').classList.add('show');
   if(ok) score++;
-  document.getElementById('pscore').textContent = score+' ✓';
+  document.getElementById('pscore').textContent = 'score : '+score;
   const bn = document.getElementById('btn-next');
   bn.textContent = cur+1<qs.length ? 'suivant →' : 'voir le résultat';
   bn.classList.add('show');
@@ -404,18 +538,27 @@ function showScore(){
   document.getElementById('snum').textContent = score+'/'+qs.length;
   const p = score/qs.length;
   document.getElementById('smsg').textContent =
-    p>=.9 ? 'parfait ! t\'es une encyclopédie, bah' :
-    p>=.7 ? 'très bien — solide' :
-    p>=.5 ? 'pas mal, mais on peut mieux faire' :
-            'aïe. on révise et on rejoue ?';
-  // meilleur score par thème
-  const key = 'trivia-best-'+t.key;
-  let best = parseInt(lsGet(key,'0'),10);
-  if(score>best){ best=score; lsSet(key, String(best)); }
-  document.getElementById('sbest').textContent = 'thème « '+t.name+' » — meilleur score : '+best+'/'+qs.length;
+    p>=.9 ? "parfait ! t'es une encyclopédie, bah" :
+    p>=.7 ? "très bien — solide" :
+    p>=.5 ? "pas mal, mais on peut mieux faire" :
+            "aïe. on révise et on rejoue ?";
+
+  // sauvegarde du meilleur score de la catégorie (uniquement si meilleur)
+  const best = loadBest();
+  const prev = best[t.key]||0;
+  let line = "thème « "+t.name+" » — meilleur score : ";
+  if(score>prev){
+    best[t.key]=score; saveBest(best);
+    line += "<b>"+score+"</b>/"+MAX_PER+" (nouveau record !)";
+  } else {
+    line += "<b>"+prev+"</b>/"+MAX_PER+" — pas battu cette fois";
+  }
+  document.getElementById('sbest').innerHTML = line;
+  refreshWidget();
 }
 
 // ── init ──────────────────────────────────────────────────────
+refreshWidget();
 startQuiz();
 </script>
 </body>
