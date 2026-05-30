@@ -17,7 +17,6 @@
     color:#FAF8F4;
   }
 
-  /* custom cursor */
   .cursor {
     position:fixed;
     width:26px;
@@ -35,7 +34,6 @@
     height:12px;
   }
 
-  /* ÉCRAN CHOC */
   #shock {
     position:fixed;
     inset:0;
@@ -111,7 +109,6 @@
     color:#FAF8F4;
   }
 
-  /* GALERIE */
   #gallery {
     display:none;
     padding:64px 40px 100px;
@@ -170,6 +167,41 @@
     transform:scale(1.03);
   }
 
+  .friends-section {
+    margin-top:54px;
+    text-align:center;
+  }
+
+  .friends-title {
+    font-size:clamp(1.4rem, 4vw, 2.4rem);
+    line-height:1.1;
+    margin-bottom:22px;
+  }
+
+  .friends-buttons {
+    display:flex;
+    justify-content:center;
+    gap:14px;
+    flex-wrap:wrap;
+  }
+
+  .friend-btn {
+    display:inline-block;
+    padding:12px 26px;
+    border:2px solid #FAF8F4;
+    color:#FAF8F4;
+    text-decoration:none;
+    font-size:1rem;
+    letter-spacing:0.04em;
+    transition:background .18s, color .18s, transform .18s;
+  }
+
+  .friend-btn:hover {
+    background:#FAF8F4;
+    color:#8B1A2B;
+    transform:translateY(-2px);
+  }
+
   .gal-back {
     display:block;
     text-align:center;
@@ -206,6 +238,16 @@
       grid-template-columns:repeat(2, 1fr);
       gap:10px;
     }
+
+    .friends-buttons {
+      flex-direction:column;
+      align-items:center;
+    }
+
+    .friend-btn {
+      width:100%;
+      max-width:240px;
+    }
   }
 </style>
 </head>
@@ -214,7 +256,6 @@
 
 <div class="cursor" id="cursor"></div>
 
-<!-- ÉCRAN CHOC -->
 <div id="shock">
   <div class="shock-title">whaaaat ???<br>like …. nooo…<br>no way</div>
   <div class="shock-sub">you have to go out of the site oh la la<br>… but you can discover us a bit ok if you want i guess</div>
@@ -224,7 +265,6 @@
   </div>
 </div>
 
-<!-- GALERIE -->
 <div id="gallery">
   <div class="gal-header">
     <div class="gal-title">ok fine.<br>here we are i guess</div>
@@ -253,11 +293,19 @@
     </div>
   </div>
 
+  <div class="friends-section">
+    <div class="friends-title">and the friends</div>
+
+    <div class="friends-buttons">
+      <a href="./amisad.pdf" target="_blank" class="friend-btn">amis d'adrien</a>
+      <a href="./amisana.pdf" target="_blank" class="friend-btn">amis d'ana</a>
+    </div>
+  </div>
+
   <a href="home.html" class="gal-back">← back to the site (if you must)</a>
 </div>
 
 <script>
-  // Curseur
   const cur = document.getElementById('cursor');
 
   document.addEventListener('mousemove', e => {
