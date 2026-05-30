@@ -230,6 +230,28 @@
     flex-wrap: wrap;
   }
 
+  .modal-overlay.secret-active {
+    background: var(--bord);
+  }
+
+  .modal-overlay.secret-active .modal {
+    background: var(--blanc);
+    border-color: var(--blanc);
+  }
+
+  .modal-overlay.secret-active .modal-bar {
+    background: var(--bord);
+  }
+
+  .modal-overlay.secret-active .modal-main-title,
+  .modal-overlay.secret-active .modal-title-text {
+    color: var(--bord);
+  }
+
+  .modal-overlay.secret-active .modal-desc {
+    color: var(--text);
+  }
+
   .rare-image-modal {
     background: transparent;
     border: none;
@@ -242,8 +264,12 @@
     display: block;
     width: 100%;
     height: auto;
-    border: var(--trait) solid var(--bord);
+    border: var(--trait) solid var(--blanc);
     background: var(--blanc);
+  }
+
+  .modal-overlay.secret-active .rare-image-modal img {
+    border-color: var(--blanc);
   }
 
   .replay-link {
@@ -574,11 +600,14 @@ function showResult() {
 }
 
 function showNormalResult(s) {
+  const modal = document.getElementById('modal');
   const titleEl = document.getElementById('modal-title');
   const descEl = document.getElementById('modal-desc');
   const warnEl = document.getElementById('modal-warning');
   const btnsEl = document.getElementById('modal-btns');
   const lnk = document.getElementById('modal-go');
+
+  modal.classList.remove('secret-active');
 
   titleEl.textContent = s.label;
   descEl.textContent = s.desc;
@@ -605,7 +634,7 @@ function showNormalResult(s) {
     lnk.removeAttribute('rel');
   }
 
-  document.getElementById('modal').classList.add('active');
+  modal.classList.add('active');
 }
 
 function showRareEvent() {
@@ -616,11 +645,14 @@ function showRareEvent() {
     return;
   }
 
+  const modal = document.getElementById('modal');
   const titleEl = document.getElementById('modal-title');
   const descEl = document.getElementById('modal-desc');
   const warnEl = document.getElementById('modal-warning');
   const btnsEl = document.getElementById('modal-btns');
   const lnk = document.getElementById('modal-go');
+
+  modal.classList.add('secret-active');
 
   titleEl.textContent = rare.title;
   descEl.textContent = rare.desc || '';
@@ -648,19 +680,25 @@ function showRareEvent() {
     };
   }
 
-  document.getElementById('modal').classList.add('active');
+  modal.classList.add('active');
 }
 
 function showRareImage() {
-  document.getElementById('rare-image-overlay').classList.add('active');
+  const overlay = document.getElementById('rare-image-overlay');
+  overlay.classList.add('secret-active');
+  overlay.classList.add('active');
 }
 
 function closeRareImage() {
-  document.getElementById('rare-image-overlay').classList.remove('active');
+  const overlay = document.getElementById('rare-image-overlay');
+  overlay.classList.remove('active');
+  overlay.classList.remove('secret-active');
 }
 
 function closeModal() {
-  document.getElementById('modal').classList.remove('active');
+  const modal = document.getElementById('modal');
+  modal.classList.remove('active');
+  modal.classList.remove('secret-active');
 }
 
 document.getElementById('modal').addEventListener('click', e => {
