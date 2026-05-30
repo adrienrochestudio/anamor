@@ -55,26 +55,26 @@
     flex-shrink: 0;
   }
 
-.corner-character-link {
-  position: absolute;
-  bottom: -20px;
-  right: -60px;
-  width: 120px;
-  height: auto;
-  z-index: 10;
-  display: block;
-}
+  .corner-character-link {
+    position: absolute;
+    bottom: -20px;
+    right: -60px;
+    width: 120px;
+    height: auto;
+    z-index: 10;
+    display: block;
+  }
 
-.corner-character {
-  width: 100%;
-  height: auto;
-  display: block;
-  pointer-events: auto;
-}
+  .corner-character {
+    width: 100%;
+    height: auto;
+    display: block;
+    pointer-events: auto;
+  }
 
-.corner-character-link:hover {
-  opacity: 0.75;
-}
+  .corner-character-link:hover {
+    opacity: 0.75;
+  }
 
   .modal-main-title {
     font-size: 1.1rem;
@@ -162,24 +162,24 @@
     gap: 28px;
   }
 
-.mini-card {
-  width: 145px;
-  min-height: 64px;
-  padding: 10px 16px;
-  background: transparent;
-  text-decoration: none;
-  color: var(--text);
-  font-family: 'Patrick Hand', cursive;
-  font-size: 1.15rem;
-  cursor: pointer;
-  transition: background .18s, color .18s;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  border: var(--trait) solid var(--bord);
-  box-sizing: border-box;
-}
+  .mini-card {
+    width: 145px;
+    min-height: 64px;
+    padding: 10px 16px;
+    background: transparent;
+    text-decoration: none;
+    color: var(--text);
+    font-family: 'Patrick Hand', cursive;
+    font-size: 1.15rem;
+    cursor: pointer;
+    transition: background .18s, color .18s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    border: var(--trait) solid var(--bord);
+    box-sizing: border-box;
+  }
 
   .mini-card:hover {
     background: var(--bord);
@@ -230,6 +230,22 @@
     flex-wrap: wrap;
   }
 
+  .rare-image-modal {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    max-width: min(520px, 86vw);
+  }
+
+  .rare-image-modal img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border: var(--trait) solid var(--bord);
+    background: var(--blanc);
+  }
+
   .replay-link {
     display: block;
     text-align: center;
@@ -271,16 +287,16 @@
   }
 
   @media (max-width: 700px) {
-  .cards-wrap {
-  padding: 28px 40px 64px;
-  max-width: 820px;
-  margin: 0 auto;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: center;
-  gap: 22px;
-}
+    .cards-wrap {
+      padding: 28px 40px 64px;
+      max-width: 820px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 22px;
+    }
 
     .mini-card {
       width: 145px;
@@ -289,11 +305,11 @@
       padding: 12px 16px;
     }
 
-   .corner-character-link {
-  width: 88px;
-  right: -28px;
-  bottom: -12px;
-}
+    .corner-character-link {
+      width: 88px;
+      right: -28px;
+      bottom: -12px;
+    }
   }
 </style>
 </head>
@@ -318,11 +334,11 @@
 
     <canvas id="wheel-canvas" width="420" height="420"></canvas>
 
-<a href="https://www.youtube.com/watch?v=jXpTw7qcoDk" target="_blank" rel="noopener" class="corner-character-link">
-  <img src="seated1.png" class="corner-character" alt="">
-</a>
+    <a href="https://www.youtube.com/watch?v=jXpTw7qcoDk" target="_blank" rel="noopener" class="corner-character-link">
+      <img src="seated1.png" class="corner-character" alt="">
+    </a>
 
-    <div class="wheel-center" id="wheel-center" onclick="spinWheel()">
+    <div class="wheel-center" id="wheel-center">
       <span>A&A</span>
       <img src="" alt="">
     </div>
@@ -340,10 +356,16 @@
     <div class="modal-title-text" id="modal-title"></div>
     <div class="modal-desc" id="modal-desc"></div>
     <div class="modal-warning" id="modal-warning"></div>
-    <div class="modal-btns">
+    <div class="modal-btns" id="modal-btns">
       <a href="#" class="btn btn-full" id="modal-go">let's go</a>
       <button class="btn" onclick="closeModal()">nah</button>
     </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="rare-image-overlay">
+  <div class="rare-image-modal">
+    <img src="cateating.jpeg" alt="">
   </div>
 </div>
 
@@ -389,6 +411,36 @@ const SECTIONS = [
   { label:"absolute cinema", url:"filmographie.html", desc:"Adrien's films, sorted by director." },
   { label:"jio gessah", url:"https://www.worldguessr.com/", desc:"c'est the free version, i am a rats uh ratatouille.", external:true },
   { label:"todo", url:"https://www.icloud.com/notes/038_LgyD3tTC4I2XbACKHyCzA#To_do_AA", desc:"Our shared list. the important stuff.", external:true, warning:"if you are not ana or adrien it will not work, cherche pas. otherwise have fun !" },
+];
+
+const RARE_CHANCE = 0.15;
+
+const RARE_EVENTS = [
+  {
+    type: "message",
+    title: "the wheel is tired.",
+    desc: "spin again.",
+    goText: "spim again",
+    goAction: "spin"
+  },
+  {
+    type: "message",
+    title: "adrian refuses this category",
+    desc: "ugh iam soooo bored gonna call tina",
+    goText: "spim again",
+    goAction: "spin"
+  },
+  {
+    type: "link",
+    title: "secret cinema mode unlocked",
+    desc: "karim debbache has entered the kompiuter.",
+    url: "https://www.senscritique.com/liste/les_films_recommandes_par_karim_debbache_crossed/293391",
+    goText: "open it"
+  },
+  {
+    type: "image",
+    title: "the little man has chosen violence."
+  }
 ];
 
 const wrap = document.getElementById('cards-wrap');
@@ -478,6 +530,9 @@ drawWheel(angle);
 function spinWheel() {
   if (spinning) return;
 
+  closeModal();
+  closeRareImage();
+
   spinning = true;
   document.getElementById('spin-btn').disabled = true;
 
@@ -510,10 +565,23 @@ function showResult() {
   const idx = Math.floor(norm / ARC) % N;
   const s = SECTIONS[idx];
 
-  document.getElementById('modal-title').textContent = s.label;
-  document.getElementById('modal-desc').textContent = s.desc;
+  if (Math.random() < RARE_CHANCE) {
+    showRareEvent();
+    return;
+  }
 
+  showNormalResult(s);
+}
+
+function showNormalResult(s) {
+  const titleEl = document.getElementById('modal-title');
+  const descEl = document.getElementById('modal-desc');
   const warnEl = document.getElementById('modal-warning');
+  const btnsEl = document.getElementById('modal-btns');
+  const lnk = document.getElementById('modal-go');
+
+  titleEl.textContent = s.label;
+  descEl.textContent = s.desc;
 
   if (s.warning) {
     warnEl.textContent = s.warning;
@@ -523,9 +591,13 @@ function showResult() {
     warnEl.style.display = 'none';
   }
 
-  const lnk = document.getElementById('modal-go');
+  btnsEl.style.display = 'flex';
+
+  lnk.textContent = "let's go";
   lnk.href = s.url;
   lnk.target = s.external ? '_blank' : '';
+
+  lnk.onclick = null;
 
   if (s.external) {
     lnk.rel = 'noopener';
@@ -536,12 +608,67 @@ function showResult() {
   document.getElementById('modal').classList.add('active');
 }
 
+function showRareEvent() {
+  const rare = RARE_EVENTS[Math.floor(Math.random() * RARE_EVENTS.length)];
+
+  if (rare.type === "image") {
+    showRareImage();
+    return;
+  }
+
+  const titleEl = document.getElementById('modal-title');
+  const descEl = document.getElementById('modal-desc');
+  const warnEl = document.getElementById('modal-warning');
+  const btnsEl = document.getElementById('modal-btns');
+  const lnk = document.getElementById('modal-go');
+
+  titleEl.textContent = rare.title;
+  descEl.textContent = rare.desc || '';
+  warnEl.textContent = '';
+  warnEl.style.display = 'none';
+  btnsEl.style.display = 'flex';
+
+  lnk.textContent = rare.goText || "ok";
+
+  if (rare.type === "link") {
+    lnk.href = rare.url;
+    lnk.target = '_blank';
+    lnk.rel = 'noopener';
+    lnk.onclick = null;
+  }
+
+  if (rare.goAction === "spin") {
+    lnk.href = "#";
+    lnk.target = "";
+    lnk.removeAttribute('rel');
+    lnk.onclick = function(e) {
+      e.preventDefault();
+      closeModal();
+      spinWheel();
+    };
+  }
+
+  document.getElementById('modal').classList.add('active');
+}
+
+function showRareImage() {
+  document.getElementById('rare-image-overlay').classList.add('active');
+}
+
+function closeRareImage() {
+  document.getElementById('rare-image-overlay').classList.remove('active');
+}
+
 function closeModal() {
   document.getElementById('modal').classList.remove('active');
 }
 
 document.getElementById('modal').addEventListener('click', e => {
   if (e.target === document.getElementById('modal')) closeModal();
+});
+
+document.getElementById('rare-image-overlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('rare-image-overlay')) closeRareImage();
 });
 
 document.getElementById('wheel-center').addEventListener('click', spinWheel);
