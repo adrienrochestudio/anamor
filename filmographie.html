@@ -22,12 +22,31 @@
   align-items:start;
 }
 
-.tv-img {
+.tv-block {
   width:160px;
   margin-top:42px;
   position:sticky;
   top:120px;
+  text-align:center;
+}
+
+.tv-img {
+  width:160px;
+  display:block;
   opacity:0.95;
+}
+
+.youtube-jdg {
+  display:block;
+  margin-top:10px;
+  font-size:0.75rem;
+  line-height:1.2;
+  color:var(--bord);
+  text-decoration:none;
+}
+
+.youtube-jdg:hover {
+  text-decoration:underline;
 }
 
 .film-list {
@@ -42,11 +61,15 @@
     max-width:960px;
   }
 
-  .tv-img {
+  .tv-block {
     width:120px;
     display:block;
     margin:0 0 20px 0;
     position:static;
+  }
+
+  .tv-img {
+    width:120px;
   }
 }
   .letter-sep { font-size:1.4rem; color:var(--bord); padding:20px 0 8px; border-bottom:var(--trait) solid var(--bord); margin-bottom:2px; }
@@ -139,10 +162,13 @@
   <div class="stats" id="stats"></div>
 </div>
 <div class="film-area">
-  <img src="devantlatv.png" alt="" class="tv-img">
-  <a class="youtube-jdg" href="https://www.youtube.com/user/joueurdugrenier" target="_blank">
-  ugh i dont want to watch the movies i want to watch the you tube
-</a>
+  <div class="tv-block">
+    <img src="devantlatv.png" alt="" class="tv-img">
+    <a class="youtube-jdg" href="https://www.youtube.com/user/joueurdugrenier" target="_blank" rel="noopener">
+      ugh i dont want to watch the movies i want to watch the you tube
+    </a>
+  </div>
+
   <div class="film-list" id="film-list"></div>
 </div>
 
