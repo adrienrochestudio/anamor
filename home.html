@@ -128,7 +128,15 @@
     width: 38px;
     height: 34px;
     z-index: 6;
-    pointer-events: none;
+    cursor: pointer;
+    display: block;
+    text-decoration: none;
+    transition: opacity .18s, transform .18s;
+  }
+
+  .wheel-pointer:hover {
+    opacity: 0.75;
+    transform: translateX(-50%) rotate(-5deg) scale(1.08);
   }
 
   .wheel-pointer svg {
@@ -397,7 +405,13 @@
 
 <section class="wheel-section">
   <div class="wheel-container">
-    <div class="wheel-pointer">
+    <a
+      class="wheel-pointer"
+      href="https://www.youtube.com/watch?v=A4CucuC1Fiw"
+      target="_blank"
+      rel="noopener"
+      aria-label="secret little heart"
+    >
       <svg viewBox="0 0 44 40" aria-hidden="true">
         <path
           d="M22 35
@@ -414,7 +428,7 @@
           stroke-linejoin="round"
         />
       </svg>
-    </div>
+    </a>
 
     <canvas id="wheel-canvas" width="420" height="420"></canvas>
 
