@@ -55,15 +55,26 @@
     flex-shrink: 0;
   }
 
-  .corner-character {
-    position: absolute;
-    bottom: -20px;
-    right: -60px;
-    width: 120px;
-    height: auto;
-    z-index: 10;
-    pointer-events: none;
-  }
+.corner-character-link {
+  position: absolute;
+  bottom: -20px;
+  right: -60px;
+  width: 120px;
+  height: auto;
+  z-index: 10;
+  display: block;
+}
+
+.corner-character {
+  width: 100%;
+  height: auto;
+  display: block;
+  pointer-events: auto;
+}
+
+.corner-character-link:hover {
+  opacity: 0.75;
+}
 
   .modal-main-title {
     font-size: 1.1rem;
@@ -272,11 +283,11 @@
       padding: 12px 16px;
     }
 
-    .corner-character {
-      width: 88px;
-      right: -28px;
-      bottom: -12px;
-    }
+   .corner-character-link {
+  width: 88px;
+  right: -28px;
+  bottom: -12px;
+}
   }
 </style>
 </head>
@@ -301,7 +312,9 @@
 
     <canvas id="wheel-canvas" width="420" height="420"></canvas>
 
-    <img src="seated1.png" class="corner-character" alt="">
+<a href="https://www.youtube.com/watch?v=jXpTw7qcoDk" target="_blank" rel="noopener" class="corner-character-link">
+  <img src="seated1.png" class="corner-character" alt="">
+</a>
 
     <div class="wheel-center" id="wheel-center" onclick="spinWheel()">
       <span>A&A</span>
