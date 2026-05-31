@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-  <script src="progress.js"></script>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,10 +13,6 @@
     display:flex; align-items:center; justify-content:space-between;
   }
   .page-header h1 { font-size:2rem; color:var(--bord); }
-  .score-badge {
-    font-size:.9rem; color:var(--bord);
-    border:var(--trait) solid var(--bord); padding:6px 18px;
-  }
 
   .grid-tabs {
     padding:0 40px 20px;
@@ -207,7 +202,6 @@
 <nav class="nav">
   <a href="home.html" class="back-btn">← back</a>
   <div class="nav-title">crosswords</div>
-  <div class="score-badge" id="score-badge">0 pts</div>
 </nav>
 
 <div class="page-header"><h1>crosswords</h1></div>
@@ -254,6 +248,9 @@
     <button class="sol-close" onclick="closeSol()">close</button>
   </div>
 </div>
+
+<!-- système de progression partagé (joueur + barre) -->
+<script src="progress.js"></script>
 
 <script>
 // ════════════════════════════════════════════════════════
@@ -660,20 +657,16 @@ var GRIDS = [
 //  ÉTAT
 // ════════════════════════════════════════════════════════
 var currentGrid  = 0;
-var score        = parseInt(localStorage.getItem('cw-score') || '0');
-var doneGrids    = JSON.parse(localStorage.getItem('cw-done') || '[]');
 var inputMap     = [];
 var cellSeq      = [];
 var activeDir    = 'across';
 var activeNum    = null;
 
-document.getElementById('score-badge').textContent = score + ' pts';
-
 // ── ONGLETS ──────────────────────────────────────────────────
 var tabsEl = document.getElementById('grid-tabs');
 GRIDS.forEach(function(g, i) {
   var btn = document.createElement('button');
-  btn.className = 'tab' + (i===0?' active':'') + (doneGrids.indexOf(i)>=0?' done':'');
+  btn.className = 'tab' + (i===0?' active':'') + (AAProgress.isDone('crosswords', i)?' done':'');
   btn.innerHTML = '<span class="tn">'+g.name+'</span><span class="td">'+Array(g.diff+1).join('·')+'</span>';
   btn.onclick = function() {
     currentGrid = i;
@@ -869,14 +862,10 @@ function checkGrid() {
   });
   var msg=document.getElementById('result-msg'), sh=document.getElementById('share-btn');
   if(ok===tot) {
-    msg.textContent='parfait ! grille complète — +'+(currentGrid+1)*10+' pts';
+    msg.textContent='parfait ! grille complète';
     msg.className='result-msg win'; sh.className='share-btn show';
-    if(doneGrids.indexOf(currentGrid)<0) {
-      doneGrids.push(currentGrid);
-      localStorage.setItem('cw-done',JSON.stringify(doneGrids));
-      score+=(currentGrid+1)*10;
-      localStorage.setItem('cw-score',score);
-      document.getElementById('score-badge').textContent=score+' pts';
+    if(!AAProgress.isDone('crosswords', currentGrid)) {
+      AAProgress.report('crosswords', currentGrid, 1);
       document.querySelectorAll('.tab')[currentGrid].classList.add('done');
     }
   } else {
