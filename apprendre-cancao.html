@@ -713,47 +713,128 @@
 <footer>Ana & Adrien, the kompiuter</footer>
 
 <script src="progress.js"></script>
-<script>
-const STORAGE_KEY = 'anam_cancao_songs_v1';
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  onSnapshot,
+  query,
+  orderBy,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyA2kqrXTD_fDVOnw4j99F8b60Se_4sB6Rs",
+  authDomain: "anam-cancao.firebaseapp.com",
+  projectId: "anam-cancao",
+  storageBucket: "anam-cancao.firebasestorage.app",
+  messagingSenderId: "1078805660452",
+  appId: "1:1078805660452:web:94e57bfdfa9b83c17c29b1"
+};
+
+const COLLECTION_NAME = "anam_cancao_songs";
+const COMPLETED_KEY = "anam_cancao_completed_song_ids_v1";
+
+const app = initializeApp(FIREBASE_CONFIG);
+const db = getFirestore(app);
+const songsRef = collection(db, COLLECTION_NAME);
 
 const LANGUAGES = [
-  { key:'pt', label:'português', tiny:'saudade mode' },
-  { key:'fr', label:'français', tiny:'baguette lyrics' },
-  { key:'en', label:'english', tiny:'small english' }
+  { key:"pt", label:"português", tiny:"saudade mode" },
+  { key:"fr", label:"français", tiny:"baguette lyrics" },
+  { key:"en", label:"english", tiny:"small english" }
 ];
 
-let songs = loadSongs();
-let currentLanguage = 'pt';
+let songs = [];
+let currentLanguage = "pt";
 let currentSongId = null;
 let quiz = null;
+let firestoreReady = false;
 
-const languageTabs = document.getElementById('language-tabs');
-const songList = document.getElementById('song-list');
-const songButtons = document.getElementById('song-buttons');
-const listHeading = document.getElementById('list-heading');
-const emptyState = document.getElementById('empty-state');
-const reader = document.getElementById('reader');
-const readerTitle = document.getElementById('reader-title');
-const readerMeta = document.getElementById('reader-meta');
-const lyricsGrid = document.getElementById('lyrics-grid');
-const musicLink = document.getElementById('music-link');
-const learnBtn = document.getElementById('learn-btn');
-const mainView = document.getElementById('main-view');
-const gamePanel = document.getElementById('game-panel');
-const gameCard = document.getElementById('game-card');
-const endScreen = document.getElementById('end-screen');
+const languageTabs = document.getElementById("language-tabs");
+const songList = document.getElementById("song-list");
+const songButtons = document.getElementById("song-buttons");
+const listHeading = document.getElementById("list-heading");
+const emptyState = document.getElementById("empty-state");
+const reader = document.getElementById("reader");
+const readerTitle = document.getElementById("reader-title");
+const readerMeta = document.getElementById("reader-meta");
+const lyricsGrid = document.getElementById("lyrics-grid");
+const musicLink = document.getElementById("music-link");
+const learnBtn = document.getElementById("learn-btn");
+const mainView = document.getElementById("main-view");
+const gamePanel = document.getElementById("game-panel");
+const gameCard = document.getElementById("game-card");
+const endScreen = document.getElementById("end-screen");
 
-function loadSongs(){
+function getCompletedIds(){
   try{
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
+    const raw = localStorage.getItem(COMPLETED_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
   }catch(e){
     return [];
   }
 }
 
-function saveSongs(){
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(songs));
+function saveCompletedIds(ids){
+  localStorage.setItem(COMPLETED_KEY, JSON.stringify(Array.from(new Set(ids))));
+}
+
+function isSongCompleted(songId){
+  return getCompletedIds().includes(songId);
+}
+
+function listenToSongs(){
+  const q = query(songsRef, orderBy("createdAt", "desc"));
+
+  onSnapshot(q, snapshot => {
+    firestoreReady = true;
+    const completedIds = getCompletedIds();
+
+    songs = snapshot.docs.map(doc => {
+      const data = doc.data();
+      const lines = Array.isArray(data.lines) ? data.lines : [];
+
+      return {
+        id:doc.id,
+        title:data.title || "untitled canção",
+        language:data.language || "pt",
+        url:data.url || "#",
+        lines:lines
+          .filter(pair => pair && typeof pair.original === "string" && typeof pair.translation === "string")
+          .map(pair => ({
+            original:pair.original,
+            translation:pair.translation
+          })),
+        completed:completedIds.includes(doc.id)
+      };
+    });
+
+    if(currentSongId && !songs.some(song => song.id === currentSongId)){
+      currentSongId = null;
+    }
+
+    if(!currentSongId){
+      const first = songs.find(song => song.language === currentLanguage);
+      currentSongId = first ? first.id : null;
+    }
+
+    renderAll();
+  }, error => {
+    firestoreReady = false;
+    showEmptyMessage("Firebase no veut pas répondre. Vérifie les règles Firestore et la config.");
+    console.error(error);
+  });
+}
+
+function showEmptyMessage(message){
+  emptyState.textContent = message;
+  emptyState.style.display = "block";
+  songList.classList.remove("active");
+  reader.classList.remove("active");
 }
 
 function countSongs(language){
@@ -761,16 +842,16 @@ function countSongs(language){
 }
 
 function renderLanguageTabs(){
-  languageTabs.innerHTML = '';
+  languageTabs.innerHTML = "";
   LANGUAGES.forEach(language => {
-    const btn = document.createElement('button');
-    btn.className = 'language-tab' + (language.key === currentLanguage ? ' active' : '');
-    btn.type = 'button';
+    const btn = document.createElement("button");
+    btn.className = "language-tab" + (language.key === currentLanguage ? " active" : "");
+    btn.type = "button";
     const count = countSongs(language.key);
-    btn.innerHTML = '<span></span><small></small>';
-    btn.querySelector('span').textContent = language.label;
-    btn.querySelector('small').textContent = count + ' canção' + (count > 1 ? 's' : '') + ', ' + language.tiny;
-    btn.addEventListener('click', () => selectLanguage(language.key));
+    btn.innerHTML = "<span></span><small></small>";
+    btn.querySelector("span").textContent = language.label;
+    btn.querySelector("small").textContent = count + " canção" + (count > 1 ? "s" : "") + ", " + language.tiny;
+    btn.addEventListener("click", () => selectLanguage(language.key));
     languageTabs.appendChild(btn);
   });
 }
@@ -785,38 +866,42 @@ function selectLanguage(language){
 function renderAll(){
   renderLanguageTabs();
   renderSongList();
+
   if(currentSongId){
     renderReader(currentSongId);
   }else{
-    reader.classList.remove('active');
+    reader.classList.remove("active");
   }
 }
 
 function renderSongList(){
   const language = LANGUAGES.find(item => item.key === currentLanguage);
   const filtered = songs.filter(song => song.language === currentLanguage);
-  listHeading.textContent = language.label + ', chooz une canção';
-  songButtons.innerHTML = '';
+  listHeading.textContent = language.label + ", chooz une canção";
+  songButtons.innerHTML = "";
 
   if(filtered.length === 0){
-    songList.classList.remove('active');
-    emptyState.style.display = 'block';
-    reader.classList.remove('active');
+    songList.classList.remove("active");
+    emptyState.textContent = firestoreReady
+      ? "no canção yet. clique add a song no cantinho, paste lyrics, paste tradução, and voilàzinho."
+      : "chargement des canções depuis Firebase...";
+    emptyState.style.display = "block";
+    reader.classList.remove("active");
     return;
   }
 
-  songList.classList.add('active');
-  emptyState.style.display = 'none';
+  songList.classList.add("active");
+  emptyState.style.display = "none";
 
   filtered.forEach(song => {
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'song-pill' + (song.id === currentSongId ? ' active' : '') + (song.completed ? ' done' : '');
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "song-pill" + (song.id === currentSongId ? " active" : "") + (song.completed ? " done" : "");
     btn.textContent = song.title;
-    btn.addEventListener('click', () => {
+    btn.addEventListener("click", () => {
       currentSongId = song.id;
       renderAll();
-      reader.scrollIntoView({ behavior:'smooth', block:'start' });
+      reader.scrollIntoView({ behavior:"smooth", block:"start" });
     });
     songButtons.appendChild(btn);
   });
@@ -825,24 +910,24 @@ function renderSongList(){
 function renderReader(songId){
   const song = songs.find(item => item.id === songId);
   if(!song){
-    reader.classList.remove('active');
+    reader.classList.remove("active");
     return;
   }
 
-  reader.classList.add('active');
+  reader.classList.add("active");
   readerTitle.textContent = song.title;
-  const completedText = song.completed ? 'completed, parabéns small brain' : 'not learned yet, vai devagar';
-  readerMeta.textContent = song.lines.length + ' lignes, ' + getLanguageLabel(song.language) + ', ' + completedText;
+  const completedText = song.completed ? "completed, parabéns small brain" : "not learned yet, vai devagar";
+  readerMeta.textContent = song.lines.length + " lignes, " + getLanguageLabel(song.language) + ", " + completedText;
   musicLink.href = song.url;
-  lyricsGrid.innerHTML = '';
+  lyricsGrid.innerHTML = "";
 
   song.lines.forEach(pair => {
-    const original = document.createElement('div');
-    original.className = 'lyric-cell original';
+    const original = document.createElement("div");
+    original.className = "lyric-cell original";
     original.textContent = pair.original;
 
-    const translation = document.createElement('div');
-    translation.className = 'lyric-cell translation';
+    const translation = document.createElement("div");
+    translation.className = "lyric-cell translation";
     translation.textContent = pair.translation;
 
     lyricsGrid.appendChild(original);
@@ -856,90 +941,106 @@ function getLanguageLabel(key){
 }
 
 function openAddModal(){
-  document.getElementById('add-modal').classList.add('active');
-  document.getElementById('form-error').classList.remove('active');
-  document.getElementById('song-title').focus();
+  document.getElementById("add-modal").classList.add("active");
+  document.getElementById("form-error").classList.remove("active");
+  document.getElementById("song-title").focus();
 }
 
 function closeAddModal(){
-  document.getElementById('add-modal').classList.remove('active');
+  document.getElementById("add-modal").classList.remove("active");
 }
 
 function normalizeLines(text){
   return text
-    .replace(/\r/g, '')
-    .split('\n')
+    .replace(/\r/g, "")
+    .split("\n")
     .map(line => line.trim())
     .filter(line => line.length > 0);
 }
 
-function saveSongFromForm(){
-  const title = document.getElementById('song-title').value.trim();
-  const language = document.getElementById('song-language').value;
-  const url = document.getElementById('song-url').value.trim();
-  const lyrics = normalizeLines(document.getElementById('song-lyrics').value);
-  const translation = normalizeLines(document.getElementById('song-translation').value);
-  const errorBox = document.getElementById('form-error');
+async function saveSongFromForm(){
+  const title = document.getElementById("song-title").value.trim();
+  const language = document.getElementById("song-language").value;
+  const url = document.getElementById("song-url").value.trim();
+  const lyrics = normalizeLines(document.getElementById("song-lyrics").value);
+  const translation = normalizeLines(document.getElementById("song-translation").value);
+  const errorBox = document.getElementById("form-error");
+  const saveButton = document.getElementById("save-song");
 
-  errorBox.classList.remove('active');
-  errorBox.textContent = '';
+  errorBox.classList.remove("active");
+  errorBox.textContent = "";
 
   if(!title){
-    showFormError('Il manque le song name. la canção est perdue sem nome.');
+    showFormError("Il manque le song name. la canção est perdue sem nome.");
     return;
   }
 
   if(!url){
-    showFormError('Il manque le lien da música.');
+    showFormError("Il manque le lien da música.");
     return;
   }
 
   if(lyrics.length === 0 || translation.length === 0){
-    showFormError('Il faut les paroles et la traduction. les deux, sinon pas de match.');
+    showFormError("Il faut les paroles et la traduction. les deux, sinon pas de match.");
     return;
   }
 
   if(lyrics.length !== translation.length){
-    showFormError('Les lignes ne matchent pas. originales : ' + lyrics.length + ', traduction : ' + translation.length + '. corrige before salvar.');
+    showFormError("Les lignes ne matchent pas. originales : " + lyrics.length + ", traduction : " + translation.length + ". corrige before salvar.");
+    return;
+  }
+
+  if(lyrics.length > 300){
+    showFormError("Trop de lignes. Firebase rules acceptent 300 lignes max.");
     return;
   }
 
   const song = {
-    id:'song_' + Date.now(),
     title,
     language,
     url,
-    lines:lyrics.map((line, index) => ({ original:line, translation:translation[index] })),
-    completed:false,
-    addedAt:new Date().toISOString()
+    lines:lyrics.map((line, index) => ({
+      original:line,
+      translation:translation[index]
+    })),
+    addedAtClient:new Date().toISOString(),
+    createdAt:serverTimestamp()
   };
 
-  songs.unshift(song);
-  saveSongs();
-  currentLanguage = language;
-  currentSongId = song.id;
-  closeAddModal();
-  clearForm();
-  renderAll();
+  try{
+    saveButton.disabled = true;
+    saveButton.textContent = "saving...";
+    const docRef = await addDoc(songsRef, song);
+    currentLanguage = language;
+    currentSongId = docRef.id;
+    closeAddModal();
+    clearForm();
+  }catch(error){
+    console.error(error);
+    showFormError("Firebase a dit non. Vérifie les règles Firestore, puis réessaie.");
+  }finally{
+    saveButton.disabled = false;
+    saveButton.textContent = "save the canção";
+  }
 }
 
 function showFormError(message){
-  const errorBox = document.getElementById('form-error');
+  const errorBox = document.getElementById("form-error");
   errorBox.textContent = message;
-  errorBox.classList.add('active');
+  errorBox.classList.add("active");
 }
 
 function clearForm(){
-  document.getElementById('song-title').value = '';
-  document.getElementById('song-url').value = '';
-  document.getElementById('song-lyrics').value = '';
-  document.getElementById('song-translation').value = '';
+  document.getElementById("song-title").value = "";
+  document.getElementById("song-url").value = "";
+  document.getElementById("song-lyrics").value = "";
+  document.getElementById("song-translation").value = "";
 }
 
 function cleanWord(word){
   return word
     .toLowerCase()
-    .replace(/^[^a-zà-öø-ÿ0-9]+|[^a-zà-öø-ÿ0-9]+$/gi, '');
+    .replace(/^[^a-zà-öø-ÿ0-9]+|[^a-zà-öø-ÿ0-9]+$/gi, "");
 }
 
 function extractWords(text){
@@ -973,7 +1074,7 @@ function makeQuiz(song){
 function pickAnswer(words){
   const candidates = words.filter(word => word.length >= 4);
   const pool = candidates.length ? candidates : words;
-  return pool[Math.floor(Math.random() * pool.length)] || 'amor';
+  return pool[Math.floor(Math.random() * pool.length)] || "amor";
 }
 
 function makeChoices(answer, allWords){
@@ -986,7 +1087,7 @@ function makeChoices(answer, allWords){
     if(!choices.includes(word)) choices.push(word);
   }
 
-  const fallback = ['amor', 'coração', 'música', 'petit', 'canção', 'saudade', 'bonjour', 'again'];
+  const fallback = ["amor", "coração", "música", "petit", "canção", "saudade", "bonjour", "again"];
   for(const word of fallback){
     if(choices.length >= 4) break;
     if(!choices.includes(word) && word !== answer) choices.push(word);
@@ -1018,12 +1119,12 @@ function startLearning(){
     questions:makeQuiz(song)
   };
 
-  mainView.style.display = 'none';
-  gamePanel.classList.add('active');
-  gameCard.style.display = 'block';
-  endScreen.classList.remove('active');
+  mainView.style.display = "none";
+  gamePanel.classList.add("active");
+  gameCard.style.display = "block";
+  endScreen.classList.remove("active");
   renderQuestion();
-  window.scrollTo({ top:0, behavior:'smooth' });
+  window.scrollTo({ top:0, behavior:"smooth" });
 }
 
 function renderQuestion(){
@@ -1032,30 +1133,30 @@ function renderQuestion(){
   const question = quiz.questions[quiz.index];
   quiz.answered = false;
 
-  document.getElementById('progress-fill').style.width = ((quiz.index) / quiz.questions.length * 100) + '%';
-  document.getElementById('progress-label').textContent = 'question ' + (quiz.index + 1) + ' / ' + quiz.questions.length;
-  document.getElementById('score-label').textContent = 'score : ' + quiz.score;
-  document.getElementById('game-line').innerHTML = blankLine(question.original, question.answer);
-  document.getElementById('game-translation').textContent = question.translation;
-  document.getElementById('feedback').classList.remove('active');
-  document.getElementById('feedback').textContent = '';
-  document.getElementById('next-btn').style.display = 'none';
+  document.getElementById("progress-fill").style.width = ((quiz.index) / quiz.questions.length * 100) + "%";
+  document.getElementById("progress-label").textContent = "question " + (quiz.index + 1) + " / " + quiz.questions.length;
+  document.getElementById("score-label").textContent = "score : " + quiz.score;
+  document.getElementById("game-line").innerHTML = blankLine(question.original, question.answer);
+  document.getElementById("game-translation").textContent = question.translation;
+  document.getElementById("feedback").classList.remove("active");
+  document.getElementById("feedback").textContent = "";
+  document.getElementById("next-btn").style.display = "none";
 
-  const choicesBox = document.getElementById('choices');
-  choicesBox.innerHTML = '';
+  const choicesBox = document.getElementById("choices");
+  choicesBox.innerHTML = "";
   question.choices.forEach(choice => {
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'choice';
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "choice";
     btn.textContent = choice;
-    btn.addEventListener('click', () => answerQuestion(choice, btn));
+    btn.addEventListener("click", () => answerQuestion(choice, btn));
     choicesBox.appendChild(btn);
   });
 }
 
 function blankLine(line, answer){
   const escaped = escapeHTML(line);
-  const regex = new RegExp('(^|[^A-Za-zÀ-ÖØ-öø-ÿ0-9])(' + escapeRegExp(answer) + ')(?=$|[^A-Za-zÀ-ÖØ-öø-ÿ0-9])', 'i');
+  const regex = new RegExp("(^|[^A-Za-zÀ-ÖØ-öø-ÿ0-9])(" + escapeRegExp(answer) + ")(?=$|[^A-Za-zÀ-ÖØ-öø-ÿ0-9])", "i");
   return escaped.replace(regex, function(match, before){
     return before + '<span class="blank">...</span>';
   });
@@ -1063,15 +1164,15 @@ function blankLine(line, answer){
 
 function escapeHTML(text){
   return String(text)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
 function escapeRegExp(text){
-  return String(text).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return String(text).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 function answerQuestion(choice, clickedButton){
@@ -1079,25 +1180,25 @@ function answerQuestion(choice, clickedButton){
 
   const question = quiz.questions[quiz.index];
   const correct = choice === question.answer;
-  const feedback = document.getElementById('feedback');
-  const buttons = document.querySelectorAll('.choice');
+  const feedback = document.getElementById("feedback");
+  const buttons = document.querySelectorAll(".choice");
 
   quiz.answered = true;
   if(correct) quiz.score += 1;
 
   buttons.forEach(button => {
     button.disabled = true;
-    if(button.textContent === question.answer) button.classList.add('correct');
+    if(button.textContent === question.answer) button.classList.add("correct");
   });
 
   if(!correct){
-    clickedButton.classList.add('wrong');
+    clickedButton.classList.add("wrong");
   }
 
-  feedback.textContent = correct ? 'sim. pequeno cérebro working.' : 'não. it was "' + question.answer + '". ai ai ai.';
-  feedback.classList.add('active');
-  document.getElementById('score-label').textContent = 'score : ' + quiz.score;
-  document.getElementById('next-btn').style.display = 'inline-block';
+  feedback.textContent = correct ? "sim. pequeno cérebro working." : "não. it was \"" + question.answer + "\". ai ai ai.";
+  feedback.classList.add("active");
+  document.getElementById("score-label").textContent = "score : " + quiz.score;
+  document.getElementById("next-btn").style.display = "inline-block";
 }
 
 function nextQuestion(){
@@ -1115,61 +1216,62 @@ function nextQuestion(){
 function finishQuiz(){
   if(!quiz) return;
 
-  document.getElementById('progress-fill').style.width = '100%';
+  document.getElementById("progress-fill").style.width = "100%";
   markSongCompleted(quiz.songId);
-  gameCard.style.display = 'none';
-  endScreen.classList.add('active');
-  document.getElementById('end-score').textContent = quiz.score + '/10';
-  document.getElementById('end-msg').textContent = 'canção completed. not fluent yet, mais já tem alguma coisa dans la cabeça.';
+  gameCard.style.display = "none";
+  endScreen.classList.add("active");
+  document.getElementById("end-score").textContent = quiz.score + "/10";
+  document.getElementById("end-msg").textContent = "canção completed. not fluent yet, mais já tem alguma coisa dans la cabeça.";
 }
 
 function markSongCompleted(songId){
+  const ids = getCompletedIds();
+  ids.push(songId);
+  saveCompletedIds(ids);
+
   const song = songs.find(item => item.id === songId);
-  if(song){
-    song.completed = true;
-    song.completedAt = new Date().toISOString();
-    saveSongs();
+  if(song) song.completed = true;
+
+  localStorage.setItem("anam_cancao_completed", "true");
+
+  if(window.Progress && typeof window.Progress.complete === "function"){
+    window.Progress.complete("apprendre-cancao");
   }
 
-  localStorage.setItem('anam_cancao_completed', 'true');
-
-  if(window.Progress && typeof window.Progress.complete === 'function'){
-    window.Progress.complete('apprendre-cancao');
+  if(typeof window.markDone === "function"){
+    window.markDone("apprendre-cancao");
   }
 
-  if(typeof window.markDone === 'function'){
-    window.markDone('apprendre-cancao');
-  }
-
-  if(typeof window.setProgress === 'function'){
-    window.setProgress('apprendre-cancao', true);
+  if(typeof window.setProgress === "function"){
+    window.setProgress("apprendre-cancao", true);
   }
 }
 
 function quitGame(){
-  gamePanel.classList.remove('active');
-  mainView.style.display = 'block';
-  gameCard.style.display = 'block';
-  endScreen.classList.remove('active');
+  gamePanel.classList.remove("active");
+  mainView.style.display = "block";
+  gameCard.style.display = "block";
+  endScreen.classList.remove("active");
   quiz = null;
   renderAll();
-  window.scrollTo({ top:0, behavior:'smooth' });
+  window.scrollTo({ top:0, behavior:"smooth" });
 }
 
 function closeModalOnOutside(event){
-  if(event.target.id === 'add-modal') closeAddModal();
+  if(event.target.id === "add-modal") closeAddModal();
 }
 
-document.getElementById('open-add').addEventListener('click', openAddModal);
-document.getElementById('close-add').addEventListener('click', closeAddModal);
-document.getElementById('save-song').addEventListener('click', saveSongFromForm);
-document.getElementById('add-modal').addEventListener('click', closeModalOnOutside);
-learnBtn.addEventListener('click', startLearning);
-document.getElementById('next-btn').addEventListener('click', nextQuestion);
-document.getElementById('quit-game').addEventListener('click', quitGame);
-document.getElementById('back-after-end').addEventListener('click', quitGame);
+document.getElementById("open-add").addEventListener("click", openAddModal);
+document.getElementById("close-add").addEventListener("click", closeAddModal);
+document.getElementById("save-song").addEventListener("click", saveSongFromForm);
+document.getElementById("add-modal").addEventListener("click", closeModalOnOutside);
+learnBtn.addEventListener("click", startLearning);
+document.getElementById("next-btn").addEventListener("click", nextQuestion);
+document.getElementById("quit-game").addEventListener("click", quitGame);
+document.getElementById("back-after-end").addEventListener("click", quitGame);
 
 renderAll();
+listenToSongs();
 </script>
 </body>
 </html>
