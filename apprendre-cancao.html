@@ -262,6 +262,35 @@
     justify-content:flex-end;
   }
 
+  .reader-manage{
+    margin-top:8px;
+    display:flex;
+    gap:8px;
+    align-items:center;
+    flex-wrap:wrap;
+    color:var(--muted);
+    font-size:.82rem;
+  }
+
+  .manage-link{
+    color:var(--muted);
+    text-decoration:none;
+    border-bottom:1px dashed var(--bord-l);
+    opacity:.55;
+    cursor:pointer;
+    transition:opacity .18s, color .18s, border-color .18s;
+  }
+
+  .manage-link:hover{
+    color:var(--bord);
+    border-color:var(--bord);
+    opacity:1;
+  }
+
+  .danger-link:hover{
+    color:var(--bord);
+  }
+
   .lyrics-grid{
     display:grid;
     grid-template-columns:1fr 1fr;
@@ -276,6 +305,7 @@
     min-height:48px;
     display:flex;
     align-items:center;
+    white-space:pre-wrap;
   }
 
   .lyric-cell.original{
@@ -637,6 +667,12 @@
       <div>
         <h2 id="reader-title"></h2>
         <div class="reader-meta" id="reader-meta"></div>
+        <div class="reader-manage" id="reader-manage">
+          <span>small options</span>
+          <a href="#" class="manage-link" id="edit-song-link">edit textinho</a>
+          <span>/</span>
+          <a href="#" class="manage-link danger-link" id="delete-song-link">delete canção</a>
+        </div>
       </div>
       <div class="reader-actions">
         <a class="btn" href="#" id="music-link" target="_blank" rel="noopener">ouvrir la música</a>
@@ -670,8 +706,8 @@
 
 <div class="modal-overlay" id="add-modal">
   <div class="modal">
-    <div class="modal-title">add a song</div>
-    <div class="modal-help">Colle les paroles originales à gauche, la traduction à droite. One line must match one line. Les lignes vides sont ignorées.</div>
+    <div class="modal-title" id="song-modal-title">add a song</div>
+    <div class="modal-help" id="song-modal-help">Colle les paroles originales à gauche, la traduction à droite. One line must match one line. Les lignes vides sont gardées, so couplets stay couplets.</div>
     <div class="form-error" id="form-error"></div>
 
     <div class="form-grid">
@@ -719,6 +755,9 @@ import {
   getFirestore,
   collection,
   addDoc,
+  updateDoc,
+  deleteDoc,
+  doc,
   onSnapshot,
   query,
   orderBy,
@@ -750,6 +789,7 @@ const LANGUAGES = [
 let songs = [];
 let currentLanguage = "pt";
 let currentSongId = null;
+let editingSongId = null;
 let quiz = null;
 let firestoreReady = false;
 
@@ -768,6 +808,8 @@ const mainView = document.getElementById("main-view");
 const gamePanel = document.getElementById("game-panel");
 const gameCard = document.getElementById("game-card");
 const endScreen = document.getElementById("end-screen");
+const editSongLink = document.getElementById("edit-song-link");
+const deleteSongLink = document.getElementById("delete-song-link");
 
 function getCompletedIds(){
   try{
@@ -941,31 +983,70 @@ function getLanguageLabel(key){
 }
 
 function openAddModal(){
+  editingSongId = null;
+  clearForm();
+  setSongModalMode("add");
   document.getElementById("add-modal").classList.add("active");
   document.getElementById("form-error").classList.remove("active");
   document.getElementById("song-title").focus();
+}
+
+function openEditModal(){
+  const song = songs.find(item => item.id === currentSongId);
+  if(!song) return;
+
+  editingSongId = song.id;
+  setSongModalMode("edit");
+  fillFormFromSong(song);
+  document.getElementById("form-error").classList.remove("active");
+  document.getElementById("add-modal").classList.add("active");
+  document.getElementById("song-title").focus();
+}
+
+function setSongModalMode(mode){
+  const isEdit = mode === "edit";
+  document.getElementById("song-modal-title").textContent = isEdit ? "edit the canção" : "add a song";
+  document.getElementById("song-modal-help").textContent = isEdit
+    ? "Corrige le texte ici. Je ne réécris rien. One original line = one translation line."
+    : "Colle les paroles originales à gauche, la traduction à droite. One line must match one line. Les lignes vides sont gardées, so couplets stay couplets.";
+  document.getElementById("save-song").textContent = isEdit ? "save changes" : "save the canção";
+}
+
+function fillFormFromSong(song){
+  document.getElementById("song-title").value = song.title || "";
+  document.getElementById("song-language").value = song.language || "pt";
+  document.getElementById("song-url").value = song.url || "";
+  document.getElementById("song-lyrics").value = song.lines.map(pair => pair.original).join("\n");
+  document.getElementById("song-translation").value = song.lines.map(pair => pair.translation).join("\n");
 }
 
 function closeAddModal(){
   document.getElementById("add-modal").classList.remove("active");
 }
 
-function normalizeLines(text){
-  return text
-    .replace(/\r/g, "")
-    .split("\n")
-    .map(line => line.trim())
-    .filter(line => line.length > 0);
+function splitLinesPreserveText(text){
+  const lines = String(text)
+    .replace(/\r\n/g, "\n")
+    .replace(/\r/g, "\n")
+    .split("\n");
+
+  while(lines.length && lines[lines.length - 1] === ""){
+    lines.pop();
+  }
+
+  return lines;
 }
 
 async function saveSongFromForm(){
   const title = document.getElementById("song-title").value.trim();
   const language = document.getElementById("song-language").value;
   const url = document.getElementById("song-url").value.trim();
-  const lyrics = normalizeLines(document.getElementById("song-lyrics").value);
-  const translation = normalizeLines(document.getElementById("song-translation").value);
+  const lyrics = splitLinesPreserveText(document.getElementById("song-lyrics").value);
+  const translation = splitLinesPreserveText(document.getElementById("song-translation").value);
   const errorBox = document.getElementById("form-error");
   const saveButton = document.getElementById("save-song");
+  const isEditing = Boolean(editingSongId);
+  const targetSongId = editingSongId;
 
   errorBox.classList.remove("active");
   errorBox.textContent = "";
@@ -980,7 +1061,7 @@ async function saveSongFromForm(){
     return;
   }
 
-  if(lyrics.length === 0 || translation.length === 0){
+  if(lyrics.length === 0 || translation.length === 0 || lyrics.every(line => line.length === 0) || translation.every(line => line.length === 0)){
     showFormError("Il faut les paroles et la traduction. les deux, sinon pas de match.");
     return;
   }
@@ -995,32 +1076,66 @@ async function saveSongFromForm(){
     return;
   }
 
-  const song = {
+  const songPayload = {
     title,
     language,
     url,
     lines:lyrics.map((line, index) => ({
       original:line,
       translation:translation[index]
-    })),
-    addedAtClient:new Date().toISOString(),
-    createdAt:serverTimestamp()
+    }))
   };
 
   try{
     saveButton.disabled = true;
-    saveButton.textContent = "saving...";
-    const docRef = await addDoc(songsRef, song);
-    currentLanguage = language;
-    currentSongId = docRef.id;
+    saveButton.textContent = isEditing ? "saving changes..." : "saving...";
+
+    if(isEditing){
+      await updateDoc(doc(db, COLLECTION_NAME, targetSongId), {
+        ...songPayload,
+        updatedAtClient:new Date().toISOString(),
+        updatedAt:serverTimestamp()
+      });
+      currentLanguage = language;
+      currentSongId = targetSongId;
+    }else{
+      const docRef = await addDoc(songsRef, {
+        ...songPayload,
+        addedAtClient:new Date().toISOString(),
+        createdAt:serverTimestamp()
+      });
+      currentLanguage = language;
+      currentSongId = docRef.id;
+    }
+
     closeAddModal();
     clearForm();
+    editingSongId = null;
+    setSongModalMode("add");
   }catch(error){
     console.error(error);
     showFormError("Firebase a dit non. Vérifie les règles Firestore, puis réessaie.");
   }finally{
     saveButton.disabled = false;
-    saveButton.textContent = "save the canção";
+    saveButton.textContent = editingSongId ? "save changes" : "save the canção";
+  }
+}
+
+async function deleteCurrentSong(){
+  const song = songs.find(item => item.id === currentSongId);
+  if(!song) return;
+
+  const ok = window.confirm("delete \"" + song.title + "\" ? depois acabou.");
+  if(!ok) return;
+
+  try{
+    await deleteDoc(doc(db, COLLECTION_NAME, song.id));
+    const ids = getCompletedIds().filter(id => id !== song.id);
+    saveCompletedIds(ids);
+    currentSongId = null;
+  }catch(error){
+    console.error(error);
+    window.alert("Firebase a dit non. Update les rules pour autoriser delete.");
   }
 }
 
@@ -1265,6 +1380,14 @@ document.getElementById("open-add").addEventListener("click", openAddModal);
 document.getElementById("close-add").addEventListener("click", closeAddModal);
 document.getElementById("save-song").addEventListener("click", saveSongFromForm);
 document.getElementById("add-modal").addEventListener("click", closeModalOnOutside);
+editSongLink.addEventListener("click", event => {
+  event.preventDefault();
+  openEditModal();
+});
+deleteSongLink.addEventListener("click", event => {
+  event.preventDefault();
+  deleteCurrentSong();
+});
 learnBtn.addEventListener("click", startLearning);
 document.getElementById("next-btn").addEventListener("click", nextQuestion);
 document.getElementById("quit-game").addEventListener("click", quitGame);
