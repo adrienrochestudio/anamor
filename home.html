@@ -222,6 +222,7 @@
   .mini-card:nth-child(4) { transform: rotate(1.5deg); }
   .mini-card:nth-child(5) { transform: rotate(-1deg); }
   .mini-card:nth-child(6) { transform: rotate(0.6deg); }
+  .mini-card:nth-child(7) { transform: rotate(-0.9deg); }
 
   .modal-bar {
     width: 32px;
@@ -512,6 +513,7 @@ const SECTIONS = [
   { label:"poems", url:"poeme.html", desc:"A love poem, picked at random. French or Brazilian, oh là là." },
   { label:"trivia", url:"quiz-histoire.html", desc:"France & Brazil mixed, who knows the most, huh ?" },
   { label:"krowz wourd", url:"mots-croises.html", desc:"Fill in the grids. Score is saved, bah oui." },
+  { label:"apprendre the canção", wheelLabel:"canção", url:"apprendre-cancao.html", desc:"Paste lyrics, match tradução, then petit cérebro learns line by line." },
   { label:"absolute cinema", url:"filmographie.html", desc:"Adrien's films, sorted by director." },
   { label:"jio gessah", url:"https://www.worldguessr.com/", desc:"c'est the free version, i am a rats uh ratatouille.", external:true },
   { label:"todo", url:"https://www.icloud.com/notes/038_LgyD3tTC4I2XbACKHyCzA#To_do_AA", desc:"Our shared list. the important stuff.", external:true, warning:"if you are not ana or adrien it will not work, cherche pas. otherwise have fun !" },
@@ -616,7 +618,8 @@ function drawWheel(a) {
     ctx.textAlign = 'right';
     ctx.fillStyle = even ? BLANC : BORD;
     ctx.font = 'bold 18px "Patrick Hand", cursive';
-    ctx.fillText(SECTIONS[i].label, r - 20, 7);
+    const wheelText = SECTIONS[i].wheelLabel || SECTIONS[i].label;
+    ctx.fillText(wheelText, r - 20, 7);
     ctx.restore();
   }
 
