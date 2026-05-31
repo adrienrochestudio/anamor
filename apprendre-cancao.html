@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apprendre the canção</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  :root{
+    --bord:#8B1A2B;
+    --bord-l:rgba(139,26,43,0.12);
+    --bord-m:rgba(139,26,43,0.35);
+    --blanc:#FAF8F4;
+    --text:#1A1A1A;
+    --muted:rgba(26,26,26,0.45);
+    --trait:3px;
+  }
+
+  @import url('https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap');
+
+  body{
+    background:var(--blanc);
+    color:var(--text);
+    font-family:'Patrick Hand', cursive;
+    min-height:100vh;
+  }
+
+  button, input, textarea, select{
+    font-family:'Patrick Hand', cursive;
+  }
+
+  .nav{
+    padding:28px 36px 20px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:18px;
+  }
+
+  .back-btn{
+    text-decoration:none;
+    font-size:1rem;
+    color:var(--bord);
+    border-bottom:2px solid var(--bord);
+    padding-bottom:1px;
+    transition:opacity .18s;
+  }
+
+  .back-btn:hover{ opacity:.6; }
+
+  .nav-title{
+    font-size:1rem;
+    color:var(--muted);
+  }
+
+  .top-actions{
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    gap:10px;
+  }
+
+  .page-header{
+    text-align:center;
+    padding:56px 28px 20px;
+  }
+
+  .page-header h1{
+    font-size:clamp(2.8rem, 8vw, 5.6rem);
+    line-height:.95;
+    color:var(--bord);
+    font-weight:400;
+    margin:0;
+  }
+
+  .page-header p{
+    margin:18px auto 0;
+    max-width:560px;
+    color:var(--muted);
+    font-size:1.05rem;
+    line-height:1.55;
+  }
+
+  .btn{
+    display:inline-block;
+    padding:10px 28px;
+    border:var(--trait) solid var(--bord);
+    background:transparent;
+    color:var(--bord);
+    font-family:'Patrick Hand',cursive;
+    font-size:1rem;
+    cursor:pointer;
+    text-decoration:none;
+    transition:background .18s, color .18s, opacity .18s;
+  }
+
+  .btn:hover, .btn.active{
+    background:var(--bord);
+    color:var(--blanc);
+  }
+
+  .btn-full{
+    background:var(--bord);
+    color:var(--blanc);
+  }
+
+  .btn-full:hover{ opacity:.85; }
+
+  .btn-soft{
+    border-color:var(--bord-l);
+    color:var(--muted);
+  }
+
+  .btn-soft:hover{
+    border-color:var(--bord);
+    background:transparent;
+    color:var(--bord);
+  }
+
+  .main-wrap{
+    max-width:1040px;
+    margin:0 auto;
+    padding:28px 40px 80px;
+  }
+
+  .language-tabs{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:28px;
+    flex-wrap:wrap;
+    margin:20px auto 50px;
+  }
+
+  .language-tab{
+    width:178px;
+    min-height:74px;
+    padding:12px 18px;
+    border:var(--trait) solid var(--bord);
+    background:transparent;
+    color:var(--text);
+    cursor:pointer;
+    font-size:1.18rem;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    transition:background .18s, color .18s, transform .18s;
+  }
+
+  .language-tab:hover, .language-tab.active{
+    background:var(--bord);
+    color:var(--blanc);
+  }
+
+  .language-tab:nth-child(1){ transform:rotate(-1.1deg); }
+  .language-tab:nth-child(2){ transform:rotate(.8deg); }
+  .language-tab:nth-child(3){ transform:rotate(-.4deg); }
+
+  .language-tab small{
+    display:block;
+    margin-top:4px;
+    color:inherit;
+    opacity:.58;
+    font-size:.78rem;
+  }
+
+  .empty-state{
+    max-width:520px;
+    margin:0 auto;
+    text-align:center;
+    color:var(--muted);
+    font-size:1rem;
+    line-height:1.6;
+    border-top:var(--trait) solid var(--bord-l);
+    border-bottom:var(--trait) solid var(--bord-l);
+    padding:26px 10px;
+  }
+
+  .song-list{
+    display:none;
+    max-width:760px;
+    margin:0 auto 44px;
+  }
+
+  .song-list.active{ display:block; }
+
+  .list-heading{
+    color:var(--bord);
+    font-size:1.25rem;
+    text-align:center;
+    margin-bottom:16px;
+  }
+
+  .song-buttons{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:center;
+    gap:12px;
+  }
+
+  .song-pill{
+    border:var(--trait) solid var(--bord-l);
+    background:transparent;
+    color:var(--text);
+    padding:11px 18px;
+    font-size:1rem;
+    cursor:pointer;
+    max-width:260px;
+    transition:border-color .18s, background .18s, color .18s;
+  }
+
+  .song-pill:hover, .song-pill.active{
+    border-color:var(--bord);
+    background:var(--bord);
+    color:var(--blanc);
+  }
+
+  .song-pill.done::after{
+    content:' done';
+    opacity:.55;
+    margin-left:6px;
+  }
+
+  .reader{
+    display:none;
+    border:var(--trait) solid var(--bord-l);
+    padding:32px;
+    margin:0 auto;
+    max-width:920px;
+  }
+
+  .reader.active{ display:block; }
+
+  .reader-head{
+    display:flex;
+    justify-content:space-between;
+    gap:18px;
+    align-items:flex-start;
+    margin-bottom:26px;
+    flex-wrap:wrap;
+  }
+
+  .reader h2{
+    margin:0;
+    color:var(--bord);
+    font-size:1.9rem;
+    font-weight:400;
+  }
+
+  .reader-meta{
+    color:var(--muted);
+    margin-top:5px;
+    font-size:.95rem;
+  }
+
+  .reader-actions{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    justify-content:flex-end;
+  }
+
+  .lyrics-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:0;
+    border-top:var(--trait) solid var(--bord-l);
+  }
+
+  .lyric-cell{
+    padding:12px 14px;
+    border-bottom:var(--trait) solid var(--bord-l);
+    line-height:1.55;
+    min-height:48px;
+    display:flex;
+    align-items:center;
+  }
+
+  .lyric-cell.original{
+    color:var(--text);
+    border-right:var(--trait) solid var(--bord-l);
+  }
+
+  .lyric-cell.translation{
+    color:var(--muted);
+  }
+
+  .modal-overlay{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(250,248,244,0.88);
+    backdrop-filter:blur(4px);
+    z-index:200;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+  }
+
+  .modal-overlay.active{ display:flex; }
+
+  .modal{
+    background:var(--blanc);
+    border:var(--trait) solid var(--bord);
+    padding:38px 36px 34px;
+    max-width:760px;
+    width:100%;
+    max-height:88vh;
+    overflow:auto;
+    animation:popIn .22s ease;
+  }
+
+  @keyframes popIn{
+    from{ transform:scale(.96); opacity:0; }
+    to{ transform:scale(1); opacity:1; }
+  }
+
+  .modal-title{
+    font-size:1.7rem;
+    color:var(--bord);
+    margin-bottom:8px;
+  }
+
+  .modal-help{
+    color:var(--muted);
+    font-size:.95rem;
+    line-height:1.55;
+    margin-bottom:22px;
+  }
+
+  .form-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:16px;
+  }
+
+  .field{
+    margin-bottom:16px;
+  }
+
+  .field.full{
+    grid-column:1 / -1;
+  }
+
+  .field label{
+    display:block;
+    font-size:.82rem;
+    color:var(--muted);
+    margin-bottom:6px;
+  }
+
+  input[type=text], input[type=url], select, textarea{
+    width:100%;
+    border:none;
+    border-bottom:var(--trait) solid var(--bord-l);
+    background:transparent;
+    color:var(--text);
+    padding:8px 0;
+    outline:none;
+    font-family:'Patrick Hand',cursive;
+    font-size:1rem;
+    transition:border-color .18s;
+  }
+
+  input[type=text]:focus, input[type=url]:focus, select:focus, textarea:focus{
+    border-color:var(--bord);
+  }
+
+  textarea{
+    min-height:180px;
+    resize:vertical;
+    line-height:1.45;
+    border:var(--trait) solid var(--bord-l);
+    padding:12px;
+  }
+
+  textarea:focus{
+    border-color:var(--bord);
+  }
+
+  .two-textareas{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:18px;
+  }
+
+  .form-error{
+    display:none;
+    color:var(--bord);
+    border-left:var(--trait) solid var(--bord);
+    padding-left:12px;
+    margin:8px 0 18px;
+    line-height:1.5;
+  }
+
+  .form-error.active{ display:block; }
+
+  .modal-btns{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-top:20px;
+  }
+
+  .game-panel{
+    display:none;
+    max-width:720px;
+    margin:0 auto;
+    padding:20px 40px 80px;
+  }
+
+  .game-panel.active{ display:block; }
+
+  .game-card{
+    border:var(--trait) solid var(--bord-l);
+    padding:30px;
+  }
+
+  .progress{
+    height:var(--trait);
+    background:var(--bord-l);
+    margin-bottom:8px;
+  }
+
+  .progress-fill{
+    height:100%;
+    width:0;
+    background:var(--bord);
+    transition:width .25s;
+  }
+
+  .progress-label{
+    display:flex;
+    justify-content:space-between;
+    color:var(--muted);
+    font-size:.85rem;
+    margin-bottom:22px;
+  }
+
+  .game-flag{
+    color:var(--muted);
+    font-size:.78rem;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    margin-bottom:12px;
+  }
+
+  .game-line{
+    font-size:1.45rem;
+    color:var(--text);
+    line-height:1.55;
+    margin-bottom:12px;
+  }
+
+  .game-line .blank{
+    color:var(--bord);
+    border-bottom:var(--trait) solid var(--bord);
+    padding:0 14px 1px;
+  }
+
+  .game-translation{
+    color:var(--muted);
+    font-size:1rem;
+    line-height:1.5;
+    margin-bottom:24px;
+  }
+
+  .choices{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+  }
+
+  .choice{
+    border:var(--trait) solid var(--bord-l);
+    background:transparent;
+    color:var(--text);
+    padding:13px 16px;
+    font-size:1.05rem;
+    text-align:left;
+    cursor:pointer;
+    transition:background .18s, color .18s, border-color .18s;
+  }
+
+  .choice:hover:not(:disabled){
+    border-color:var(--bord);
+    background:var(--bord-l);
+  }
+
+  .choice.correct{
+    background:var(--bord);
+    color:var(--blanc);
+    border-color:var(--bord);
+  }
+
+  .choice.wrong{
+    color:var(--bord);
+    border-color:var(--bord);
+    text-decoration:line-through;
+  }
+
+  .choice:disabled{ cursor:default; }
+
+  .feedback{
+    display:none;
+    border-left:var(--trait) solid var(--bord);
+    color:var(--muted);
+    padding-left:12px;
+    margin-top:18px;
+    line-height:1.55;
+  }
+
+  .feedback.active{ display:block; }
+
+  .next-wrap{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-top:22px;
+  }
+
+  .end-screen{
+    display:none;
+    text-align:center;
+    max-width:620px;
+    margin:0 auto;
+    border:var(--trait) solid var(--bord-l);
+    padding:46px 34px;
+  }
+
+  .end-screen.active{ display:block; }
+
+  .end-score{
+    font-size:4.5rem;
+    color:var(--bord);
+    line-height:1;
+  }
+
+  .end-msg{
+    color:var(--muted);
+    font-size:1.1rem;
+    margin:16px 0 28px;
+    line-height:1.55;
+  }
+
+  footer{
+    text-align:center;
+    padding:32px;
+    font-size:.85rem;
+    color:var(--muted);
+    border-top:var(--trait) solid var(--bord-l);
+    margin-top:44px;
+  }
+
+  @media(max-width:760px){
+    .nav{
+      padding:24px 24px 18px;
+      flex-wrap:wrap;
+    }
+
+    .top-actions{
+      width:100%;
+      justify-content:flex-start;
+    }
+
+    .main-wrap{
+      padding:20px 24px 60px;
+    }
+
+    .language-tabs{
+      gap:14px;
+    }
+
+    .language-tab{
+      width:150px;
+    }
+
+    .reader{
+      padding:22px;
+    }
+
+    .lyrics-grid{
+      grid-template-columns:1fr;
+    }
+
+    .lyric-cell.original{
+      border-right:none;
+      border-bottom:none;
+      padding-bottom:2px;
+    }
+
+    .lyric-cell.translation{
+      padding-top:2px;
+      color:var(--muted);
+    }
+
+    .form-grid, .two-textareas, .choices{
+      grid-template-columns:1fr;
+    }
+
+    .game-panel{
+      padding:10px 24px 60px;
+    }
+  }
+</style>
+</head>
+<body>
+<nav class="nav">
+  <a href="index.html" class="back-btn">retour</a>
+  <div class="nav-title">Ana & Adrien, the kompiuter</div>
+  <div class="top-actions">
+    <button class="btn btn-full" id="open-add">add a song</button>
+  </div>
+</nav>
+
+<header class="page-header">
+  <h1>apprendre the canção</h1>
+  <p>importe les paroles, bota la tradução en face, then petit cérebro apprend ligne par ligne.</p>
+</header>
+
+<main class="main-wrap" id="main-view">
+  <section class="language-tabs" id="language-tabs"></section>
+
+  <section class="song-list" id="song-list">
+    <div class="list-heading" id="list-heading"></div>
+    <div class="song-buttons" id="song-buttons"></div>
+  </section>
+
+  <section class="empty-state" id="empty-state">
+    no canção yet. clique add a song no cantinho, paste lyrics, paste tradução, and voilàzinho.
+  </section>
+
+  <section class="reader" id="reader">
+    <div class="reader-head">
+      <div>
+        <h2 id="reader-title"></h2>
+        <div class="reader-meta" id="reader-meta"></div>
+      </div>
+      <div class="reader-actions">
+        <a class="btn" href="#" id="music-link" target="_blank" rel="noopener">ouvrir la música</a>
+        <button class="btn btn-full" id="learn-btn">apprendre la chanson</button>
+      </div>
+    </div>
+    <div class="lyrics-grid" id="lyrics-grid"></div>
+  </section>
+</main>
+
+<section class="game-panel" id="game-panel">
+  <div class="progress"><div class="progress-fill" id="progress-fill"></div></div>
+  <div class="progress-label"><span id="progress-label">question 1 / 10</span><span id="score-label">score : 0</span></div>
+  <div class="game-card" id="game-card">
+    <div class="game-flag" id="game-flag">complete the missing word</div>
+    <div class="game-line" id="game-line"></div>
+    <div class="game-translation" id="game-translation"></div>
+    <div class="choices" id="choices"></div>
+    <div class="feedback" id="feedback"></div>
+    <div class="next-wrap">
+      <button class="btn btn-full" id="next-btn" style="display:none">next line</button>
+      <button class="btn btn-soft" id="quit-game">retour aux paroles</button>
+    </div>
+  </div>
+  <div class="end-screen" id="end-screen">
+    <div class="end-score" id="end-score"></div>
+    <div class="end-msg" id="end-msg"></div>
+    <button class="btn btn-full" id="back-after-end">retour à la canção</button>
+  </div>
+</section>
+
+<div class="modal-overlay" id="add-modal">
+  <div class="modal">
+    <div class="modal-title">add a song</div>
+    <div class="modal-help">Colle les paroles originales à gauche, la traduction à droite. One line must match one line. Les lignes vides sont ignorées.</div>
+    <div class="form-error" id="form-error"></div>
+
+    <div class="form-grid">
+      <div class="field">
+        <label for="song-title">song name</label>
+        <input type="text" id="song-title" placeholder="Ai Se Eu Te Pego">
+      </div>
+      <div class="field">
+        <label for="song-language">language</label>
+        <select id="song-language">
+          <option value="pt">português</option>
+          <option value="fr">français</option>
+          <option value="en">english</option>
+        </select>
+      </div>
+      <div class="field full">
+        <label for="song-url">link da música</label>
+        <input type="url" id="song-url" placeholder="https://...">
+      </div>
+      <div class="field full two-textareas">
+        <div>
+          <label for="song-lyrics">paroles originales</label>
+          <textarea id="song-lyrics" placeholder="Nossa, nossa&#10;Assim você me mata&#10;Ai, se eu te pego"></textarea>
+        </div>
+        <div>
+          <label for="song-translation">traduction ligne par ligne</label>
+          <textarea id="song-translation" placeholder="Wow, wow&#10;Comme ça tu me tues&#10;Ah, si je t'attrape"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-btns">
+      <button class="btn btn-full" id="save-song">save the canção</button>
+      <button class="btn" id="close-add">nah</button>
+    </div>
+  </div>
+</div>
+
+<footer>Ana & Adrien, the kompiuter</footer>
+
+<script src="progress.js"></script>
+<script>
+const STORAGE_KEY = 'anam_cancao_songs_v1';
+
+const LANGUAGES = [
+  { key:'pt', label:'português', tiny:'saudade mode' },
+  { key:'fr', label:'français', tiny:'baguette lyrics' },
+  { key:'en', label:'english', tiny:'small english' }
+];
+
+let songs = loadSongs();
+let currentLanguage = 'pt';
+let currentSongId = null;
+let quiz = null;
+
+const languageTabs = document.getElementById('language-tabs');
+const songList = document.getElementById('song-list');
+const songButtons = document.getElementById('song-buttons');
+const listHeading = document.getElementById('list-heading');
+const emptyState = document.getElementById('empty-state');
+const reader = document.getElementById('reader');
+const readerTitle = document.getElementById('reader-title');
+const readerMeta = document.getElementById('reader-meta');
+const lyricsGrid = document.getElementById('lyrics-grid');
+const musicLink = document.getElementById('music-link');
+const learnBtn = document.getElementById('learn-btn');
+const mainView = document.getElementById('main-view');
+const gamePanel = document.getElementById('game-panel');
+const gameCard = document.getElementById('game-card');
+const endScreen = document.getElementById('end-screen');
+
+function loadSongs(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  }catch(e){
+    return [];
+  }
+}
+
+function saveSongs(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(songs));
+}
+
+function countSongs(language){
+  return songs.filter(song => song.language === language).length;
+}
+
+function renderLanguageTabs(){
+  languageTabs.innerHTML = '';
+  LANGUAGES.forEach(language => {
+    const btn = document.createElement('button');
+    btn.className = 'language-tab' + (language.key === currentLanguage ? ' active' : '');
+    btn.type = 'button';
+    const count = countSongs(language.key);
+    btn.innerHTML = '<span></span><small></small>';
+    btn.querySelector('span').textContent = language.label;
+    btn.querySelector('small').textContent = count + ' canção' + (count > 1 ? 's' : '') + ', ' + language.tiny;
+    btn.addEventListener('click', () => selectLanguage(language.key));
+    languageTabs.appendChild(btn);
+  });
+}
+
+function selectLanguage(language){
+  currentLanguage = language;
+  const first = songs.find(song => song.language === language);
+  currentSongId = first ? first.id : null;
+  renderAll();
+}
+
+function renderAll(){
+  renderLanguageTabs();
+  renderSongList();
+  if(currentSongId){
+    renderReader(currentSongId);
+  }else{
+    reader.classList.remove('active');
+  }
+}
+
+function renderSongList(){
+  const language = LANGUAGES.find(item => item.key === currentLanguage);
+  const filtered = songs.filter(song => song.language === currentLanguage);
+  listHeading.textContent = language.label + ', chooz une canção';
+  songButtons.innerHTML = '';
+
+  if(filtered.length === 0){
+    songList.classList.remove('active');
+    emptyState.style.display = 'block';
+    reader.classList.remove('active');
+    return;
+  }
+
+  songList.classList.add('active');
+  emptyState.style.display = 'none';
+
+  filtered.forEach(song => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'song-pill' + (song.id === currentSongId ? ' active' : '') + (song.completed ? ' done' : '');
+    btn.textContent = song.title;
+    btn.addEventListener('click', () => {
+      currentSongId = song.id;
+      renderAll();
+      reader.scrollIntoView({ behavior:'smooth', block:'start' });
+    });
+    songButtons.appendChild(btn);
+  });
+}
+
+function renderReader(songId){
+  const song = songs.find(item => item.id === songId);
+  if(!song){
+    reader.classList.remove('active');
+    return;
+  }
+
+  reader.classList.add('active');
+  readerTitle.textContent = song.title;
+  const completedText = song.completed ? 'completed, parabéns small brain' : 'not learned yet, vai devagar';
+  readerMeta.textContent = song.lines.length + ' lignes, ' + getLanguageLabel(song.language) + ', ' + completedText;
+  musicLink.href = song.url;
+  lyricsGrid.innerHTML = '';
+
+  song.lines.forEach(pair => {
+    const original = document.createElement('div');
+    original.className = 'lyric-cell original';
+    original.textContent = pair.original;
+
+    const translation = document.createElement('div');
+    translation.className = 'lyric-cell translation';
+    translation.textContent = pair.translation;
+
+    lyricsGrid.appendChild(original);
+    lyricsGrid.appendChild(translation);
+  });
+}
+
+function getLanguageLabel(key){
+  const language = LANGUAGES.find(item => item.key === key);
+  return language ? language.label : key;
+}
+
+function openAddModal(){
+  document.getElementById('add-modal').classList.add('active');
+  document.getElementById('form-error').classList.remove('active');
+  document.getElementById('song-title').focus();
+}
+
+function closeAddModal(){
+  document.getElementById('add-modal').classList.remove('active');
+}
+
+function normalizeLines(text){
+  return text
+    .replace(/\r/g, '')
+    .split('\n')
+    .map(line => line.trim())
+    .filter(line => line.length > 0);
+}
+
+function saveSongFromForm(){
+  const title = document.getElementById('song-title').value.trim();
+  const language = document.getElementById('song-language').value;
+  const url = document.getElementById('song-url').value.trim();
+  const lyrics = normalizeLines(document.getElementById('song-lyrics').value);
+  const translation = normalizeLines(document.getElementById('song-translation').value);
+  const errorBox = document.getElementById('form-error');
+
+  errorBox.classList.remove('active');
+  errorBox.textContent = '';
+
+  if(!title){
+    showFormError('Il manque le song name. la canção est perdue sem nome.');
+    return;
+  }
+
+  if(!url){
+    showFormError('Il manque le lien da música.');
+    return;
+  }
+
+  if(lyrics.length === 0 || translation.length === 0){
+    showFormError('Il faut les paroles et la traduction. les deux, sinon pas de match.');
+    return;
+  }
+
+  if(lyrics.length !== translation.length){
+    showFormError('Les lignes ne matchent pas. originales : ' + lyrics.length + ', traduction : ' + translation.length + '. corrige before salvar.');
+    return;
+  }
+
+  const song = {
+    id:'song_' + Date.now(),
+    title,
+    language,
+    url,
+    lines:lyrics.map((line, index) => ({ original:line, translation:translation[index] })),
+    completed:false,
+    addedAt:new Date().toISOString()
+  };
+
+  songs.unshift(song);
+  saveSongs();
+  currentLanguage = language;
+  currentSongId = song.id;
+  closeAddModal();
+  clearForm();
+  renderAll();
+}
+
+function showFormError(message){
+  const errorBox = document.getElementById('form-error');
+  errorBox.textContent = message;
+  errorBox.classList.add('active');
+}
+
+function clearForm(){
+  document.getElementById('song-title').value = '';
+  document.getElementById('song-url').value = '';
+  document.getElementById('song-lyrics').value = '';
+  document.getElementById('song-translation').value = '';
+}
+
+function cleanWord(word){
+  return word
+    .toLowerCase()
+    .replace(/^[^a-zà-öø-ÿ0-9]+|[^a-zà-öø-ÿ0-9]+$/gi, '');
+}
+
+function extractWords(text){
+  const matches = text.match(/[A-Za-zÀ-ÖØ-öø-ÿ0-9]+(?:['’][A-Za-zÀ-ÖØ-öø-ÿ0-9]+)?/g) || [];
+  return matches.map(cleanWord).filter(word => word.length >= 3);
+}
+
+function makeQuiz(song){
+  const usableLines = song.lines.filter(pair => extractWords(pair.original).length > 0);
+  const sourceLines = usableLines.length ? usableLines : song.lines;
+  const allWords = Array.from(new Set(song.lines.flatMap(pair => extractWords(pair.original))));
+  const questions = [];
+
+  for(let i = 0; i < 10; i++){
+    const pair = sourceLines[i % sourceLines.length];
+    const words = extractWords(pair.original);
+    const answer = pickAnswer(words.length ? words : allWords);
+    const choices = makeChoices(answer, allWords);
+
+    questions.push({
+      original:pair.original,
+      translation:pair.translation,
+      answer,
+      choices
+    });
+  }
+
+  return questions;
+}
+
+function pickAnswer(words){
+  const candidates = words.filter(word => word.length >= 4);
+  const pool = candidates.length ? candidates : words;
+  return pool[Math.floor(Math.random() * pool.length)] || 'amor';
+}
+
+function makeChoices(answer, allWords){
+  const pool = allWords.filter(word => word !== answer);
+  const choices = [answer];
+
+  while(choices.length < 4 && pool.length){
+    const index = Math.floor(Math.random() * pool.length);
+    const word = pool.splice(index, 1)[0];
+    if(!choices.includes(word)) choices.push(word);
+  }
+
+  const fallback = ['amor', 'coração', 'música', 'petit', 'canção', 'saudade', 'bonjour', 'again'];
+  for(const word of fallback){
+    if(choices.length >= 4) break;
+    if(!choices.includes(word) && word !== answer) choices.push(word);
+  }
+
+  return shuffle(choices);
+}
+
+function shuffle(array){
+  const clone = array.slice();
+  for(let i = clone.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    const temp = clone[i];
+    clone[i] = clone[j];
+    clone[j] = temp;
+  }
+  return clone;
+}
+
+function startLearning(){
+  const song = songs.find(item => item.id === currentSongId);
+  if(!song) return;
+
+  quiz = {
+    songId:song.id,
+    index:0,
+    score:0,
+    answered:false,
+    questions:makeQuiz(song)
+  };
+
+  mainView.style.display = 'none';
+  gamePanel.classList.add('active');
+  gameCard.style.display = 'block';
+  endScreen.classList.remove('active');
+  renderQuestion();
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+
+function renderQuestion(){
+  if(!quiz) return;
+
+  const question = quiz.questions[quiz.index];
+  quiz.answered = false;
+
+  document.getElementById('progress-fill').style.width = ((quiz.index) / quiz.questions.length * 100) + '%';
+  document.getElementById('progress-label').textContent = 'question ' + (quiz.index + 1) + ' / ' + quiz.questions.length;
+  document.getElementById('score-label').textContent = 'score : ' + quiz.score;
+  document.getElementById('game-line').innerHTML = blankLine(question.original, question.answer);
+  document.getElementById('game-translation').textContent = question.translation;
+  document.getElementById('feedback').classList.remove('active');
+  document.getElementById('feedback').textContent = '';
+  document.getElementById('next-btn').style.display = 'none';
+
+  const choicesBox = document.getElementById('choices');
+  choicesBox.innerHTML = '';
+  question.choices.forEach(choice => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'choice';
+    btn.textContent = choice;
+    btn.addEventListener('click', () => answerQuestion(choice, btn));
+    choicesBox.appendChild(btn);
+  });
+}
+
+function blankLine(line, answer){
+  const escaped = escapeHTML(line);
+  const regex = new RegExp('(^|[^A-Za-zÀ-ÖØ-öø-ÿ0-9])(' + escapeRegExp(answer) + ')(?=$|[^A-Za-zÀ-ÖØ-öø-ÿ0-9])', 'i');
+  return escaped.replace(regex, function(match, before){
+    return before + '<span class="blank">...</span>';
+  });
+}
+
+function escapeHTML(text){
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function escapeRegExp(text){
+  return String(text).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function answerQuestion(choice, clickedButton){
+  if(!quiz || quiz.answered) return;
+
+  const question = quiz.questions[quiz.index];
+  const correct = choice === question.answer;
+  const feedback = document.getElementById('feedback');
+  const buttons = document.querySelectorAll('.choice');
+
+  quiz.answered = true;
+  if(correct) quiz.score += 1;
+
+  buttons.forEach(button => {
+    button.disabled = true;
+    if(button.textContent === question.answer) button.classList.add('correct');
+  });
+
+  if(!correct){
+    clickedButton.classList.add('wrong');
+  }
+
+  feedback.textContent = correct ? 'sim. pequeno cérebro working.' : 'não. it was "' + question.answer + '". ai ai ai.';
+  feedback.classList.add('active');
+  document.getElementById('score-label').textContent = 'score : ' + quiz.score;
+  document.getElementById('next-btn').style.display = 'inline-block';
+}
+
+function nextQuestion(){
+  if(!quiz) return;
+  quiz.index += 1;
+
+  if(quiz.index >= quiz.questions.length){
+    finishQuiz();
+    return;
+  }
+
+  renderQuestion();
+}
+
+function finishQuiz(){
+  if(!quiz) return;
+
+  document.getElementById('progress-fill').style.width = '100%';
+  markSongCompleted(quiz.songId);
+  gameCard.style.display = 'none';
+  endScreen.classList.add('active');
+  document.getElementById('end-score').textContent = quiz.score + '/10';
+  document.getElementById('end-msg').textContent = 'canção completed. not fluent yet, mais já tem alguma coisa dans la cabeça.';
+}
+
+function markSongCompleted(songId){
+  const song = songs.find(item => item.id === songId);
+  if(song){
+    song.completed = true;
+    song.completedAt = new Date().toISOString();
+    saveSongs();
+  }
+
+  localStorage.setItem('anam_cancao_completed', 'true');
+
+  if(window.Progress && typeof window.Progress.complete === 'function'){
+    window.Progress.complete('apprendre-cancao');
+  }
+
+  if(typeof window.markDone === 'function'){
+    window.markDone('apprendre-cancao');
+  }
+
+  if(typeof window.setProgress === 'function'){
+    window.setProgress('apprendre-cancao', true);
+  }
+}
+
+function quitGame(){
+  gamePanel.classList.remove('active');
+  mainView.style.display = 'block';
+  gameCard.style.display = 'block';
+  endScreen.classList.remove('active');
+  quiz = null;
+  renderAll();
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+
+function closeModalOnOutside(event){
+  if(event.target.id === 'add-modal') closeAddModal();
+}
+
+document.getElementById('open-add').addEventListener('click', openAddModal);
+document.getElementById('close-add').addEventListener('click', closeAddModal);
+document.getElementById('save-song').addEventListener('click', saveSongFromForm);
+document.getElementById('add-modal').addEventListener('click', closeModalOnOutside);
+learnBtn.addEventListener('click', startLearning);
+document.getElementById('next-btn').addEventListener('click', nextQuestion);
+document.getElementById('quit-game').addEventListener('click', quitGame);
+document.getElementById('back-after-end').addEventListener('click', quitGame);
+
+renderAll();
+</script>
+</body>
+</html>
