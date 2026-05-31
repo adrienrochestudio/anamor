@@ -15,45 +15,11 @@
   .btn-full{ width:100%; }
   footer{ text-align:center; padding:30px; color:var(--muted); font-size:.85rem; }
 
-  /* ── nav + widget score ── */
+  /* ── nav ── */
   .nav{ display:flex; align-items:center; justify-content:space-between; padding:12px 22px; border-bottom:var(--trait) solid var(--bord-l); gap:12px; }
   .nav-title{ color:var(--bord); font-size:1.1rem; }
   .back-btn{ color:var(--muted); text-decoration:none; font-size:.95rem; white-space:nowrap; }
   .back-btn:hover{ color:var(--bord); }
-
-  .site-score{ position:relative; }
-  .ss-bar{
-    display:flex; align-items:center; gap:8px;
-    background:transparent; border:var(--trait) solid var(--bord-l);
-    padding:6px 10px; cursor:pointer; font-family:'Patrick Hand',cursive;
-    color:var(--muted); transition:all .15s;
-  }
-  .ss-bar:hover{ border-color:var(--bord); color:var(--bord); }
-  .ss-track{ width:90px; height:6px; background:var(--bord-l); position:relative; }
-  .ss-fill{ position:absolute; inset:0 auto 0 0; width:0%; background:var(--bord); transition:width .4s; }
-  .ss-frac{ font-size:.72rem; white-space:nowrap; }
-  .ss-caret{ font-size:.7rem; }
-
-  .ss-panel{
-    display:none; position:absolute; right:0; top:calc(100% + 8px); z-index:200;
-    width:260px; background:var(--blanc);
-    border:var(--trait) solid var(--bord); padding:16px;
-    box-shadow:4px 4px 0 var(--bord-l);
-  }
-  .site-score.open .ss-panel{ display:block; }
-  .ss-row{ display:flex; justify-content:space-between; align-items:baseline; font-size:.9rem; color:var(--muted); margin-bottom:6px; }
-  .ss-row strong{ color:var(--bord); font-size:1.05rem; }
-  .ss-bigtrack{ height:8px; background:var(--bord-l); margin:6px 0 14px; }
-  .ss-bigfill{ height:100%; width:0%; background:var(--bord); transition:width .4s; }
-  .ss-cats{ display:flex; flex-direction:column; gap:5px; margin-bottom:14px; max-height:180px; overflow-y:auto; }
-  .ss-cat{ display:grid; grid-template-columns:74px 1fr 34px; align-items:center; gap:7px; font-size:.74rem; color:var(--muted); }
-  .ss-cat.done .ss-cn{ color:var(--bord); }
-  .ss-cn{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .ss-cb{ height:5px; background:var(--bord-l); position:relative; }
-  .ss-cb span{ position:absolute; inset:0 auto 0 0; background:var(--bord); }
-  .ss-cf{ text-align:right; font-size:.7rem; }
-  .ss-done-msg{ font-size:.8rem; color:var(--bord); text-align:center; margin-bottom:10px; display:none; }
-  .site-score.allDone .ss-done-msg{ display:block; }
 
   .page-header { padding:26px 40px 6px; }
   .page-header h1 { font-size:2rem; color:var(--bord); margin:0; }
@@ -98,8 +64,6 @@
 
   @media(max-width:600px){
     .nav{ flex-wrap:wrap; }
-    .ss-track{ width:64px; }
-    .ss-panel{ width:240px; }
     .page-header,.theme-tabs,.difflbl,.quiz-wrap{ padding-left:20px; padding-right:20px; }
   }
 </style>
@@ -108,21 +72,6 @@
 <nav class="nav">
   <a href="index.html" class="back-btn">← retour</a>
   <div class="nav-title">Trivia</div>
-  <div class="site-score" id="site-score">
-    <button class="ss-bar" id="ss-toggle" onclick="toggleScore(event)">
-      <div class="ss-track"><div class="ss-fill" id="ss-fill"></div></div>
-      <span class="ss-frac" id="ss-frac">0/180</span>
-      <span class="ss-caret">▾</span>
-    </button>
-    <div class="ss-panel" id="ss-panel">
-      <div class="ss-done-msg">site complété — chapeau bah</div>
-      <div class="ss-row"><span>score du site</span><strong id="ss-total">0 / 180</strong></div>
-      <div class="ss-row"><span>record du site</span><strong id="ss-record">0 / 180</strong></div>
-      <div class="ss-bigtrack"><div class="ss-bigfill" id="ss-bigfill"></div></div>
-      <div class="ss-cats" id="ss-cats"></div>
-      <button class="btn btn-full" onclick="shareScore()">partager mon score</button>
-    </div>
-  </div>
 </nav>
 
 <div class="page-header">
@@ -156,6 +105,9 @@
   </div>
 </div>
 <footer>Ana & Adrien — the kompiuter</footer>
+
+<!-- système de progression partagé (joueur + barre) -->
+<script src="progress.js"></script>
 
 <script>
 // ════════════════════════════════════════════════════════════════
@@ -390,76 +342,15 @@ const THEMES = [
 ];
 
 // ════════════════════════════════════════════════════════════════
-//   PERSISTANCE  (localStorage, protégé)
+//   CONSTANTES
 // ════════════════════════════════════════════════════════════════
-const MAX_PER   = 20;
-const MAX_TOTAL = THEMES.length * MAX_PER; // 180
+const MAX_PER = 20;   // questions par thème (= score max d'une catégorie)
 
-function lsGet(k,d){ try{ const v=localStorage.getItem(k); return v===null?d:v; }catch(e){ return d; } }
-function lsSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
-function loadBest(){ try{ return JSON.parse(localStorage.getItem('trivia-best')||'{}'); }catch(e){ return {}; } }
-function saveBest(o){ try{ localStorage.setItem('trivia-best', JSON.stringify(o)); }catch(e){} }
-function totalScore(best){ return THEMES.reduce((s,t)=> s + (best[t.key]||0), 0); }
-
-// ════════════════════════════════════════════════════════════════
-//   WIDGET SCORE DU SITE
-// ════════════════════════════════════════════════════════════════
-function toggleScore(e){ if(e) e.stopPropagation(); document.getElementById('site-score').classList.toggle('open'); }
-document.addEventListener('click', function(e){
-  const w=document.getElementById('site-score');
-  if(w && !w.contains(e.target)) w.classList.remove('open');
-});
-
-function refreshWidget(){
-  const best = loadBest();
-  const total = totalScore(best);
-  let record = parseInt(lsGet('trivia-record','0'),10)||0;
-  if(total>record){ record=total; lsSet('trivia-record', String(record)); } // n'enregistre que si meilleur
-  const pct = Math.round(total/MAX_TOTAL*100);
-  document.getElementById('ss-fill').style.width = pct+'%';
-  document.getElementById('ss-bigfill').style.width = pct+'%';
-  document.getElementById('ss-frac').textContent = total+'/'+MAX_TOTAL;
-  document.getElementById('ss-total').textContent = total+' / '+MAX_TOTAL;
-  document.getElementById('ss-record').textContent = record+' / '+MAX_TOTAL;
-
-  const catsEl = document.getElementById('ss-cats'); catsEl.innerHTML='';
-  THEMES.forEach(function(t){
-    const b = best[t.key]||0;
-    const done = b>=MAX_PER;
-    const row = document.createElement('div');
-    row.className = 'ss-cat'+(done?' done':'');
-    row.innerHTML =
-      '<span class="ss-cn">'+t.name+'</span>'+
-      '<span class="ss-cb"><span style="width:'+(b/MAX_PER*100)+'%"></span></span>'+
-      '<span class="ss-cf">'+b+'/'+MAX_PER+'</span>';
-    catsEl.appendChild(row);
-  });
-
-  // onglets terminés + état "tout fini"
+// petit helper : marque d'un ✓ les onglets de thème terminés (20/20)
+function markTabsDone(){
   document.querySelectorAll('.ttab').forEach(function(tab,i){
-    tab.classList.toggle('done', (best[THEMES[i].key]||0)>=MAX_PER);
+    tab.classList.toggle('done', AAProgress.get('trivia', THEMES[i].key) >= MAX_PER);
   });
-  document.getElementById('site-score').classList.toggle('allDone', total>=MAX_TOTAL);
-}
-
-function shareScore(){
-  const best = loadBest();
-  const total = totalScore(best);
-  const record = parseInt(lsGet('trivia-record','0'),10)||0;
-  const txt = "Mon score au Trivia d'Ana & Adrien : "+total+"/"+MAX_TOTAL+
-              " (record du site : "+record+"/"+MAX_TOTAL+"). À toi de faire mieux, bah.\n"+window.location.href;
-  if(navigator.share){ navigator.share({text:txt}).catch(function(){ copyTxt(txt); }); }
-  else copyTxt(txt);
-}
-function copyTxt(txt){
-  if(navigator.clipboard){ navigator.clipboard.writeText(txt).then(function(){ flashShare("copié — va le partager !"); }).catch(function(){ prompt('copie ça :',txt); }); }
-  else prompt('copie ça :',txt);
-}
-function flashShare(msg){
-  const btn = document.querySelector('.ss-panel .btn');
-  if(!btn) return;
-  const old = btn.textContent; btn.textContent = msg;
-  setTimeout(function(){ btn.textContent = old; }, 1800);
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -543,22 +434,21 @@ function showScore(){
     p>=.5 ? "pas mal, mais on peut mieux faire" :
             "aïe. on révise et on rejoue ?";
 
-  // sauvegarde du meilleur score de la catégorie (uniquement si meilleur)
-  const best = loadBest();
-  const prev = best[t.key]||0;
+  // meilleur score de la catégorie (uniquement si meilleur) — via AAProgress
+  const prev = AAProgress.get('trivia', t.key);
   let line = "thème « "+t.name+" » — meilleur score : ";
   if(score>prev){
-    best[t.key]=score; saveBest(best);
+    AAProgress.report('trivia', t.key, score);
     line += "<b>"+score+"</b>/"+MAX_PER+" (nouveau record !)";
   } else {
     line += "<b>"+prev+"</b>/"+MAX_PER+" — pas battu cette fois";
   }
   document.getElementById('sbest').innerHTML = line;
-  refreshWidget();
+  markTabsDone();
 }
 
 // ── init ──────────────────────────────────────────────────────
-refreshWidget();
+markTabsDone();
 startQuiz();
 </script>
 </body>
