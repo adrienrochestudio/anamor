@@ -332,9 +332,8 @@
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import {
-  getFirestore, collection, doc, getDocs, getDoc, setDoc, addDoc, deleteDoc,
-  query, where, serverTimestamp
-} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+  getDatabase, ref, get, set, push, remove
+} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
 
 /* ============================================================
    1) CONFIG FIREBASE  —  COLLE TA CONFIG ICI
@@ -343,12 +342,13 @@ import {
    pour vivre côté client.
    ============================================================ */
 const firebaseConfig = {
-  apiKey:            "COLLE_ICI",
-  authDomain:        "COLLE_ICI",
-  projectId:         "COLLE_ICI",
-  storageBucket:     "COLLE_ICI",
-  messagingSenderId: "COLLE_ICI",
-  appId:             "COLLE_ICI"
+  apiKey:            "AIzaSyA2kqrXTD_fDVOnw4j99F8b60Se_4sB6Rs",
+  authDomain:        "anam-cancao.firebaseapp.com",
+  databaseURL:       "https://anam-cancao-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:         "anam-cancao",
+  storageBucket:     "anam-cancao.firebasestorage.app",
+  messagingSenderId: "1078805660452",
+  appId:             "1:1078805660452:web:94e57bfdfa9b83c17c29b1"
 };
 
 /* ── réglages d'apprentissage ──────────────────── */
@@ -379,35 +379,42 @@ function isAcquired(c){ return (c.sr.streak||0) >= ACQUIRED_AT; }
 /* ============================================================
    3) FIREBASE
    ============================================================ */
-function configReady(){ return firebaseConfig.apiKey && firebaseConfig.apiKey !== 'COLLE_ICI'; }
+function configReady(){ return firebaseConfig.apiKey && firebaseConfig.apiKey.indexOf('COLLE') === -1; }
 
 function initFb(){
   if (!configReady()) return false;
   try {
     const app = initializeApp(firebaseConfig);
-    db = getFirestore(app);
+    db = getDatabase(app);
     ready = true;
     return true;
   } catch(e){ console.error(e); return false; }
 }
 
 async function fetchCards(l){
-  const q = query(collection(db,'flashcards'), where('lang','==', l));
-  const snap = await getDocs(q);
+  const snap = await get(ref(db,'flashcards'));
   const out = [];
-  snap.forEach(d => { const x = d.data(); out.push({ id:d.id, lang:x.lang, category:x.category||'(sans catégorie)', term:x.term, translation:x.translation }); });
+  if (snap.exists()){
+    const v = snap.val();
+    Object.keys(v).forEach(id => {
+      const x = v[id];
+      if (x && x.lang === l){
+        out.push({ id, lang:x.lang, category:x.category||'(sans catégorie)', term:x.term, translation:x.translation });
+      }
+    });
+  }
   return out;
 }
 async function fetchSr(pid){
   try {
-    const d = await getDoc(doc(db,'srState', pid));
-    return d.exists() ? (d.data().cards || {}) : {};
+    const snap = await get(ref(db,'srState/'+pid));
+    return snap.exists() ? (snap.val() || {}) : {};
   } catch(e){ return {}; }
 }
 async function saveSr(cardId, srObj){
   if (!ready || !player) return;
   try {
-    await setDoc(doc(db,'srState', player), { cards: { [cardId]: srObj } }, { merge:true });
+    await set(ref(db,'srState/'+player+'/'+cardId), srObj);
   } catch(e){ console.error(e); }
 }
 
@@ -432,7 +439,7 @@ async function loadDeck(){
   } catch(e){
     console.error(e);
     setDeckline('');
-    quizZone().innerHTML = '<div class="ll-msg">aïe, la database ne répond pas. vérifie la config firebase et les règles firestore.</div>';
+    quizZone().innerHTML = '<div class="ll-msg">aïe, la database ne répond pas. vérifie la config firebase et les règles de la realtime database.</div>';
   }
 }
 
@@ -664,9 +671,8 @@ async function addCards(entries){
   if (!ready || !entries.length) return 0;
   let n = 0;
   for (const e of entries){
-    await addDoc(collection(db,'flashcards'), {
-      lang, category: e.cat, term: e.term, translation: e.tr, createdAt: serverTimestamp()
-    });
+    const r = push(ref(db,'flashcards'));
+    await set(r, { lang, category: e.cat, term: e.term, translation: e.tr, createdAt: Date.now() });
     n++;
   }
   return n;
@@ -731,7 +737,7 @@ async function refreshDeckSilently(){
 async function deleteCard(id, term){
   if (!confirm('supprimer « '+term+' » de la database ?')) return;
   try {
-    await deleteDoc(doc(db,'flashcards', id));
+    await remove(ref(db,'flashcards/'+id));
     await refreshDeckSilently();
   } catch(e){ console.error(e); addStatus('suppression impossible.', false); }
 }
