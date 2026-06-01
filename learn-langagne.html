@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>learn lagagne — Ana & Adrien</title>
+<link rel="stylesheet" href="style.css">
+<script src="progress.js"></script>
+<style>
+  :root {
+    --b:  var(--bord, #8B1A2B);
+    --w:  var(--blanc, #FAF8F4);
+    --m:  var(--muted, #9a8f84);
+    --t:  var(--text, #2b2622);
+    --bl: var(--bord-l, #e3d9cf);
+  }
+
+  body { text-align: center; }
+
+  header { padding: 56px 40px 12px; }
+
+  .title-main {
+    font-size: clamp(2.8rem, 9vw, 6rem);
+    color: var(--b);
+    line-height: 1;
+  }
+
+  .title-sub {
+    margin-top: 12px;
+    font-size: 1rem;
+    color: var(--m);
+  }
+
+  .ll-wrap {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 8px 28px 64px;
+  }
+
+  /* ── language toggle ─────────────────────────── */
+  .ll-lang {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    margin: 28px 0 6px;
+  }
+  .ll-lang button {
+    font-family: 'Patrick Hand', cursive;
+    font-size: 1.2rem;
+    padding: 8px 26px;
+    background: transparent;
+    color: var(--m);
+    border: var(--trait, 2px) solid var(--bl);
+    cursor: pointer;
+    transition: all .16s;
+  }
+  .ll-lang button:hover { border-color: var(--b); color: var(--b); }
+  .ll-lang button.on { background: var(--b); color: var(--w); border-color: var(--b); }
+
+  .ll-player-line {
+    font-size: .9rem;
+    color: var(--m);
+    margin: 8px 0 22px;
+  }
+  .ll-player-line .who { color: var(--b); }
+  .ll-player-line button {
+    font-family: 'Patrick Hand', cursive;
+    background: none; border: none; padding: 0 0 0 6px;
+    color: var(--m); cursor: pointer; text-decoration: underline; font-size: .82rem;
+  }
+  .ll-player-line button:hover { color: var(--b); }
+
+  /* ── view nav ────────────────────────────────── */
+  .ll-nav {
+    display: flex;
+    justify-content: center;
+    gap: 0;
+    margin-bottom: 30px;
+  }
+  .ll-nav button {
+    font-family: 'Patrick Hand', cursive;
+    font-size: 1.1rem;
+    padding: 8px 22px;
+    background: transparent;
+    color: var(--m);
+    border: var(--trait, 2px) solid var(--b);
+    border-right-width: 0;
+    cursor: pointer;
+    transition: all .16s;
+  }
+  .ll-nav button:last-child { border-right-width: var(--trait, 2px); }
+  .ll-nav button.on { background: var(--b); color: var(--w); }
+
+  .ll-view { display: none; }
+  .ll-view.on { display: block; }
+
+  /* ── status / messages ───────────────────────── */
+  .ll-msg {
+    border-left: 2px solid var(--b);
+    padding: 12px 16px;
+    text-align: left;
+    color: var(--t);
+    font-size: .96rem;
+    line-height: 1.6;
+    background: rgba(139,26,43,0.04);
+    margin: 18px 0;
+  }
+  .ll-msg strong { color: var(--b); }
+  .ll-msg code {
+    font-family: ui-monospace, Menlo, monospace;
+    font-size: .82rem;
+    background: var(--w);
+    border: 1px solid var(--bl);
+    padding: 1px 5px;
+  }
+
+  /* ── quiz card ───────────────────────────────── */
+  .ll-deckline {
+    font-size: .85rem; color: var(--m);
+    margin-bottom: 18px; min-height: 1.2em;
+  }
+  .ll-deckline strong { color: var(--b); }
+
+  .ll-card {
+    border: var(--trait, 2px) solid var(--b);
+    padding: 30px 24px;
+    background: var(--w);
+    box-shadow: 5px 5px 0 var(--bl);
+    margin-bottom: 22px;
+  }
+  .ll-qtype { font-size: .82rem; color: var(--m); margin-bottom: 14px; letter-spacing: .03em; }
+  .ll-prompt { font-size: 1.9rem; color: var(--b); line-height: 1.25; }
+  .ll-prompt .blank {
+    display: inline-block; min-width: 64px;
+    border-bottom: 2px solid var(--b);
+    color: transparent;
+  }
+  .ll-hint { font-size: 1rem; color: var(--m); margin-top: 10px; }
+
+  .ll-input {
+    width: 100%;
+    box-sizing: border-box;
+    font-family: 'Patrick Hand', cursive;
+    font-size: 1.35rem;
+    text-align: center;
+    padding: 12px 14px;
+    border: var(--trait, 2px) solid var(--bl);
+    background: var(--w);
+    color: var(--t);
+    margin-top: 22px;
+  }
+  .ll-input:focus { outline: none; border-color: var(--b); }
+
+  .ll-choices {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 22px;
+  }
+  .ll-choice {
+    font-family: 'Patrick Hand', cursive;
+    font-size: 1.15rem;
+    padding: 14px 10px;
+    background: transparent;
+    color: var(--t);
+    border: var(--trait, 2px) solid var(--bl);
+    cursor: pointer;
+    transition: all .14s;
+  }
+  .ll-choice:hover:not(:disabled) { border-color: var(--b); color: var(--b); }
+  .ll-choice.right { background: var(--b); color: var(--w); border-color: var(--b); }
+  .ll-choice.wrong { border-color: var(--b); color: var(--b); opacity: .55; }
+  .ll-choice:disabled { cursor: default; }
+
+  .ll-feedback {
+    margin-top: 18px;
+    min-height: 1.4em;
+    font-size: 1.05rem;
+    color: var(--m);
+  }
+  .ll-feedback .ok { color: var(--b); }
+  .ll-feedback .no { color: var(--b); }
+  .ll-feedback .sol { color: var(--b); }
+
+  .ll-actions { margin-top: 20px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+
+  /* ── recap ───────────────────────────────────── */
+  .ll-recap {
+    border: var(--trait, 2px) solid var(--b);
+    padding: 30px 24px;
+    background: var(--w);
+    box-shadow: 5px 5px 0 var(--bl);
+  }
+  .ll-recap h3 { font-size: 1.7rem; color: var(--b); margin-bottom: 16px; }
+  .ll-recap .row {
+    display: flex; justify-content: space-between;
+    font-size: 1.05rem; color: var(--m);
+    padding: 6px 0; border-bottom: 1px solid var(--bl);
+  }
+  .ll-recap .row strong { color: var(--b); }
+  .ll-recap .pct { font-size: 1.05rem; color: var(--m); margin: 16px 0 22px; }
+  .ll-recap .pct b { color: var(--b); font-size: 1.4rem; }
+
+  /* ── add words ───────────────────────────────── */
+  .ll-field { text-align: left; margin-bottom: 16px; }
+  .ll-field label { display: block; font-size: .9rem; color: var(--m); margin-bottom: 5px; }
+  .ll-field input, .ll-field textarea, .ll-field select {
+    width: 100%; box-sizing: border-box;
+    font-family: 'Patrick Hand', cursive; font-size: 1.1rem;
+    padding: 10px 12px; border: var(--trait, 2px) solid var(--bl);
+    background: var(--w); color: var(--t);
+  }
+  .ll-field input:focus, .ll-field textarea:focus { outline: none; border-color: var(--b); }
+  .ll-field textarea { resize: vertical; min-height: 120px; line-height: 1.5; }
+  .ll-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+  .ll-or {
+    text-align: center; color: var(--m); font-size: .85rem;
+    margin: 26px 0 18px; position: relative;
+  }
+  .ll-or::before, .ll-or::after {
+    content: ''; position: absolute; top: 50%; width: 38%; height: 1px; background: var(--bl);
+  }
+  .ll-or::before { left: 0; } .ll-or::after { right: 0; }
+
+  .ll-cardlist { margin-top: 30px; text-align: left; }
+  .ll-cardlist h4 { font-size: 1rem; color: var(--b); margin-bottom: 10px; }
+  .ll-catgroup { margin-bottom: 16px; }
+  .ll-catgroup .cat-name {
+    font-size: .92rem; color: var(--b);
+    border-bottom: 1px solid var(--bl); padding-bottom: 3px; margin-bottom: 6px;
+  }
+  .ll-item {
+    display: flex; align-items: baseline; gap: 8px;
+    font-size: .96rem; color: var(--t); padding: 3px 0;
+  }
+  .ll-item .term { color: var(--b); }
+  .ll-item .arr { color: var(--m); }
+  .ll-item .tr { color: var(--t); flex: 1; }
+  .ll-item .badge { font-size: .72rem; color: var(--m); }
+  .ll-item .del {
+    background: none; border: none; color: var(--m); cursor: pointer;
+    font-family: 'Patrick Hand', cursive; font-size: .8rem; text-decoration: underline;
+  }
+  .ll-item .del:hover { color: var(--b); }
+
+  .ll-mini { font-size: .82rem; color: var(--m); margin-top: 8px; }
+
+  .back-link {
+    display: inline-block; margin: 30px auto 0;
+    font-size: .9rem; color: var(--m); text-decoration: none;
+    border-bottom: 1px dashed var(--m);
+  }
+  .back-link:hover { color: var(--b); border-color: var(--b); }
+
+  @media (max-width: 600px) {
+    .ll-choices { grid-template-columns: 1fr; }
+    .ll-row2 { grid-template-columns: 1fr; }
+    .ll-prompt { font-size: 1.55rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title-main">learn lagagne</div>
+  <div class="title-sub">des flashcards. on apprend par petits lots, bah oui.</div>
+</header>
+
+<div class="ll-wrap">
+
+  <div class="ll-lang" id="ll-lang">
+    <button data-lang="pt" class="on">português</button>
+    <button data-lang="fr">français</button>
+  </div>
+
+  <div class="ll-player-line">
+    joueur : <span class="who" id="ll-who">—</span>
+    <button id="ll-switch">changer</button>
+  </div>
+
+  <div class="ll-nav">
+    <button data-view="quiz" class="on">jouer</button>
+    <button data-view="add">ajouter des mots</button>
+  </div>
+
+  <!-- ════════ VIEW : QUIZ ════════ -->
+  <div class="ll-view on" id="view-quiz">
+    <div class="ll-deckline" id="ll-deckline"></div>
+    <div id="ll-quiz-zone"></div>
+  </div>
+
+  <!-- ════════ VIEW : ADD ════════ -->
+  <div class="ll-view" id="view-add">
+
+    <div class="ll-field">
+      <label>catégorie de mots</label>
+      <input type="text" id="add-cat" placeholder="ex. la cuisine, les émotions, les verbes...">
+    </div>
+
+    <div class="ll-row2">
+      <div class="ll-field">
+        <label id="lbl-term">le mot (en português)</label>
+        <input type="text" id="add-term" placeholder="le mot à apprendre">
+      </div>
+      <div class="ll-field">
+        <label id="lbl-tr">la traduction</label>
+        <input type="text" id="add-tr" placeholder="sa traduction">
+      </div>
+    </div>
+    <button class="btn btn-full" id="add-one">ajouter ce mot</button>
+    <div class="ll-mini">astuce : plusieurs traductions possibles, sépare-les par <code>/</code></div>
+
+    <div class="ll-or">ou balance tout d'un coup</div>
+
+    <div class="ll-field">
+      <label>un mot par ligne : <code>mot = traduction</code> (la catégorie ci-dessus s'applique à tous)</label>
+      <textarea id="add-bulk" placeholder="obrigado = merci&#10;bom dia = bonjour&#10;saudade = le manque / la nostalgie"></textarea>
+    </div>
+    <button class="btn btn-full" id="add-many">ajouter le lot</button>
+
+    <div id="add-status"></div>
+
+    <div class="ll-cardlist" id="ll-cardlist"></div>
+  </div>
+
+  <a href="accueil.html" class="back-link">retour à la roue</a>
+</div>
+
+<footer>Ana & Adrien, the kompiuter</footer>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import {
+  getFirestore, collection, doc, getDocs, getDoc, setDoc, addDoc, deleteDoc,
+  query, where, serverTimestamp
+} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+/* ============================================================
+   1) CONFIG FIREBASE  —  COLLE TA CONFIG ICI
+   (Console Firebase > Paramètres du projet > tes apps > SDK)
+   Ce bloc n'est PAS secret : la config web Firebase est faite
+   pour vivre côté client.
+   ============================================================ */
+const firebaseConfig = {
+  apiKey:            "COLLE_ICI",
+  authDomain:        "COLLE_ICI",
+  projectId:         "COLLE_ICI",
+  storageBucket:     "COLLE_ICI",
+  messagingSenderId: "COLLE_ICI",
+  appId:             "COLLE_ICI"
+};
+
+/* ── réglages d'apprentissage ──────────────────── */
+const ACQUIRED_AT = 12;   // 12 bonnes réponses d'affilée = carte apprise
+const BATCH_SIZE  = 10;   // nombre de questions par lot
+
+/* ============================================================
+   2) ÉTAT
+   ============================================================ */
+let db = null, ready = false;
+let lang = 'pt';                 // langue active : 'pt' | 'fr'
+let player = null;               // 'ana' | 'adrien' | 'invite'
+let deck = [];                   // cartes de la langue active + état SR du joueur
+let tick = 0;                    // compteur de questions (planning SR)
+let batch = { count:0, ok:0, no:0, learnedStart:0 };
+
+/* ── helpers texte ─────────────────────────────── */
+function norm(s){
+  return (s||'').toString().trim().toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[.,!?;:]+$/,'').replace(/\s+/g,' ');
+}
+function answers(raw){ return (raw||'').split('/').map(norm).filter(Boolean); }
+function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[a[i],a[j]]=[a[j],a[i]];} return a; }
+function nextOffset(streak){ return streak<=0 ? 1 : Math.min(Math.round(Math.pow(1.7,streak)),600); }
+function isAcquired(c){ return (c.sr.streak||0) >= ACQUIRED_AT; }
+
+/* ============================================================
+   3) FIREBASE
+   ============================================================ */
+function configReady(){ return firebaseConfig.apiKey && firebaseConfig.apiKey !== 'COLLE_ICI'; }
+
+function initFb(){
+  if (!configReady()) return false;
+  try {
+    const app = initializeApp(firebaseConfig);
+    db = getFirestore(app);
+    ready = true;
+    return true;
+  } catch(e){ console.error(e); return false; }
+}
+
+async function fetchCards(l){
+  const q = query(collection(db,'flashcards'), where('lang','==', l));
+  const snap = await getDocs(q);
+  const out = [];
+  snap.forEach(d => { const x = d.data(); out.push({ id:d.id, lang:x.lang, category:x.category||'(sans catégorie)', term:x.term, translation:x.translation }); });
+  return out;
+}
+async function fetchSr(pid){
+  try {
+    const d = await getDoc(doc(db,'srState', pid));
+    return d.exists() ? (d.data().cards || {}) : {};
+  } catch(e){ return {}; }
+}
+async function saveSr(cardId, srObj){
+  if (!ready || !player) return;
+  try {
+    await setDoc(doc(db,'srState', player), { cards: { [cardId]: srObj } }, { merge:true });
+  } catch(e){ console.error(e); }
+}
+
+/* ============================================================
+   4) CHARGEMENT DECK + PROGRÈS
+   ============================================================ */
+async function loadDeck(){
+  player = AAProgress && AAProgress.getPlayer ? AAProgress.getPlayer() : null;
+  paintPlayer();
+  if (!ready){ renderConfigMissing(); return; }
+  if (!player){ renderNoPlayer(); return; }
+
+  setDeckline('chargement...');
+  try {
+    const [cards, sr] = await Promise.all([ fetchCards(lang), fetchSr(player) ]);
+    deck = cards.map(c => ({ ...c, sr: sr[c.id] || { streak:0, due:0 } }));
+    tick = 0;
+    reportProgress();
+    renderCardList();
+    if (!deck.length){ renderEmptyDeck(); }
+    else { startBatch(); }
+  } catch(e){
+    console.error(e);
+    setDeckline('');
+    quizZone().innerHTML = '<div class="ll-msg">aïe, la database ne répond pas. vérifie la config firebase et les règles firestore.</div>';
+  }
+}
+
+function learnedCount(){ return deck.filter(isAcquired).length; }
+function pctLearned(){ return deck.length ? Math.round(100*learnedCount()/deck.length) : 0; }
+
+function reportProgress(){
+  if (window.AAProgress && AAProgress.setExact){
+    AAProgress.setExact('langues', lang, pctLearned());
+  }
+}
+
+/* ============================================================
+   5) QUIZ
+   ============================================================ */
+function quizZone(){ return document.getElementById('ll-quiz-zone'); }
+function setDeckline(html){ document.getElementById('ll-deckline').innerHTML = html; }
+
+function pickCard(){
+  // la carte la plus "due" (plus petit due) ; égalités -> hasard
+  let best = [], bestDue = Infinity;
+  deck.forEach(c => {
+    const d = c.sr.due || 0;
+    if (d < bestDue){ bestDue = d; best = [c]; }
+    else if (d === bestDue){ best.push(c); }
+  });
+  return best[(Math.random()*best.length)|0];
+}
+
+function startBatch(){
+  batch = { count:0, ok:0, no:0, learnedStart: learnedCount() };
+  nextQuestion();
+}
+
+function nextQuestion(){
+  document.removeEventListener('keydown', enterNext);
+  if (batch.count >= BATCH_SIZE){ showRecap(); return; }
+  const card = pickCard();
+  batch.count++;
+  const learned = learnedCount();
+  setDeckline(
+    'lot : <strong>'+batch.count+'/'+BATCH_SIZE+'</strong> &nbsp;·&nbsp; ' +
+    'apprises : <strong>'+learned+'/'+deck.length+'</strong> &nbsp;·&nbsp; '+pctLearned()+'%'
+  );
+  renderQuestion(card);
+}
+
+function renderQuestion(card){
+  const multi = card.term.trim().split(/\s+/).length > 1;
+  const canMC = deck.length >= 4;
+  let type;
+  if (multi && Math.random() < 0.45) type = 'fill';
+  else if (canMC && Math.random() < 0.45) type = 'mc';
+  else type = (Math.random() < 0.5) ? 'type-tr' : 'type-term';
+
+  if (type === 'mc')        renderMC(card);
+  else if (type === 'fill') renderFill(card);
+  else                      renderType(card, type === 'type-tr');
+}
+
+/* — saisir la réponse (texte) — */
+function renderType(card, askTranslation){
+  const prompt = askTranslation ? card.term : card.translation.split('/')[0].trim();
+  const accept = askTranslation ? answers(card.translation) : answers(card.term);
+  const label  = askTranslation ? 'tape la traduction' : 'tape le mot (en '+langName()+')';
+
+  quizZone().innerHTML =
+    '<div class="ll-card">' +
+      '<div class="ll-qtype">'+label+'</div>' +
+      '<div class="ll-prompt">'+esc(prompt)+'</div>' +
+      '<input class="ll-input" id="ans" autocomplete="off" autocapitalize="off" placeholder="...">' +
+    '</div>' +
+    '<div class="ll-feedback" id="fb"></div>' +
+    '<div class="ll-actions" id="acts"></div>';
+
+  const inp = document.getElementById('ans');
+  inp.focus();
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') submitType(card, accept, askTranslation); });
+  setActions('<button class="btn btn-full" id="check">vérifier</button>');
+  document.getElementById('check').addEventListener('click', () => submitType(card, accept, askTranslation));
+}
+function submitType(card, accept, askTranslation){
+  const inp = document.getElementById('ans');
+  if (inp.disabled) return;
+  const good = accept.includes(norm(inp.value));
+  inp.disabled = true;
+  const solution = askTranslation ? card.translation : card.term;
+  feedback(good, solution);
+  grade(card, good);
+}
+
+/* — compléter un mot composé — */
+function renderFill(card){
+  const words = card.term.trim().split(/\s+/);
+  // on troue le mot le plus long (souvent le plus porteur de sens)
+  let bi = 0; words.forEach((w,i)=>{ if (w.length > words[bi].length) bi = i; });
+  const missing = words[bi];
+  const shown = words.map((w,i)=> i===bi ? '<span class="blank">'+esc(w)+'</span>' : esc(w)).join(' ');
+
+  quizZone().innerHTML =
+    '<div class="ll-card">' +
+      '<div class="ll-qtype">complète le mot</div>' +
+      '<div class="ll-prompt">'+shown+'</div>' +
+      '<div class="ll-hint">'+esc(card.translation)+'</div>' +
+      '<input class="ll-input" id="ans" autocomplete="off" autocapitalize="off" placeholder="le mot manquant">' +
+    '</div>' +
+    '<div class="ll-feedback" id="fb"></div>' +
+    '<div class="ll-actions" id="acts"></div>';
+
+  const inp = document.getElementById('ans');
+  inp.focus();
+  const accept = [norm(missing)];
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') submitFill(card, accept, card.term); });
+  setActions('<button class="btn btn-full" id="check">vérifier</button>');
+  document.getElementById('check').addEventListener('click', () => submitFill(card, accept, card.term));
+}
+function submitFill(card, accept, solution){
+  const inp = document.getElementById('ans');
+  if (inp.disabled) return;
+  const good = accept.includes(norm(inp.value));
+  inp.disabled = true;
+  feedback(good, solution);
+  grade(card, good);
+}
+
+/* — choix multiples — */
+function renderMC(card){
+  const correct = card.translation.split('/')[0].trim();
+  const pool = shuffle(deck.filter(c => c.id !== card.id))
+                 .map(c => c.translation.split('/')[0].trim())
+                 .filter(x => norm(x) !== norm(correct));
+  const opts = shuffle([correct, ...pool.slice(0,3)]);
+
+  let btns = '';
+  opts.forEach(o => { btns += '<button class="ll-choice" data-v="'+esc(o)+'">'+esc(o)+'</button>'; });
+
+  quizZone().innerHTML =
+    '<div class="ll-card">' +
+      '<div class="ll-qtype">choisis la traduction</div>' +
+      '<div class="ll-prompt">'+esc(card.term)+'</div>' +
+      '<div class="ll-choices">'+btns+'</div>' +
+    '</div>' +
+    '<div class="ll-feedback" id="fb"></div>' +
+    '<div class="ll-actions" id="acts"></div>';
+
+  quizZone().querySelectorAll('.ll-choice').forEach(b => {
+    b.addEventListener('click', () => {
+      const good = norm(b.dataset.v) === norm(correct);
+      quizZone().querySelectorAll('.ll-choice').forEach(x => {
+        x.disabled = true;
+        if (norm(x.dataset.v) === norm(correct)) x.classList.add('right');
+        else if (x === b) x.classList.add('wrong');
+      });
+      feedback(good, card.translation);
+      grade(card, good);
+    });
+  });
+}
+
+/* — feedback + suite — */
+function feedback(good, solution){
+  const fb = document.getElementById('fb');
+  if (good){ fb.innerHTML = '<span class="ok">juste !</span>'; }
+  else { fb.innerHTML = '<span class="no">raté</span> — c\'était : <span class="sol">'+esc(solution)+'</span>'; }
+  setActions('<button class="btn btn-full" id="next">continuer</button>');
+  const nx = document.getElementById('next');
+  nx.focus();
+  nx.addEventListener('click', nextQuestion);
+  document.removeEventListener('keydown', enterNext);
+  document.addEventListener('keydown', enterNext);
+}
+function enterNext(e){
+  if (e.key === 'Enter'){ const n = document.getElementById('next'); if (n){ document.removeEventListener('keydown', enterNext); n.click(); } }
+}
+
+async function grade(card, good){
+  const wasAcquired = isAcquired(card);
+  if (good){ batch.ok++; card.sr.streak = (card.sr.streak||0) + 1; }
+  else { batch.no++; card.sr.streak = 0; }
+  card.sr.due = tick + nextOffset(card.sr.streak);
+  tick++;
+  await saveSr(card.id, { streak: card.sr.streak, due: card.sr.due });
+  if (isAcquired(card) !== wasAcquired) reportProgress();
+}
+
+function setActions(html){ document.getElementById('acts').innerHTML = html; }
+
+function showRecap(){
+  document.removeEventListener('keydown', enterNext);
+  const newlyLearned = learnedCount() - batch.learnedStart;
+  setDeckline('');
+  quizZone().innerHTML =
+    '<div class="ll-recap">' +
+      '<h3>lot terminé</h3>' +
+      '<div class="row"><span>justes</span><strong>'+batch.ok+'</strong></div>' +
+      '<div class="row"><span>ratés</span><strong>'+batch.no+'</strong></div>' +
+      '<div class="row"><span>nouvelles cartes apprises</span><strong>'+(newlyLearned>0?newlyLearned:0)+'</strong></div>' +
+      '<div class="pct">apprises au total : <b>'+pctLearned()+'%</b> ('+learnedCount()+'/'+deck.length+')</div>' +
+      '<div class="ll-actions">' +
+        '<button class="btn btn-full" id="again">encore un lot</button>' +
+        '<a href="accueil.html" class="btn">j\'arrête</a>' +
+      '</div>' +
+    '</div>';
+  document.getElementById('again').addEventListener('click', startBatch);
+}
+
+/* états particuliers */
+function renderConfigMissing(){
+  setDeckline('');
+  quizZone().innerHTML =
+    '<div class="ll-msg">la <strong>config firebase</strong> n\'est pas encore renseignée. ' +
+    'ouvre <code>learn-langagne.html</code>, trouve le bloc <code>firebaseConfig</code> tout en haut du script et colle les valeurs de ton projet. ' +
+    'puis recharge la page.</div>';
+}
+function renderNoPlayer(){
+  setDeckline('');
+  quizZone().innerHTML = '<div class="ll-msg">choisis d\'abord <strong>qui joue</strong> (le bandeau en haut à droite).</div>';
+  if (window.AAProgress && AAProgress.openSelect) AAProgress.openSelect();
+}
+function renderEmptyDeck(){
+  setDeckline('');
+  quizZone().innerHTML = '<div class="ll-msg">pas encore de mots en <strong>'+langName()+'</strong>. va dans <strong>ajouter des mots</strong> pour remplir un premier lot.</div>';
+}
+
+/* ============================================================
+   6) AJOUT DE MOTS
+   ============================================================ */
+async function addCards(entries){
+  if (!ready || !entries.length) return 0;
+  let n = 0;
+  for (const e of entries){
+    await addDoc(collection(db,'flashcards'), {
+      lang, category: e.cat, term: e.term, translation: e.tr, createdAt: serverTimestamp()
+    });
+    n++;
+  }
+  return n;
+}
+
+async function onAddOne(){
+  if (!guardAdd()) return;
+  const cat  = (document.getElementById('add-cat').value || '').trim() || '(sans catégorie)';
+  const term = (document.getElementById('add-term').value || '').trim();
+  const tr   = (document.getElementById('add-tr').value || '').trim();
+  if (!term || !tr){ addStatus('il manque le mot ou la traduction.', false); return; }
+  addStatus('ajout...', true);
+  await addCards([{ cat, term, tr }]);
+  document.getElementById('add-term').value = '';
+  document.getElementById('add-tr').value = '';
+  document.getElementById('add-term').focus();
+  addStatus('ajouté : '+term+' = '+tr, true);
+  await refreshDeckSilently();
+}
+
+async function onAddMany(){
+  if (!guardAdd()) return;
+  const cat = (document.getElementById('add-cat').value || '').trim() || '(sans catégorie)';
+  const raw = document.getElementById('add-bulk').value || '';
+  const entries = [];
+  raw.split('\n').forEach(line => {
+    const m = line.split(/=|:|->|→|;/);
+    if (m.length >= 2){
+      const term = m[0].trim();
+      const tr = m.slice(1).join('=').trim();
+      if (term && tr) entries.push({ cat, term, tr });
+    }
+  });
+  if (!entries.length){ addStatus('aucune ligne valide. format : mot = traduction', false); return; }
+  addStatus('ajout de '+entries.length+' mots...', true);
+  const n = await addCards(entries);
+  document.getElementById('add-bulk').value = '';
+  addStatus(n+' mots ajoutés dans « '+cat+' ».', true);
+  await refreshDeckSilently();
+}
+
+function guardAdd(){
+  if (!ready){ addStatus('config firebase manquante (voir l\'onglet jouer).', false); return false; }
+  player = AAProgress.getPlayer ? AAProgress.getPlayer() : player;
+  if (!player){ AAProgress.openSelect(); addStatus('choisis d\'abord qui joue.', false); return false; }
+  return true;
+}
+
+function addStatus(msg, ok){
+  document.getElementById('add-status').innerHTML =
+    '<div class="ll-msg">'+(ok?'<strong>ok</strong> — ':'')+esc(msg)+'</div>';
+}
+
+async function refreshDeckSilently(){
+  const cards = await fetchCards(lang);
+  const sr = await fetchSr(player);
+  deck = cards.map(c => ({ ...c, sr: sr[c.id] || { streak:0, due:0 } }));
+  reportProgress();
+  renderCardList();
+}
+
+async function deleteCard(id, term){
+  if (!confirm('supprimer « '+term+' » de la database ?')) return;
+  try {
+    await deleteDoc(doc(db,'flashcards', id));
+    await refreshDeckSilently();
+  } catch(e){ console.error(e); addStatus('suppression impossible.', false); }
+}
+
+function renderCardList(){
+  const box = document.getElementById('ll-cardlist');
+  if (!deck.length){ box.innerHTML = '<div class="ll-mini">aucun mot en '+langName()+' pour l\'instant.</div>'; return; }
+  const byCat = {};
+  deck.forEach(c => { (byCat[c.category] = byCat[c.category] || []).push(c); });
+  let html = '<h4>mots en '+langName()+' ('+deck.length+')</h4>';
+  Object.keys(byCat).sort().forEach(cat => {
+    html += '<div class="ll-catgroup"><div class="cat-name">'+esc(cat)+'</div>';
+    byCat[cat].forEach(c => {
+      const badge = isAcquired(c) ? 'appris' : ((c.sr.streak||0)+'/'+ACQUIRED_AT);
+      html += '<div class="ll-item">' +
+        '<span class="term">'+esc(c.term)+'</span><span class="arr">=</span>' +
+        '<span class="tr">'+esc(c.translation)+'</span>' +
+        '<span class="badge">'+badge+'</span>' +
+        '<button class="del" data-id="'+c.id+'" data-term="'+esc(c.term)+'">suppr</button>' +
+      '</div>';
+    });
+    html += '</div>';
+  });
+  box.innerHTML = html;
+  box.querySelectorAll('.del').forEach(b => {
+    b.addEventListener('click', () => deleteCard(b.dataset.id, b.dataset.term));
+  });
+}
+
+/* ============================================================
+   7) UI : langue, joueur, onglets
+   ============================================================ */
+function langName(){ return lang === 'pt' ? 'português' : 'français'; }
+
+function paintPlayer(){
+  const labels = { ana:'Ana', adrien:'Adrien', invite:'invité' };
+  document.getElementById('ll-who').textContent = player ? (labels[player]||player) : '—';
+}
+function paintAddLabels(){
+  document.getElementById('lbl-term').textContent = 'le mot (en '+langName()+')';
+}
+
+document.getElementById('ll-lang').querySelectorAll('button').forEach(b => {
+  b.addEventListener('click', () => {
+    if (b.dataset.lang === lang) return;
+    document.getElementById('ll-lang').querySelectorAll('button').forEach(x => x.classList.remove('on'));
+    b.classList.add('on');
+    lang = b.dataset.lang;
+    paintAddLabels();
+    loadDeck();
+  });
+});
+
+document.getElementById('ll-switch').addEventListener('click', () => {
+  if (window.AAProgress && AAProgress.openSelect) AAProgress.openSelect();
+});
+
+document.querySelectorAll('.ll-nav button').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('.ll-nav button').forEach(x => x.classList.remove('on'));
+    b.classList.add('on');
+    document.querySelectorAll('.ll-view').forEach(v => v.classList.remove('on'));
+    document.getElementById('view-'+b.dataset.view).classList.add('on');
+  });
+});
+
+/* si le joueur change via le bandeau de progress.js, on recharge */
+setInterval(() => {
+  if (!window.AAProgress || !AAProgress.getPlayer) return;
+  const p = AAProgress.getPlayer();
+  if (p !== player){ player = p; paintPlayer(); if (document.getElementById('view-quiz').classList.contains('on')) loadDeck(); }
+}, 1200);
+
+/* ============================================================
+   8) DÉMARRAGE
+   ============================================================ */
+function esc(s){ return (s==null?'':String(s)).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+initFb();
+paintAddLabels();
+loadDeck();
+</script>
+</body>
+</html>
