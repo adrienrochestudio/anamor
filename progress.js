@@ -163,6 +163,14 @@
       var id = playerId || state.active; if (!id) return;
       state.data[id] = blankPlayer(); save(); render();
     }
+     ,
+setExact: function (gameKey, cat, value) {
+  if (!state.active) return;
+  var game = findGame(gameKey); if (!game) return;
+  var c = resolveCat(game, cat); if (!c) return;
+  var v = Math.max(0, Math.min(c.max, value));
+  state.data[state.active][gameKey][c.key] = v; save(); render();
+}
   };
   window.AAProgress = API;
 
