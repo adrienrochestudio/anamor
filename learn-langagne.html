@@ -115,6 +115,18 @@
   }
 
   /* ── quiz card ───────────────────────────────── */
+  .ll-subseries {
+    display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 18px;
+  }
+  .ll-subseries button {
+    font-family: 'Patrick Hand', cursive; font-size: .9rem; padding: 5px 13px; cursor: pointer;
+    background: transparent; color: var(--m); border: 1.5px solid var(--bl); transition: all .14s;
+  }
+  .ll-subseries button:hover { border-color: var(--b); color: var(--b); }
+  .ll-subseries button.on { background: var(--b); color: var(--w); border-color: var(--b); }
+
+  .ll-hintzone { margin-top: 14px; min-height: 1.1em; font-size: .96rem; color: var(--m); }
+  .ll-hintzone strong { color: var(--b); letter-spacing: .12em; }
   .ll-deckline {
     font-size: .85rem; color: var(--m);
     margin-bottom: 18px; min-height: 1.2em;
@@ -200,6 +212,14 @@
   .ll-recap .row strong { color: var(--b); }
   .ll-recap .pct { font-size: 1.05rem; color: var(--m); margin: 16px 0 22px; }
   .ll-recap .pct b { color: var(--b); font-size: 1.4rem; }
+  .ll-recap .wgroup { text-align: left; margin-top: 18px; }
+  .ll-recap .wgroup h4 { font-size: 1rem; color: var(--b); margin-bottom: 6px; }
+  .ll-recap .wrow {
+    display: flex; justify-content: space-between; gap: 12px;
+    font-size: .94rem; color: var(--t); padding: 4px 0; border-bottom: 1px solid var(--bl);
+  }
+  .ll-recap .wrow .w-tr { color: var(--m); text-align: right; }
+  .ll-recap .wempty { font-size: .9rem; color: var(--m); padding: 2px 0; }
 
   /* ── add words ───────────────────────────────── */
   .ll-field { text-align: left; margin-bottom: 16px; }
@@ -317,6 +337,7 @@
 
   <!-- ════════ VIEW : QUIZ ════════ -->
   <div class="ll-view on" id="view-quiz">
+    <div class="ll-subseries" id="ll-subseries"></div>
     <div class="ll-deckline" id="ll-deckline"></div>
     <div id="ll-quiz-zone"></div>
   </div>
@@ -383,8 +404,8 @@ const firebaseConfig = {
 };
 
 /* ── réglages d'apprentissage ──────────────────── */
-const ACQUIRED_AT = 12;   // 12 bonnes réponses d'affilée = carte apprise
-const BATCH_SIZE  = 10;   // nombre de questions par lot
+const ACQUIRED_AT    = 5;    // 5 bonnes réponses d'affilée = carte apprise
+const SUBSERIES_SIZE = 10;   // taille d'une sous-série
 
 /* ============================================================
    2) ÉTAT
@@ -394,7 +415,10 @@ let lang = 'pt';                 // langue active : 'pt' | 'fr'
 let player = null;               // 'ana' | 'adrien' | 'invite'
 let deck = [];                   // cartes de la langue active + état SR du joueur
 let tick = 0;                    // compteur de questions (planning SR)
-let batch = { count:0, ok:0, no:0, learnedStart:0 };
+let subseries = [];              // sous-séries : groupes de SUBSERIES_SIZE mots
+let selSub = 'all';              // sous-série active : 'all' ou index
+let lot = null;                  // lot en cours
+let lotActive = false;           // un lot est-il en cours de jeu ?
 
 /* ── helpers texte ─────────────────────────────── */
 function norm(s){
@@ -430,7 +454,7 @@ async function fetchCards(l){
     Object.keys(v).forEach(id => {
       const x = v[id];
       if (x && x.lang === l){
-        out.push({ id, lang:x.lang, category:x.category||'(sans catégorie)', term:x.term, translation:x.translation });
+        out.push({ id, lang:x.lang, category:x.category||'(sans catégorie)', term:x.term, translation:x.translation, createdAt:x.createdAt||0 });
       }
     });
   }
@@ -463,10 +487,11 @@ async function loadDeck(){
     const [cards, sr] = await Promise.all([ fetchCards(lang), fetchSr(player) ]);
     deck = cards.map(c => ({ ...c, sr: sr[c.id] || { streak:0, due:0 } }));
     tick = 0;
+    buildSubseries();
     reportProgress();
     renderCardList();
     if (!deck.length){ renderEmptyDeck(); }
-    else { startBatch(); }
+    else { renderSubseries(); startLot(); }
   } catch(e){
     console.error(e);
     setDeckline('');
@@ -489,32 +514,66 @@ function reportProgress(){
 function quizZone(){ return document.getElementById('ll-quiz-zone'); }
 function setDeckline(html){ document.getElementById('ll-deckline').innerHTML = html; }
 
-function pickCard(){
-  // la carte la plus "due" (plus petit due) ; égalités -> hasard
+function pickLotCard(){
+  if (!lot) return null;
+  const cand = lot.pool.filter(c => !lot.cleared[c.id]);
+  if (!cand.length) return null;
   let best = [], bestDue = Infinity;
-  deck.forEach(c => {
-    const d = c.sr.due || 0;
-    if (d < bestDue){ bestDue = d; best = [c]; }
-    else if (d === bestDue){ best.push(c); }
-  });
+  cand.forEach(c => { const d = c.sr.due || 0; if (d < bestDue){ bestDue = d; best = [c]; } else if (d === bestDue){ best.push(c); } });
   return best[(Math.random()*best.length)|0];
 }
 
-function startBatch(){
-  batch = { count:0, ok:0, no:0, learnedStart: learnedCount() };
+function buildSubseries(){
+  const sorted = deck.slice().sort((a,b) => (a.createdAt||0)-(b.createdAt||0) || (a.id < b.id ? -1 : 1));
+  subseries = [];
+  for (let i=0; i<sorted.length; i += SUBSERIES_SIZE) subseries.push(sorted.slice(i, i+SUBSERIES_SIZE));
+  if (selSub !== 'all' && !subseries[selSub]) selSub = 'all';
+}
+
+function renderSubseries(){
+  const box = document.getElementById('ll-subseries');
+  if (!box) return;
+  if (deck.length <= SUBSERIES_SIZE){ box.innerHTML = ''; selSub = 'all'; return; }
+  let html = '<button data-s="all"'+(selSub==='all'?' class="on"':'')+'>tout mélanger</button>';
+  subseries.forEach((g,i) => { html += '<button data-s="'+i+'"'+(selSub===i?' class="on"':'')+'>sous série '+(i+1)+'</button>'; });
+  box.innerHTML = html;
+  box.querySelectorAll('button').forEach(b => {
+    b.addEventListener('click', () => {
+      selSub = (b.dataset.s === 'all') ? 'all' : parseInt(b.dataset.s, 10);
+      renderSubseries(); startLot();
+    });
+  });
+}
+
+function startLot(){
+  if (selSub !== 'all' && !subseries[selSub]) selSub = 'all';
+  const pool = (selSub === 'all') ? shuffle(deck.slice()) : subseries[selSub].slice();
+  lot = {
+    pool, results:{}, cleared:{}, seen:{}, q:0,
+    cap: pool.length*3 + 6, learnedStart: learnedCount(),
+    label: (selSub === 'all') ? 'tout mélangé' : 'sous série '+(selSub+1)
+  };
+  lotActive = true;
   nextQuestion();
+}
+
+function lotCleared(){ return lot.pool.filter(c => lot.cleared[c.id]).length; }
+
+function updateDeckline(){
+  const remaining = lot.pool.length - lotCleared();
+  setDeckline(
+    lot.label + ' &middot; <strong>'+remaining+'</strong> mot(s) à finir &nbsp;·&nbsp; ' +
+    'appris : <strong>'+learnedCount()+'/'+deck.length+'</strong> &nbsp;·&nbsp; '+pctLearned()+'%'
+  );
 }
 
 function nextQuestion(){
   document.removeEventListener('keydown', enterNext);
-  if (batch.count >= BATCH_SIZE){ showRecap(); return; }
-  const card = pickCard();
-  batch.count++;
-  const learned = learnedCount();
-  setDeckline(
-    'lot : <strong>'+batch.count+'/'+BATCH_SIZE+'</strong> &nbsp;·&nbsp; ' +
-    'apprises : <strong>'+learned+'/'+deck.length+'</strong> &nbsp;·&nbsp; '+pctLearned()+'%'
-  );
+  if (!lot || lot.q >= lot.cap){ showRecap(); return; }
+  const card = pickLotCard();
+  if (!card){ showRecap(); return; }
+  lot.q++;
+  updateDeckline();
   renderQuestion(card);
 }
 
@@ -531,10 +590,23 @@ function renderQuestion(card){
   else                      renderType(card, type === 'type-tr');
 }
 
+/* — aide : révèle les premières lettres — */
+function wireHint(target){
+  let n = 0;
+  const btn = document.getElementById('hint');
+  if (!btn) return;
+  btn.addEventListener('click', () => {
+    n = Math.min(n + 1, Math.max(1, target.length));
+    document.getElementById('hintzone').innerHTML =
+      'commence par : <strong>'+esc(target.slice(0, n))+'</strong>'+(n < target.length ? '…' : '');
+  });
+}
+
 /* — saisir la réponse (texte) — */
 function renderType(card, askTranslation){
   const prompt = askTranslation ? card.term : card.translation.split('/')[0].trim();
   const accept = askTranslation ? answers(card.translation) : answers(card.term);
+  const target = (askTranslation ? card.translation.split('/')[0] : card.term).trim();
   const label  = askTranslation ? 'tape la traduction' : 'tape le mot (en '+langName()+')';
 
   quizZone().innerHTML =
@@ -542,6 +614,7 @@ function renderType(card, askTranslation){
       '<div class="ll-qtype">'+label+'</div>' +
       '<div class="ll-prompt">'+esc(prompt)+'</div>' +
       '<input class="ll-input" id="ans" autocomplete="off" autocapitalize="off" placeholder="...">' +
+      '<div class="ll-hintzone" id="hintzone"></div>' +
     '</div>' +
     '<div class="ll-feedback" id="fb"></div>' +
     '<div class="ll-actions" id="acts"></div>';
@@ -549,8 +622,9 @@ function renderType(card, askTranslation){
   const inp = document.getElementById('ans');
   inp.focus();
   inp.addEventListener('keydown', e => { if (e.key === 'Enter') submitType(card, accept, askTranslation); });
-  setActions('<button class="btn btn-full" id="check">vérifier</button>');
+  setActions('<button class="btn" id="hint">indice</button><button class="btn" id="check">vérifier</button>');
   document.getElementById('check').addEventListener('click', () => submitType(card, accept, askTranslation));
+  wireHint(target);
 }
 function submitType(card, accept, askTranslation){
   const inp = document.getElementById('ans');
@@ -576,6 +650,7 @@ function renderFill(card){
       '<div class="ll-prompt">'+shown+'</div>' +
       '<div class="ll-hint">'+esc(card.translation)+'</div>' +
       '<input class="ll-input" id="ans" autocomplete="off" autocapitalize="off" placeholder="le mot manquant">' +
+      '<div class="ll-hintzone" id="hintzone"></div>' +
     '</div>' +
     '<div class="ll-feedback" id="fb"></div>' +
     '<div class="ll-actions" id="acts"></div>';
@@ -584,8 +659,9 @@ function renderFill(card){
   inp.focus();
   const accept = [norm(missing)];
   inp.addEventListener('keydown', e => { if (e.key === 'Enter') submitFill(card, accept, card.term); });
-  setActions('<button class="btn btn-full" id="check">vérifier</button>');
+  setActions('<button class="btn" id="hint">indice</button><button class="btn" id="check">vérifier</button>');
   document.getElementById('check').addEventListener('click', () => submitFill(card, accept, card.term));
+  wireHint(missing.trim());
 }
 function submitFill(card, accept, solution){
   const inp = document.getElementById('ans');
@@ -648,8 +724,15 @@ function enterNext(e){
 
 async function grade(card, good){
   const wasAcquired = isAcquired(card);
-  if (good){ batch.ok++; card.sr.streak = (card.sr.streak||0) + 1; }
-  else { batch.no++; card.sr.streak = 0; }
+  lot.seen[card.id] = true;
+  if (!lot.results[card.id]) lot.results[card.id] = { term: card.term, translation: card.translation, missed: false };
+  if (good){
+    card.sr.streak = (card.sr.streak||0) + 1;
+    lot.cleared[card.id] = true;
+  } else {
+    card.sr.streak = 0;
+    lot.results[card.id].missed = true;
+  }
   card.sr.due = tick + nextOffset(card.sr.streak);
   tick++;
   await saveSr(card.id, { streak: card.sr.streak, due: card.sr.due });
@@ -658,23 +741,42 @@ async function grade(card, good){
 
 function setActions(html){ document.getElementById('acts').innerHTML = html; }
 
+function wordRows(list){
+  if (!list.length) return '<div class="wempty">aucun</div>';
+  return list.map(c => '<div class="wrow"><span class="w-term">'+esc(c.term)+'</span><span class="w-tr">'+esc(c.translation)+'</span></div>').join('');
+}
+
 function showRecap(){
   document.removeEventListener('keydown', enterNext);
-  const newlyLearned = learnedCount() - batch.learnedStart;
-  setDeckline('');
-  quizZone().innerHTML =
+  lotActive = false;
+  const justes = [], revoir = [], pasvus = [];
+  lot.pool.forEach(c => {
+    const r = lot.results[c.id];
+    if (!r || !lot.seen[c.id]) pasvus.push(c);
+    else if (r.missed) revoir.push(c);
+    else justes.push(c);
+  });
+  const newlyLearned = Math.max(0, learnedCount() - lot.learnedStart);
+
+  let html =
     '<div class="ll-recap">' +
-      '<h3>lot terminé</h3>' +
-      '<div class="row"><span>justes</span><strong>'+batch.ok+'</strong></div>' +
-      '<div class="row"><span>ratés</span><strong>'+batch.no+'</strong></div>' +
-      '<div class="row"><span>nouvelles cartes apprises</span><strong>'+(newlyLearned>0?newlyLearned:0)+'</strong></div>' +
-      '<div class="pct">apprises au total : <b>'+pctLearned()+'%</b> ('+learnedCount()+'/'+deck.length+')</div>' +
+      '<h3>lot terminé — '+esc(lot.label)+'</h3>' +
+      '<div class="row"><span>réussis du premier coup</span><strong>'+justes.length+'</strong></div>' +
+      '<div class="row"><span>à revoir</span><strong>'+revoir.length+'</strong></div>' +
+      '<div class="row"><span>nouveaux mots appris</span><strong>'+newlyLearned+'</strong></div>' +
+      '<div class="pct">appris au total : <b>'+pctLearned()+'%</b> ('+learnedCount()+'/'+deck.length+')</div>' +
+      '<div class="wgroup"><h4>justes</h4>'+wordRows(justes)+'</div>' +
+      '<div class="wgroup"><h4>à revoir</h4>'+wordRows(revoir)+'</div>';
+  if (pasvus.length) html += '<div class="wgroup"><h4>pas encore vus ce lot</h4>'+wordRows(pasvus)+'</div>';
+  html +=
       '<div class="ll-actions">' +
         '<button class="btn btn-full" id="again">encore un lot</button>' +
         '<a href="home.html" class="btn">j\'arrête</a>' +
       '</div>' +
     '</div>';
-  document.getElementById('again').addEventListener('click', startBatch);
+  setDeckline('');
+  quizZone().innerHTML = html;
+  document.getElementById('again').addEventListener('click', startLot);
 }
 
 /* états particuliers */
@@ -761,8 +863,10 @@ async function refreshDeckSilently(){
   const cards = await fetchCards(lang);
   const sr = await fetchSr(player);
   deck = cards.map(c => ({ ...c, sr: sr[c.id] || { streak:0, due:0 } }));
+  buildSubseries();
   reportProgress();
   renderCardList();
+  lotActive = false;        // le lot devra être recomposé en revenant sur "jouer"
 }
 
 let editingId = null;
@@ -881,8 +985,17 @@ document.querySelectorAll('.ll-nav button').forEach(b => {
     b.classList.add('on');
     document.querySelectorAll('.ll-view').forEach(v => v.classList.remove('on'));
     document.getElementById('view-'+b.dataset.view).classList.add('on');
+    if (b.dataset.view === 'quiz') enterQuizView();
   });
 });
+
+function enterQuizView(){
+  if (!ready){ renderConfigMissing(); return; }
+  if (!player){ renderNoPlayer(); return; }
+  if (lotActive) return;            // un lot est déjà en cours, on le garde
+  if (!deck.length){ renderEmptyDeck(); return; }
+  buildSubseries(); renderSubseries(); startLot();
+}
 
 document.getElementById('add-one').addEventListener('click', onAddOne);
 document.getElementById('add-many').addEventListener('click', onAddMany);
