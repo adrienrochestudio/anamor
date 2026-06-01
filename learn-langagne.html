@@ -229,7 +229,38 @@
   .ll-catgroup .cat-name {
     font-size: .92rem; color: var(--b);
     border-bottom: 1px solid var(--bl); padding-bottom: 3px; margin-bottom: 6px;
+    display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
   }
+  .cat-del {
+    background: none; border: none; cursor: pointer;
+    font-family: 'Patrick Hand', cursive; font-size: .74rem; color: var(--m);
+    text-decoration: underline; white-space: nowrap;
+  }
+  .cat-del:hover { color: var(--b); }
+
+  .ll-edit {
+    display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+    padding: 6px 0; border-bottom: 1px dashed var(--bl);
+  }
+  .ll-edit input {
+    flex: 1 1 120px; min-width: 90px;
+    font-family: 'Patrick Hand', cursive; font-size: .92rem;
+    padding: 5px 8px; border: 1.5px solid var(--bl); background: var(--w); color: var(--t);
+  }
+  .ll-edit input:focus { outline: none; border-color: var(--b); }
+  .ll-edit-btns { display: flex; gap: 6px; }
+  .ll-edit-btns button {
+    font-family: 'Patrick Hand', cursive; font-size: .82rem; padding: 5px 12px; cursor: pointer;
+    border: 1.5px solid var(--b); background: transparent; color: var(--b);
+  }
+  .ll-edit-btns .e-ok:hover { background: var(--b); color: var(--w); }
+  .ll-edit-btns .e-cancel { border-color: var(--bl); color: var(--m); }
+  .ll-edit-btns .e-cancel:hover { border-color: var(--b); color: var(--b); }
+  .ll-item .edit {
+    background: none; border: none; color: var(--m); cursor: pointer;
+    font-family: 'Patrick Hand', cursive; font-size: .8rem; text-decoration: underline;
+  }
+  .ll-item .edit:hover { color: var(--b); }
   .ll-item {
     display: flex; align-items: baseline; gap: 8px;
     font-size: .96rem; color: var(--t); padding: 3px 0;
@@ -324,7 +355,7 @@
     <div class="ll-cardlist" id="ll-cardlist"></div>
   </div>
 
-  <a href="accueil.html" class="back-link">retour à la roue</a>
+  <a href="home.html" class="back-link">retour à la roue</a>
 </div>
 
 <footer>Ana & Adrien, the kompiuter</footer>
@@ -332,7 +363,7 @@
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import {
-  getDatabase, ref, get, set, push, remove
+  getDatabase, ref, get, set, update, push, remove
 } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
 
 /* ============================================================
@@ -640,7 +671,7 @@ function showRecap(){
       '<div class="pct">apprises au total : <b>'+pctLearned()+'%</b> ('+learnedCount()+'/'+deck.length+')</div>' +
       '<div class="ll-actions">' +
         '<button class="btn btn-full" id="again">encore un lot</button>' +
-        '<a href="accueil.html" class="btn">j\'arrête</a>' +
+        '<a href="home.html" class="btn">j\'arrête</a>' +
       '</div>' +
     '</div>';
   document.getElementById('again').addEventListener('click', startBatch);
@@ -734,37 +765,86 @@ async function refreshDeckSilently(){
   renderCardList();
 }
 
+let editingId = null;
+
 async function deleteCard(id, term){
   if (!confirm('supprimer « '+term+' » de la database ?')) return;
   try {
     await remove(ref(db,'flashcards/'+id));
+    if (editingId === id) editingId = null;
     await refreshDeckSilently();
   } catch(e){ console.error(e); addStatus('suppression impossible.', false); }
 }
 
+async function deleteCategory(cat){
+  const ids = deck.filter(c => c.category === cat).map(c => c.id);
+  if (!ids.length) return;
+  if (!confirm('supprimer toute la catégorie « '+cat+' » ('+ids.length+' mots) ?')) return;
+  try {
+    for (const id of ids){ await remove(ref(db,'flashcards/'+id)); }
+    editingId = null;
+    await refreshDeckSilently();
+  } catch(e){ console.error(e); addStatus('suppression impossible.', false); }
+}
+
+async function saveEdit(id){
+  const term = (document.getElementById('e-term').value || '').trim();
+  const tr   = (document.getElementById('e-tr').value || '').trim();
+  const cat  = (document.getElementById('e-cat').value || '').trim() || '(sans catégorie)';
+  if (!term || !tr){ return; }
+  try {
+    await update(ref(db,'flashcards/'+id), { term, translation: tr, category: cat });
+    editingId = null;
+    await refreshDeckSilently();
+  } catch(e){ console.error(e); addStatus('modification impossible.', false); }
+}
+
 function renderCardList(){
   const box = document.getElementById('ll-cardlist');
-  if (!deck.length){ box.innerHTML = '<div class="ll-mini">aucun mot en '+langName()+' pour l\'instant.</div>'; return; }
+  if (!deck.length){ box.innerHTML = '<div class="ll-mini">aucun mot en '+langName()+' pour l\'instant.</div>'; editingId = null; return; }
   const byCat = {};
   deck.forEach(c => { (byCat[c.category] = byCat[c.category] || []).push(c); });
   let html = '<h4>mots en '+langName()+' ('+deck.length+')</h4>';
   Object.keys(byCat).sort().forEach(cat => {
-    html += '<div class="ll-catgroup"><div class="cat-name">'+esc(cat)+'</div>';
+    html += '<div class="ll-catgroup">' +
+      '<div class="cat-name"><span>'+esc(cat)+'</span>' +
+      '<button class="cat-del" data-cat="'+esc(cat)+'">suppr la catégorie</button></div>';
     byCat[cat].forEach(c => {
-      const badge = isAcquired(c) ? 'appris' : ((c.sr.streak||0)+'/'+ACQUIRED_AT);
-      html += '<div class="ll-item">' +
-        '<span class="term">'+esc(c.term)+'</span><span class="arr">=</span>' +
-        '<span class="tr">'+esc(c.translation)+'</span>' +
-        '<span class="badge">'+badge+'</span>' +
-        '<button class="del" data-id="'+c.id+'" data-term="'+esc(c.term)+'">suppr</button>' +
-      '</div>';
+      if (c.id === editingId){
+        html += '<div class="ll-edit">' +
+          '<input id="e-term" value="'+esc(c.term)+'" placeholder="le mot">' +
+          '<input id="e-tr" value="'+esc(c.translation)+'" placeholder="la traduction">' +
+          '<input id="e-cat" value="'+esc(c.category)+'" placeholder="catégorie">' +
+          '<div class="ll-edit-btns">' +
+            '<button class="e-ok" data-id="'+c.id+'">ok</button>' +
+            '<button class="e-cancel">annuler</button>' +
+          '</div></div>';
+      } else {
+        const badge = isAcquired(c) ? 'appris' : ((c.sr.streak||0)+'/'+ACQUIRED_AT);
+        html += '<div class="ll-item">' +
+          '<span class="term">'+esc(c.term)+'</span><span class="arr">=</span>' +
+          '<span class="tr">'+esc(c.translation)+'</span>' +
+          '<span class="badge">'+badge+'</span>' +
+          '<button class="edit" data-id="'+c.id+'">éditer</button>' +
+          '<button class="del" data-id="'+c.id+'" data-term="'+esc(c.term)+'">suppr</button>' +
+        '</div>';
+      }
     });
     html += '</div>';
   });
   box.innerHTML = html;
-  box.querySelectorAll('.del').forEach(b => {
-    b.addEventListener('click', () => deleteCard(b.dataset.id, b.dataset.term));
-  });
+
+  box.querySelectorAll('.del').forEach(b =>
+    b.addEventListener('click', () => deleteCard(b.dataset.id, b.dataset.term)));
+  box.querySelectorAll('.cat-del').forEach(b =>
+    b.addEventListener('click', () => deleteCategory(b.dataset.cat)));
+  box.querySelectorAll('.edit').forEach(b =>
+    b.addEventListener('click', () => { editingId = b.dataset.id; renderCardList(); }));
+  box.querySelectorAll('.e-ok').forEach(b =>
+    b.addEventListener('click', () => saveEdit(b.dataset.id)));
+  box.querySelectorAll('.e-cancel').forEach(b =>
+    b.addEventListener('click', () => { editingId = null; renderCardList(); }));
+  const et = box.querySelector('#e-term'); if (et) et.focus();
 }
 
 /* ============================================================
@@ -803,6 +883,10 @@ document.querySelectorAll('.ll-nav button').forEach(b => {
     document.getElementById('view-'+b.dataset.view).classList.add('on');
   });
 });
+
+document.getElementById('add-one').addEventListener('click', onAddOne);
+document.getElementById('add-many').addEventListener('click', onAddMany);
+document.getElementById('add-tr').addEventListener('keydown', e => { if (e.key === 'Enter') onAddOne(); });
 
 /* si le joueur change via le bandeau de progress.js, on recharge */
 setInterval(() => {
