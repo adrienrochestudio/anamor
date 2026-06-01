@@ -115,15 +115,52 @@
   }
 
   /* ── quiz card ───────────────────────────────── */
-  .ll-subseries {
+  .ll-lists {
     display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 18px;
   }
-  .ll-subseries button {
+  .ll-lists button {
     font-family: 'Patrick Hand', cursive; font-size: .9rem; padding: 5px 13px; cursor: pointer;
     background: transparent; color: var(--m); border: 1.5px solid var(--bl); transition: all .14s;
   }
-  .ll-subseries button:hover { border-color: var(--b); color: var(--b); }
-  .ll-subseries button.on { background: var(--b); color: var(--w); border-color: var(--b); }
+  .ll-lists button:hover { border-color: var(--b); color: var(--b); }
+  .ll-lists button.on { background: var(--b); color: var(--w); border-color: var(--b); }
+
+  /* ── éditeur de liste ────────────────────────── */
+  .ll-editor-title { font-size: 1.3rem; color: var(--b); text-align: left; margin-bottom: 14px; }
+  .ll-gridhead {
+    display: grid; grid-template-columns: 26px 1fr 1fr; gap: 8px; align-items: center;
+    font-size: .8rem; color: var(--m); text-align: left; margin-bottom: 6px; padding-left: 0;
+  }
+  .ll-gridhead span:first-child { grid-column: 1 / 2; }
+  .ll-grid { display: flex; flex-direction: column; gap: 6px; }
+  .g-row { display: grid; grid-template-columns: 26px 1fr 14px 1fr; gap: 8px; align-items: center; }
+  .g-num { font-size: .8rem; color: var(--m); text-align: right; }
+  .g-eq { color: var(--m); text-align: center; }
+  .g-row input {
+    font-family: 'Patrick Hand', cursive; font-size: 1rem; padding: 7px 9px;
+    border: 1.5px solid var(--bl); background: var(--w); color: var(--t); width: 100%; box-sizing: border-box;
+  }
+  .g-row input:focus { outline: none; border-color: var(--b); }
+  .ll-count { text-align: right; font-size: .86rem; color: var(--m); margin: 12px 0 16px; }
+  .ll-count.ok { color: var(--b); }
+
+  /* ── gestion des listes ──────────────────────── */
+  .ll-listmgr { margin-top: 34px; text-align: left; }
+  .ll-listmgr h4 { font-size: 1rem; color: var(--b); margin-bottom: 12px; }
+  .ll-listrow {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 9px 0; border-bottom: 1px solid var(--bl);
+  }
+  .ll-listinfo { display: flex; flex-direction: column; gap: 2px; }
+  .ll-listinfo .ln { color: var(--b); font-size: 1.05rem; }
+  .ll-listinfo .lc { color: var(--m); font-size: .8rem; }
+  .ll-listbtns { display: flex; gap: 8px; flex-shrink: 0; }
+  .ll-listbtns button {
+    font-family: 'Patrick Hand', cursive; font-size: .82rem; padding: 5px 12px; cursor: pointer;
+    background: transparent; border: 1.5px solid var(--bl); color: var(--m); transition: all .14s;
+  }
+  .ll-listbtns .l-edit:hover { border-color: var(--b); color: var(--b); }
+  .ll-listbtns .l-del:hover { background: var(--b); color: var(--w); border-color: var(--b); }
 
   .ll-hintzone { margin-top: 14px; min-height: 1.1em; font-size: .96rem; color: var(--m); }
   .ll-hintzone strong { color: var(--b); letter-spacing: .12em; }
@@ -332,48 +369,37 @@
 
   <div class="ll-nav">
     <button data-view="quiz" class="on">jouer</button>
-    <button data-view="add">ajouter des mots</button>
+    <button data-view="add">mes listes</button>
   </div>
 
   <!-- ════════ VIEW : QUIZ ════════ -->
   <div class="ll-view on" id="view-quiz">
-    <div class="ll-subseries" id="ll-subseries"></div>
+    <div class="ll-lists" id="ll-lists"></div>
     <div class="ll-deckline" id="ll-deckline"></div>
     <div id="ll-quiz-zone"></div>
   </div>
 
-  <!-- ════════ VIEW : ADD ════════ -->
+  <!-- ════════ VIEW : LISTES ════════ -->
   <div class="ll-view" id="view-add">
 
-    <div class="ll-field">
-      <label>catégorie de mots</label>
-      <input type="text" id="add-cat" placeholder="ex. la cuisine, les émotions, les verbes...">
-    </div>
-
-    <div class="ll-row2">
+    <div class="ll-editor" id="list-editor">
+      <div class="ll-editor-title" id="editor-title">créer une liste</div>
       <div class="ll-field">
-        <label id="lbl-term">le mot (en português)</label>
-        <input type="text" id="add-term" placeholder="le mot à apprendre">
+        <label>nom de la liste</label>
+        <input type="text" id="list-name" placeholder="ex. la cuisine, les verbes, les émotions...">
       </div>
-      <div class="ll-field">
-        <label id="lbl-tr">la traduction</label>
-        <input type="text" id="add-tr" placeholder="sa traduction">
+      <div class="ll-gridhead"><span id="gh-term">mot (en português)</span><span>traduction</span></div>
+      <div class="ll-grid" id="list-grid"></div>
+      <div class="ll-count" id="list-count">0 / 12 mots</div>
+      <div class="ll-actions">
+        <button class="btn btn-full" id="list-save">créer la liste</button>
+        <button class="btn" id="list-cancel" style="display:none">annuler</button>
       </div>
+      <div class="ll-mini">une liste = exactement 12 mots. plusieurs traductions ? sépare-les par <code>/</code></div>
+      <div id="add-status"></div>
     </div>
-    <button class="btn btn-full" id="add-one">ajouter ce mot</button>
-    <div class="ll-mini">astuce : plusieurs traductions possibles, sépare-les par <code>/</code></div>
 
-    <div class="ll-or">ou balance tout d'un coup</div>
-
-    <div class="ll-field">
-      <label>un mot par ligne : <code>mot = traduction</code> (la catégorie ci-dessus s'applique à tous)</label>
-      <textarea id="add-bulk" placeholder="obrigado = merci&#10;bom dia = bonjour&#10;saudade = le manque / la nostalgie"></textarea>
-    </div>
-    <button class="btn btn-full" id="add-many">ajouter le lot</button>
-
-    <div id="add-status"></div>
-
-    <div class="ll-cardlist" id="ll-cardlist"></div>
+    <div class="ll-listmgr" id="ll-listmgr"></div>
   </div>
 
   <a href="home.html" class="back-link">retour à la roue</a>
@@ -404,8 +430,8 @@ const firebaseConfig = {
 };
 
 /* ── réglages d'apprentissage ──────────────────── */
-const ACQUIRED_AT    = 5;    // 5 bonnes réponses d'affilée = carte apprise
-const SUBSERIES_SIZE = 10;   // taille d'une sous-série
+const ACQUIRED_AT = 5;    // 5 bonnes réponses d'affilée = carte apprise
+const LIST_SIZE   = 12;   // une liste = exactement 12 mots
 
 /* ============================================================
    2) ÉTAT
@@ -415,8 +441,9 @@ let lang = 'pt';                 // langue active : 'pt' | 'fr'
 let player = null;               // 'ana' | 'adrien' | 'invite'
 let deck = [];                   // cartes de la langue active + état SR du joueur
 let tick = 0;                    // compteur de questions (planning SR)
-let subseries = [];              // sous-séries : groupes de SUBSERIES_SIZE mots
-let selSub = 'all';              // sous-série active : 'all' ou index
+let lists = [];                  // listes : [{ name, cards:[...] }]
+let selList = 'all';             // liste active pour le quiz : 'all' ou nom de liste
+let editList = null;             // nom de la liste en cours d'édition (null = création)
 let lot = null;                  // lot en cours
 let lotActive = false;           // un lot est-il en cours de jeu ?
 
@@ -487,11 +514,11 @@ async function loadDeck(){
     const [cards, sr] = await Promise.all([ fetchCards(lang), fetchSr(player) ]);
     deck = cards.map(c => ({ ...c, sr: sr[c.id] || { streak:0, due:0 } }));
     tick = 0;
-    buildSubseries();
+    buildLists();
     reportProgress();
-    renderCardList();
+    renderListManager();
     if (!deck.length){ renderEmptyDeck(); }
-    else { renderSubseries(); startLot(); }
+    else { renderLists(); startLot(); }
   } catch(e){
     console.error(e);
     setDeckline('');
@@ -523,35 +550,50 @@ function pickLotCard(){
   return best[(Math.random()*best.length)|0];
 }
 
-function buildSubseries(){
-  const sorted = deck.slice().sort((a,b) => (a.createdAt||0)-(b.createdAt||0) || (a.id < b.id ? -1 : 1));
-  subseries = [];
-  for (let i=0; i<sorted.length; i += SUBSERIES_SIZE) subseries.push(sorted.slice(i, i+SUBSERIES_SIZE));
-  if (selSub !== 'all' && !subseries[selSub]) selSub = 'all';
+function buildLists(){
+  const byName = {};
+  const order = [];
+  deck.slice()
+    .sort((a,b) => (a.createdAt||0)-(b.createdAt||0) || (a.id < b.id ? -1 : 1))
+    .forEach(c => {
+      if (!byName[c.category]){ byName[c.category] = []; order.push(c.category); }
+      byName[c.category].push(c);
+    });
+  lists = order.map(name => ({ name, cards: byName[name] }));
+  if (selList !== 'all' && !byName[selList]) selList = 'all';
 }
 
-function renderSubseries(){
-  const box = document.getElementById('ll-subseries');
+function renderLists(){
+  const box = document.getElementById('ll-lists');
   if (!box) return;
-  if (deck.length <= SUBSERIES_SIZE){ box.innerHTML = ''; selSub = 'all'; return; }
-  let html = '<button data-s="all"'+(selSub==='all'?' class="on"':'')+'>tout mélanger</button>';
-  subseries.forEach((g,i) => { html += '<button data-s="'+i+'"'+(selSub===i?' class="on"':'')+'>sous série '+(i+1)+'</button>'; });
+  if (lists.length <= 1){ box.innerHTML = ''; selList = 'all'; return; }
+  let html = '<button data-l="all"'+(selList==='all'?' class="on"':'')+'>tout mélanger</button>';
+  lists.forEach(l => {
+    const on = (selList === l.name) ? ' class="on"' : '';
+    html += '<button data-l="'+esc(l.name)+'"'+on+'>'+esc(l.name)+'</button>';
+  });
   box.innerHTML = html;
   box.querySelectorAll('button').forEach(b => {
     b.addEventListener('click', () => {
-      selSub = (b.dataset.s === 'all') ? 'all' : parseInt(b.dataset.s, 10);
-      renderSubseries(); startLot();
+      selList = (b.dataset.l === 'all') ? 'all' : b.dataset.l;
+      renderLists(); startLot();
     });
   });
 }
 
+function poolForSelection(){
+  if (selList === 'all') return shuffle(deck.slice());
+  const l = lists.find(x => x.name === selList);
+  return l ? l.cards.slice() : shuffle(deck.slice());
+}
+
 function startLot(){
-  if (selSub !== 'all' && !subseries[selSub]) selSub = 'all';
-  const pool = (selSub === 'all') ? shuffle(deck.slice()) : subseries[selSub].slice();
+  if (selList !== 'all' && !lists.find(x => x.name === selList)) selList = 'all';
+  const pool = poolForSelection();
   lot = {
     pool, results:{}, cleared:{}, seen:{}, q:0,
     cap: pool.length*3 + 6, learnedStart: learnedCount(),
-    label: (selSub === 'all') ? 'tout mélangé' : 'sous série '+(selSub+1)
+    label: (selList === 'all') ? 'tout mélangé' : selList
   };
   lotActive = true;
   nextQuestion();
@@ -794,59 +836,12 @@ function renderNoPlayer(){
 }
 function renderEmptyDeck(){
   setDeckline('');
-  quizZone().innerHTML = '<div class="ll-msg">pas encore de mots en <strong>'+langName()+'</strong>. va dans <strong>ajouter des mots</strong> pour remplir un premier lot.</div>';
+  quizZone().innerHTML = '<div class="ll-msg">pas encore de mots en <strong>'+langName()+'</strong>. va dans <strong>mes listes</strong> pour créer une première liste de 12 mots.</div>';
 }
 
 /* ============================================================
-   6) AJOUT DE MOTS
+   6) LISTES : créer / éditer / supprimer (12 mots par liste)
    ============================================================ */
-async function addCards(entries){
-  if (!ready || !entries.length) return 0;
-  let n = 0;
-  for (const e of entries){
-    const r = push(ref(db,'flashcards'));
-    await set(r, { lang, category: e.cat, term: e.term, translation: e.tr, createdAt: Date.now() });
-    n++;
-  }
-  return n;
-}
-
-async function onAddOne(){
-  if (!guardAdd()) return;
-  const cat  = (document.getElementById('add-cat').value || '').trim() || '(sans catégorie)';
-  const term = (document.getElementById('add-term').value || '').trim();
-  const tr   = (document.getElementById('add-tr').value || '').trim();
-  if (!term || !tr){ addStatus('il manque le mot ou la traduction.', false); return; }
-  addStatus('ajout...', true);
-  await addCards([{ cat, term, tr }]);
-  document.getElementById('add-term').value = '';
-  document.getElementById('add-tr').value = '';
-  document.getElementById('add-term').focus();
-  addStatus('ajouté : '+term+' = '+tr, true);
-  await refreshDeckSilently();
-}
-
-async function onAddMany(){
-  if (!guardAdd()) return;
-  const cat = (document.getElementById('add-cat').value || '').trim() || '(sans catégorie)';
-  const raw = document.getElementById('add-bulk').value || '';
-  const entries = [];
-  raw.split('\n').forEach(line => {
-    const m = line.split(/=|:|->|→|;/);
-    if (m.length >= 2){
-      const term = m[0].trim();
-      const tr = m.slice(1).join('=').trim();
-      if (term && tr) entries.push({ cat, term, tr });
-    }
-  });
-  if (!entries.length){ addStatus('aucune ligne valide. format : mot = traduction', false); return; }
-  addStatus('ajout de '+entries.length+' mots...', true);
-  const n = await addCards(entries);
-  document.getElementById('add-bulk').value = '';
-  addStatus(n+' mots ajoutés dans « '+cat+' ».', true);
-  await refreshDeckSilently();
-}
-
 function guardAdd(){
   if (!ready){ addStatus('config firebase manquante (voir l\'onglet jouer).', false); return false; }
   player = AAProgress.getPlayer ? AAProgress.getPlayer() : player;
@@ -863,92 +858,147 @@ async function refreshDeckSilently(){
   const cards = await fetchCards(lang);
   const sr = await fetchSr(player);
   deck = cards.map(c => ({ ...c, sr: sr[c.id] || { streak:0, due:0 } }));
-  buildSubseries();
+  buildLists();
   reportProgress();
-  renderCardList();
+  renderListManager();
   lotActive = false;        // le lot devra être recomposé en revenant sur "jouer"
 }
 
-let editingId = null;
-
-async function deleteCard(id, term){
-  if (!confirm('supprimer « '+term+' » de la database ?')) return;
-  try {
-    await remove(ref(db,'flashcards/'+id));
-    if (editingId === id) editingId = null;
-    await refreshDeckSilently();
-  } catch(e){ console.error(e); addStatus('suppression impossible.', false); }
+/* — la grille de 12 lignes (mot = traduction) — */
+function renderGrid(rows){
+  const n = Math.max(LIST_SIZE, rows.length);
+  let html = '';
+  for (let i=0; i<n; i++){
+    const r = rows[i] || { id:'', term:'', tr:'' };
+    html += '<div class="g-row" data-id="'+esc(r.id||'')+'">' +
+      '<span class="g-num">'+(i+1)+'</span>' +
+      '<input class="g-term" value="'+esc(r.term||'')+'" placeholder="mot" autocomplete="off" autocapitalize="off">' +
+      '<span class="g-eq">=</span>' +
+      '<input class="g-tr" value="'+esc(r.tr||'')+'" placeholder="traduction" autocomplete="off" autocapitalize="off">' +
+    '</div>';
+  }
+  const grid = document.getElementById('list-grid');
+  grid.innerHTML = html;
+  grid.querySelectorAll('input').forEach(inp => inp.addEventListener('input', updateCount));
+  updateCount();
 }
-
-async function deleteCategory(cat){
-  const ids = deck.filter(c => c.category === cat).map(c => c.id);
-  if (!ids.length) return;
-  if (!confirm('supprimer toute la catégorie « '+cat+' » ('+ids.length+' mots) ?')) return;
-  try {
-    for (const id of ids){ await remove(ref(db,'flashcards/'+id)); }
-    editingId = null;
-    await refreshDeckSilently();
-  } catch(e){ console.error(e); addStatus('suppression impossible.', false); }
-}
-
-async function saveEdit(id){
-  const term = (document.getElementById('e-term').value || '').trim();
-  const tr   = (document.getElementById('e-tr').value || '').trim();
-  const cat  = (document.getElementById('e-cat').value || '').trim() || '(sans catégorie)';
-  if (!term || !tr){ return; }
-  try {
-    await update(ref(db,'flashcards/'+id), { term, translation: tr, category: cat });
-    editingId = null;
-    await refreshDeckSilently();
-  } catch(e){ console.error(e); addStatus('modification impossible.', false); }
-}
-
-function renderCardList(){
-  const box = document.getElementById('ll-cardlist');
-  if (!deck.length){ box.innerHTML = '<div class="ll-mini">aucun mot en '+langName()+' pour l\'instant.</div>'; editingId = null; return; }
-  const byCat = {};
-  deck.forEach(c => { (byCat[c.category] = byCat[c.category] || []).push(c); });
-  let html = '<h4>mots en '+langName()+' ('+deck.length+')</h4>';
-  Object.keys(byCat).sort().forEach(cat => {
-    html += '<div class="ll-catgroup">' +
-      '<div class="cat-name"><span>'+esc(cat)+'</span>' +
-      '<button class="cat-del" data-cat="'+esc(cat)+'">suppr la catégorie</button></div>';
-    byCat[cat].forEach(c => {
-      if (c.id === editingId){
-        html += '<div class="ll-edit">' +
-          '<input id="e-term" value="'+esc(c.term)+'" placeholder="le mot">' +
-          '<input id="e-tr" value="'+esc(c.translation)+'" placeholder="la traduction">' +
-          '<input id="e-cat" value="'+esc(c.category)+'" placeholder="catégorie">' +
-          '<div class="ll-edit-btns">' +
-            '<button class="e-ok" data-id="'+c.id+'">ok</button>' +
-            '<button class="e-cancel">annuler</button>' +
-          '</div></div>';
-      } else {
-        const badge = isAcquired(c) ? 'appris' : ((c.sr.streak||0)+'/'+ACQUIRED_AT);
-        html += '<div class="ll-item">' +
-          '<span class="term">'+esc(c.term)+'</span><span class="arr">=</span>' +
-          '<span class="tr">'+esc(c.translation)+'</span>' +
-          '<span class="badge">'+badge+'</span>' +
-          '<button class="edit" data-id="'+c.id+'">éditer</button>' +
-          '<button class="del" data-id="'+c.id+'" data-term="'+esc(c.term)+'">suppr</button>' +
-        '</div>';
-      }
+function gridRows(){
+  const out = [];
+  document.querySelectorAll('#list-grid .g-row').forEach(row => {
+    out.push({
+      id: row.dataset.id || '',
+      term: (row.querySelector('.g-term').value || '').trim(),
+      tr:   (row.querySelector('.g-tr').value || '').trim()
     });
-    html += '</div>';
+  });
+  return out;
+}
+function updateCount(){
+  const filled = gridRows().filter(r => r.term && r.tr).length;
+  const el = document.getElementById('list-count');
+  el.textContent = filled + ' / ' + LIST_SIZE + ' mots';
+  el.classList.toggle('ok', filled === LIST_SIZE);
+}
+
+function resetEditor(){
+  editList = null;
+  document.getElementById('editor-title').textContent = 'créer une liste';
+  document.getElementById('list-name').value = '';
+  document.getElementById('list-save').textContent = 'créer la liste';
+  document.getElementById('list-cancel').style.display = 'none';
+  document.getElementById('add-status').innerHTML = '';
+  renderGrid([]);
+}
+function openListEditor(name){
+  const l = lists.find(x => x.name === name);
+  if (!l) return;
+  editList = name;
+  document.getElementById('editor-title').textContent = 'éditer « '+name+' »';
+  document.getElementById('list-name').value = name;
+  document.getElementById('list-save').textContent = 'enregistrer';
+  document.getElementById('list-cancel').style.display = '';
+  document.getElementById('add-status').innerHTML = '';
+  renderGrid(l.cards.map(c => ({ id:c.id, term:c.term, tr:c.translation })));
+  document.getElementById('list-editor').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+async function saveList(){
+  if (!guardAdd()) return;
+  const name = (document.getElementById('list-name').value || '').trim();
+  if (!name){ addStatus('donne un nom à la liste.', false); return; }
+  const rows = gridRows().filter(r => r.term && r.tr);
+  if (rows.length !== LIST_SIZE){
+    addStatus('une liste doit faire exactement '+LIST_SIZE+' mots (là il y en a '+rows.length+').', false); return;
+  }
+  if (!editList && lists.find(x => x.name === name)){
+    addStatus('la liste « '+name+' » existe déjà — édite-la plutôt.', false); return;
+  }
+
+  addStatus('enregistrement...', true);
+  try {
+    if (!editList){
+      const base = Date.now();
+      for (let i=0; i<rows.length; i++){
+        const r = push(ref(db,'flashcards'));
+        await set(r, { lang, category:name, term:rows[i].term, translation:rows[i].tr, createdAt: base + i });
+      }
+    } else {
+      const prev = lists.find(x => x.name === editList);
+      const kept = {};
+      const base = Date.now();
+      for (let i=0; i<rows.length; i++){
+        const r = rows[i];
+        if (r.id){
+          kept[r.id] = true;
+          await update(ref(db,'flashcards/'+r.id), { term:r.term, translation:r.tr, category:name });
+        } else {
+          const nr = push(ref(db,'flashcards'));
+          await set(nr, { lang, category:name, term:r.term, translation:r.tr, createdAt: base + i });
+        }
+      }
+      if (prev){ for (const c of prev.cards){ if (!kept[c.id]) await remove(ref(db,'flashcards/'+c.id)); } }
+      if (selList === editList) selList = name;
+    }
+    await refreshDeckSilently();
+    resetEditor();
+    addStatus('liste « '+name+' » enregistrée ('+rows.length+' mots).', true);
+  } catch(e){ console.error(e); addStatus('enregistrement impossible.', false); }
+}
+
+async function deleteList(name){
+  const l = lists.find(x => x.name === name);
+  if (!l) return;
+  if (!confirm('supprimer la liste « '+name+' » et ses '+l.cards.length+' mots ?')) return;
+  try {
+    for (const c of l.cards){ await remove(ref(db,'flashcards/'+c.id)); }
+    if (editList === name) resetEditor();
+    if (selList === name) selList = 'all';
+    await refreshDeckSilently();
+    addStatus('liste « '+name+' » supprimée.', true);
+  } catch(e){ console.error(e); addStatus('suppression impossible.', false); }
+}
+
+function renderListManager(){
+  const box = document.getElementById('ll-listmgr');
+  if (!box) return;
+  if (!lists.length){
+    box.innerHTML = '<div class="ll-mini">aucune liste en '+langName()+' pour l\'instant. crée-en une au-dessus.</div>';
+    return;
+  }
+  let html = '<h4>mes listes en '+langName()+'</h4>';
+  lists.forEach(l => {
+    const learned = l.cards.filter(isAcquired).length;
+    html += '<div class="ll-listrow">' +
+      '<div class="ll-listinfo"><span class="ln">'+esc(l.name)+'</span>' +
+        '<span class="lc">'+l.cards.length+' mots · '+learned+' appris</span></div>' +
+      '<div class="ll-listbtns">' +
+        '<button class="l-edit" data-l="'+esc(l.name)+'">éditer</button>' +
+        '<button class="l-del" data-l="'+esc(l.name)+'">supprimer</button>' +
+      '</div></div>';
   });
   box.innerHTML = html;
-
-  box.querySelectorAll('.del').forEach(b =>
-    b.addEventListener('click', () => deleteCard(b.dataset.id, b.dataset.term)));
-  box.querySelectorAll('.cat-del').forEach(b =>
-    b.addEventListener('click', () => deleteCategory(b.dataset.cat)));
-  box.querySelectorAll('.edit').forEach(b =>
-    b.addEventListener('click', () => { editingId = b.dataset.id; renderCardList(); }));
-  box.querySelectorAll('.e-ok').forEach(b =>
-    b.addEventListener('click', () => saveEdit(b.dataset.id)));
-  box.querySelectorAll('.e-cancel').forEach(b =>
-    b.addEventListener('click', () => { editingId = null; renderCardList(); }));
-  const et = box.querySelector('#e-term'); if (et) et.focus();
+  box.querySelectorAll('.l-edit').forEach(b => b.addEventListener('click', () => openListEditor(b.dataset.l)));
+  box.querySelectorAll('.l-del').forEach(b => b.addEventListener('click', () => deleteList(b.dataset.l)));
 }
 
 /* ============================================================
@@ -961,7 +1011,8 @@ function paintPlayer(){
   document.getElementById('ll-who').textContent = player ? (labels[player]||player) : '—';
 }
 function paintAddLabels(){
-  document.getElementById('lbl-term').textContent = 'le mot (en '+langName()+')';
+  const el = document.getElementById('gh-term');
+  if (el) el.textContent = 'mot (en '+langName()+')';
 }
 
 document.getElementById('ll-lang').querySelectorAll('button').forEach(b => {
@@ -971,6 +1022,7 @@ document.getElementById('ll-lang').querySelectorAll('button').forEach(b => {
     b.classList.add('on');
     lang = b.dataset.lang;
     paintAddLabels();
+    resetEditor();
     loadDeck();
   });
 });
@@ -994,12 +1046,11 @@ function enterQuizView(){
   if (!player){ renderNoPlayer(); return; }
   if (lotActive) return;            // un lot est déjà en cours, on le garde
   if (!deck.length){ renderEmptyDeck(); return; }
-  buildSubseries(); renderSubseries(); startLot();
+  buildLists(); renderLists(); startLot();
 }
 
-document.getElementById('add-one').addEventListener('click', onAddOne);
-document.getElementById('add-many').addEventListener('click', onAddMany);
-document.getElementById('add-tr').addEventListener('keydown', e => { if (e.key === 'Enter') onAddOne(); });
+document.getElementById('list-save').addEventListener('click', saveList);
+document.getElementById('list-cancel').addEventListener('click', resetEditor);
 
 /* si le joueur change via le bandeau de progress.js, on recharge */
 setInterval(() => {
@@ -1015,6 +1066,7 @@ function esc(s){ return (s==null?'':String(s)).replace(/[&<>"]/g, c => ({'&':'&a
 
 initFb();
 paintAddLabels();
+resetEditor();
 loadDeck();
 </script>
 </body>
