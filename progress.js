@@ -65,6 +65,15 @@
         { key: 'paris',    label: 'Paris',       max: 1 }
       ]
     }
+     ,
+{
+  key: 'langues',
+  label: 'learn lagagne',
+  cats: [
+    { key: 'pt', label: 'português', max: 100 },
+    { key: 'fr', label: 'français',  max: 100 }
+  ]
+}
   ];
 
   // ── STORAGE (localStorage si dispo, sinon mémoire) ──────────
