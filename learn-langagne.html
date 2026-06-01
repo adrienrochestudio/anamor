@@ -127,22 +127,41 @@
 
   /* ── éditeur de liste ────────────────────────── */
   .ll-editor-title { font-size: 1.3rem; color: var(--b); text-align: left; margin-bottom: 14px; }
-  .ll-gridhead {
-    display: grid; grid-template-columns: 26px 1fr 1fr; gap: 8px; align-items: center;
-    font-size: .8rem; color: var(--m); text-align: left; margin-bottom: 6px; padding-left: 0;
+
+  .ll-import { text-align: left; margin-bottom: 18px; border: 1.5px solid var(--bl); padding: 0 12px; }
+  .ll-import summary {
+    cursor: pointer; padding: 9px 0; font-size: .95rem; color: var(--b);
   }
-  .ll-gridhead span:first-child { grid-column: 1 / 2; }
+  .ll-import summary:hover { color: var(--b); opacity: .8; }
+  .ll-import textarea {
+    width: 100%; box-sizing: border-box; font-family: 'Patrick Hand', cursive; font-size: 1rem;
+    padding: 10px 12px; border: 1.5px solid var(--bl); background: var(--w); color: var(--t);
+    min-height: 110px; resize: vertical; line-height: 1.5; margin: 8px 0;
+  }
+  .ll-import textarea:focus { outline: none; border-color: var(--b); }
+  .ll-import button { margin-bottom: 12px; }
+
+  .ll-gridhead {
+    display: grid; grid-template-columns: 24px 1fr 1fr 1fr; gap: 8px; align-items: end;
+    font-size: .78rem; color: var(--m); text-align: left; margin-bottom: 6px;
+  }
   .ll-grid { display: flex; flex-direction: column; gap: 6px; }
-  .g-row { display: grid; grid-template-columns: 26px 1fr 14px 1fr; gap: 8px; align-items: center; }
+  .g-row { display: grid; grid-template-columns: 24px 1fr 1fr 1fr; gap: 8px; align-items: center; }
   .g-num { font-size: .8rem; color: var(--m); text-align: right; }
-  .g-eq { color: var(--m); text-align: center; }
   .g-row input {
     font-family: 'Patrick Hand', cursive; font-size: 1rem; padding: 7px 9px;
     border: 1.5px solid var(--bl); background: var(--w); color: var(--t); width: 100%; box-sizing: border-box;
   }
   .g-row input:focus { outline: none; border-color: var(--b); }
+  .g-row input.g-note { color: var(--m); }
   .ll-count { text-align: right; font-size: .86rem; color: var(--m); margin: 12px 0 16px; }
   .ll-count.ok { color: var(--b); }
+
+  @media (max-width: 600px) {
+    .ll-gridhead { display: none; }
+    .g-row { grid-template-columns: 20px 1fr; row-gap: 4px; }
+    .g-row .g-num { grid-row: span 3; align-self: start; padding-top: 8px; }
+  }
 
   /* ── gestion des listes ──────────────────────── */
   .ll-listmgr { margin-top: 34px; text-align: left; }
@@ -230,6 +249,14 @@
   .ll-feedback .ok { color: var(--b); }
   .ll-feedback .no { color: var(--b); }
   .ll-feedback .sol { color: var(--b); }
+  .fb-note {
+    margin-top: 10px; font-size: .92rem; color: var(--m);
+    border-left: 2px solid var(--bl); padding-left: 10px; text-align: left;
+  }
+  .ll-redo {
+    font-size: .82rem; color: var(--m); margin-bottom: 10px;
+    border-left: 2px solid var(--b); padding-left: 8px; text-align: left; opacity: .85;
+  }
 
   .ll-actions { margin-top: 20px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
 
@@ -352,7 +379,6 @@
 
 <header>
   <div class="title-main">learn lagagne</div>
-  <div class="title-sub">des flashcards. on apprend par petits lots, bah oui.</div>
 </header>
 
 <div class="ll-wrap">
@@ -388,7 +414,15 @@
         <label>nom de la liste</label>
         <input type="text" id="list-name" placeholder="ex. la cuisine, les verbes, les émotions...">
       </div>
-      <div class="ll-gridhead"><span id="gh-term">mot (en português)</span><span>traduction</span></div>
+
+      <details class="ll-import">
+        <summary>coller une liste d'un coup</summary>
+        <div class="ll-mini">une ligne par mot : <code>mot = traduction</code> — et au besoin <code>mot = traduction = truc mnémo</code></div>
+        <textarea id="import-text" placeholder="obrigado = merci&#10;saudade = le manque / la nostalgie = nostalgie d'un truc absent&#10;..."></textarea>
+        <button class="btn" id="import-fill">remplir la grille</button>
+      </details>
+
+      <div class="ll-gridhead"><span></span><span id="gh-term">mot (en português)</span><span>traduction</span><span>truc mnémo (optionnel)</span></div>
       <div class="ll-grid" id="list-grid"></div>
       <div class="ll-count" id="list-count">0 / 12 mots</div>
       <div class="ll-actions">
@@ -446,6 +480,8 @@ let selList = 'all';             // liste active pour le quiz : 'all' ou nom de 
 let editList = null;             // nom de la liste en cours d'édition (null = création)
 let lot = null;                  // lot en cours
 let lotActive = false;           // un lot est-il en cours de jeu ?
+let pendingTimer = null;         // minuterie d'auto-avance (réponse juste)
+let redoHTML = '';               // bandeau "on refait ce mot raté"
 
 /* ── helpers texte ─────────────────────────────── */
 function norm(s){
@@ -457,6 +493,22 @@ function answers(raw){ return (raw||'').split('/').map(norm).filter(Boolean); }
 function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[a[i],a[j]]=[a[j],a[i]];} return a; }
 function nextOffset(streak){ return streak<=0 ? 1 : Math.min(Math.round(Math.pow(1.7,streak)),600); }
 function isAcquired(c){ return (c.sr.streak||0) >= ACQUIRED_AT; }
+
+// distance d'édition (Levenshtein) pour tolérer une petite faute de frappe
+function editDist(a, b){
+  const m = a.length, n = b.length;
+  if (Math.abs(m-n) > 1) return 2;
+  const dp = Array.from({length:m+1}, (_,i)=>[i, ...Array(n).fill(0)]);
+  for (let j=0;j<=n;j++) dp[0][j]=j;
+  for (let i=1;i<=m;i++) for (let j=1;j<=n;j++){
+    const c = a[i-1]===b[j-1] ? 0 : 1;
+    dp[i][j] = Math.min(dp[i-1][j]+1, dp[i][j-1]+1, dp[i-1][j-1]+c);
+  }
+  return dp[m][n];
+}
+function nearMiss(input, accepted){
+  return accepted.some(a => a.length > 3 && editDist(a, input) === 1);
+}
 
 /* ============================================================
    3) FIREBASE
@@ -481,7 +533,7 @@ async function fetchCards(l){
     Object.keys(v).forEach(id => {
       const x = v[id];
       if (x && x.lang === l){
-        out.push({ id, lang:x.lang, category:x.category||'(sans catégorie)', term:x.term, translation:x.translation, createdAt:x.createdAt||0 });
+        out.push({ id, lang:x.lang, category:x.category||'(sans catégorie)', term:x.term, translation:x.translation, note:x.note||'', createdAt:x.createdAt||0 });
       }
     });
   }
@@ -592,10 +644,11 @@ function startLot(){
   const pool = poolForSelection();
   lot = {
     pool, results:{}, cleared:{}, seen:{}, q:0,
-    cap: pool.length*3 + 6, learnedStart: learnedCount(),
+    cap: pool.length*60 + 60, learnedStart: learnedCount(),   // garde-fou très haut : on finit quand tout est réussi
     label: (selList === 'all') ? 'tout mélangé' : selList
   };
   lotActive = true;
+  if (pendingTimer){ clearTimeout(pendingTimer); pendingTimer = null; }
   nextQuestion();
 }
 
@@ -603,13 +656,17 @@ function lotCleared(){ return lot.pool.filter(c => lot.cleared[c.id]).length; }
 
 function updateDeckline(){
   const remaining = lot.pool.length - lotCleared();
+  const uncleared = lot.pool.filter(c => !lot.cleared[c.id]);
+  const review = uncleared.length > 0 && uncleared.every(c => lot.results[c.id] && lot.results[c.id].missed);
   setDeckline(
-    lot.label + ' &middot; <strong>'+remaining+'</strong> mot(s) à finir &nbsp;·&nbsp; ' +
-    'appris : <strong>'+learnedCount()+'/'+deck.length+'</strong> &nbsp;·&nbsp; '+pctLearned()+'%'
+    lot.label + ' &middot; <strong>'+remaining+'</strong> mot(s) à finir' +
+    (review ? ' &middot; <strong>on refait les ratés</strong>' : '') +
+    ' &nbsp;·&nbsp; appris : <strong>'+learnedCount()+'/'+deck.length+'</strong> &nbsp;·&nbsp; '+pctLearned()+'%'
   );
 }
 
 function nextQuestion(){
+  if (pendingTimer){ clearTimeout(pendingTimer); pendingTimer = null; }
   document.removeEventListener('keydown', enterNext);
   if (!lot || lot.q >= lot.cap){ showRecap(); return; }
   const card = pickLotCard();
@@ -620,6 +677,8 @@ function nextQuestion(){
 }
 
 function renderQuestion(card){
+  const wasMissed = lot.results[card.id] && lot.results[card.id].missed && !lot.cleared[card.id];
+  redoHTML = wasMissed ? '<div class="ll-redo">on refait celui-ci, il n\'était pas bon.</div>' : '';
   const multi = card.term.trim().split(/\s+/).length > 1;
   const canMC = deck.length >= 4;
   let type;
@@ -652,6 +711,7 @@ function renderType(card, askTranslation){
   const label  = askTranslation ? 'tape la traduction' : 'tape le mot (en '+langName()+')';
 
   quizZone().innerHTML =
+    redoHTML +
     '<div class="ll-card">' +
       '<div class="ll-qtype">'+label+'</div>' +
       '<div class="ll-prompt">'+esc(prompt)+'</div>' +
@@ -671,10 +731,12 @@ function renderType(card, askTranslation){
 function submitType(card, accept, askTranslation){
   const inp = document.getElementById('ans');
   if (inp.disabled) return;
-  const good = accept.includes(norm(inp.value));
+  const val = norm(inp.value);
+  let good = accept.includes(val), near = false;
+  if (!good && nearMiss(val, accept)){ good = true; near = true; }
   inp.disabled = true;
   const solution = askTranslation ? card.translation : card.term;
-  feedback(good, solution);
+  feedback(good, solution, { card, near });
   grade(card, good);
 }
 
@@ -687,6 +749,7 @@ function renderFill(card){
   const shown = words.map((w,i)=> i===bi ? '<span class="blank">'+esc(w)+'</span>' : esc(w)).join(' ');
 
   quizZone().innerHTML =
+    redoHTML +
     '<div class="ll-card">' +
       '<div class="ll-qtype">complète le mot</div>' +
       '<div class="ll-prompt">'+shown+'</div>' +
@@ -708,9 +771,11 @@ function renderFill(card){
 function submitFill(card, accept, solution){
   const inp = document.getElementById('ans');
   if (inp.disabled) return;
-  const good = accept.includes(norm(inp.value));
+  const val = norm(inp.value);
+  let good = accept.includes(val), near = false;
+  if (!good && nearMiss(val, accept)){ good = true; near = true; }
   inp.disabled = true;
-  feedback(good, solution);
+  feedback(good, solution, { card, near });
   grade(card, good);
 }
 
@@ -726,6 +791,7 @@ function renderMC(card){
   opts.forEach(o => { btns += '<button class="ll-choice" data-v="'+esc(o)+'">'+esc(o)+'</button>'; });
 
   quizZone().innerHTML =
+    redoHTML +
     '<div class="ll-card">' +
       '<div class="ll-qtype">choisis la traduction</div>' +
       '<div class="ll-prompt">'+esc(card.term)+'</div>' +
@@ -742,23 +808,35 @@ function renderMC(card){
         if (norm(x.dataset.v) === norm(correct)) x.classList.add('right');
         else if (x === b) x.classList.add('wrong');
       });
-      feedback(good, card.translation);
+      feedback(good, card.translation, { card });
       grade(card, good);
     });
   });
 }
 
-/* — feedback + suite — */
-function feedback(good, solution){
+/* — feedback + suite —
+   juste -> on avance tout seul ; faux -> il faut cliquer "avancer" — */
+function feedback(good, solution, opts){
+  opts = opts || {};
   const fb = document.getElementById('fb');
-  if (good){ fb.innerHTML = '<span class="ok">juste !</span>'; }
-  else { fb.innerHTML = '<span class="no">raté</span> — c\'était : <span class="sol">'+esc(solution)+'</span>'; }
-  setActions('<button class="btn btn-full" id="next">continuer</button>');
-  const nx = document.getElementById('next');
-  nx.focus();
-  nx.addEventListener('click', nextQuestion);
-  document.removeEventListener('keydown', enterNext);
-  document.addEventListener('keydown', enterNext);
+  if (good){
+    fb.innerHTML = opts.near
+      ? '<span class="ok">presque !</span> &nbsp;orthographe : <span class="sol">'+esc(solution)+'</span>'
+      : '<span class="ok">juste !</span>';
+    setActions('');
+    document.removeEventListener('keydown', enterNext);
+    if (pendingTimer) clearTimeout(pendingTimer);
+    pendingTimer = setTimeout(() => { pendingTimer = null; if (lotActive) nextQuestion(); }, opts.near ? 1100 : 750);
+  } else {
+    const note = (opts.card && opts.card.note) ? '<div class="fb-note">truc : '+esc(opts.card.note)+'</div>' : '';
+    fb.innerHTML = '<span class="no">faux</span> — c\'était : <span class="sol">'+esc(solution)+'</span>'+note;
+    setActions('<button class="btn btn-full" id="next">avancer</button>');
+    const nx = document.getElementById('next');
+    nx.focus();
+    nx.addEventListener('click', nextQuestion);
+    document.removeEventListener('keydown', enterNext);
+    document.addEventListener('keydown', enterNext);
+  }
 }
 function enterNext(e){
   if (e.key === 'Enter'){ const n = document.getElementById('next'); if (n){ document.removeEventListener('keydown', enterNext); n.click(); } }
@@ -864,17 +942,17 @@ async function refreshDeckSilently(){
   lotActive = false;        // le lot devra être recomposé en revenant sur "jouer"
 }
 
-/* — la grille de 12 lignes (mot = traduction) — */
+/* — la grille : 12 lignes (mot, traduction, truc mnémo optionnel) — */
 function renderGrid(rows){
   const n = Math.max(LIST_SIZE, rows.length);
   let html = '';
   for (let i=0; i<n; i++){
-    const r = rows[i] || { id:'', term:'', tr:'' };
+    const r = rows[i] || { id:'', term:'', tr:'', note:'' };
     html += '<div class="g-row" data-id="'+esc(r.id||'')+'">' +
       '<span class="g-num">'+(i+1)+'</span>' +
       '<input class="g-term" value="'+esc(r.term||'')+'" placeholder="mot" autocomplete="off" autocapitalize="off">' +
-      '<span class="g-eq">=</span>' +
       '<input class="g-tr" value="'+esc(r.tr||'')+'" placeholder="traduction" autocomplete="off" autocapitalize="off">' +
+      '<input class="g-note" value="'+esc(r.note||'')+'" placeholder="truc mnémo (optionnel)" autocomplete="off" autocapitalize="off">' +
     '</div>';
   }
   const grid = document.getElementById('list-grid');
@@ -888,7 +966,8 @@ function gridRows(){
     out.push({
       id: row.dataset.id || '',
       term: (row.querySelector('.g-term').value || '').trim(),
-      tr:   (row.querySelector('.g-tr').value || '').trim()
+      tr:   (row.querySelector('.g-tr').value || '').trim(),
+      note: (row.querySelector('.g-note').value || '').trim()
     });
   });
   return out;
@@ -900,10 +979,29 @@ function updateCount(){
   el.classList.toggle('ok', filled === LIST_SIZE);
 }
 
+/* — remplir la grille depuis un texte collé — */
+function fillFromImport(){
+  const raw = document.getElementById('import-text').value || '';
+  const rows = [];
+  raw.split('\n').forEach(line => {
+    if (!line.trim()) return;
+    const parts = line.split(/\s*=\s*/);
+    const term = (parts[0]||'').trim();
+    const tr   = (parts[1]||'').trim();
+    const note = (parts.slice(2).join(' = ')||'').trim();
+    if (term && tr) rows.push({ id:'', term, tr, note });
+  });
+  if (!rows.length){ addStatus('rien de reconnu. format : mot = traduction (= truc).', false); return; }
+  renderGrid(rows);
+  const filled = rows.length;
+  addStatus(filled + ' mot(s) reconnu(s)' + (filled === LIST_SIZE ? '. nickel, tu peux créer la liste.' : '. il en faut exactement '+LIST_SIZE+'.'), filled === LIST_SIZE);
+}
+
 function resetEditor(){
   editList = null;
   document.getElementById('editor-title').textContent = 'créer une liste';
   document.getElementById('list-name').value = '';
+  document.getElementById('import-text').value = '';
   document.getElementById('list-save').textContent = 'créer la liste';
   document.getElementById('list-cancel').style.display = 'none';
   document.getElementById('add-status').innerHTML = '';
@@ -915,10 +1013,11 @@ function openListEditor(name){
   editList = name;
   document.getElementById('editor-title').textContent = 'éditer « '+name+' »';
   document.getElementById('list-name').value = name;
+  document.getElementById('import-text').value = '';
   document.getElementById('list-save').textContent = 'enregistrer';
   document.getElementById('list-cancel').style.display = '';
   document.getElementById('add-status').innerHTML = '';
-  renderGrid(l.cards.map(c => ({ id:c.id, term:c.term, tr:c.translation })));
+  renderGrid(l.cards.map(c => ({ id:c.id, term:c.term, tr:c.translation, note:c.note||'' })));
   document.getElementById('list-editor').scrollIntoView({ behavior:'smooth', block:'start' });
 }
 
@@ -940,7 +1039,7 @@ async function saveList(){
       const base = Date.now();
       for (let i=0; i<rows.length; i++){
         const r = push(ref(db,'flashcards'));
-        await set(r, { lang, category:name, term:rows[i].term, translation:rows[i].tr, createdAt: base + i });
+        await set(r, { lang, category:name, term:rows[i].term, translation:rows[i].tr, note:rows[i].note||'', createdAt: base + i });
       }
     } else {
       const prev = lists.find(x => x.name === editList);
@@ -950,10 +1049,10 @@ async function saveList(){
         const r = rows[i];
         if (r.id){
           kept[r.id] = true;
-          await update(ref(db,'flashcards/'+r.id), { term:r.term, translation:r.tr, category:name });
+          await update(ref(db,'flashcards/'+r.id), { term:r.term, translation:r.tr, note:r.note||'', category:name });
         } else {
           const nr = push(ref(db,'flashcards'));
-          await set(nr, { lang, category:name, term:r.term, translation:r.tr, createdAt: base + i });
+          await set(nr, { lang, category:name, term:r.term, translation:r.tr, note:r.note||'', createdAt: base + i });
         }
       }
       if (prev){ for (const c of prev.cards){ if (!kept[c.id]) await remove(ref(db,'flashcards/'+c.id)); } }
@@ -1051,6 +1150,7 @@ function enterQuizView(){
 
 document.getElementById('list-save').addEventListener('click', saveList);
 document.getElementById('list-cancel').addEventListener('click', resetEditor);
+document.getElementById('import-fill').addEventListener('click', fillFromImport);
 
 /* si le joueur change via le bandeau de progress.js, on recharge */
 setInterval(() => {
