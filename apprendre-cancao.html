@@ -102,10 +102,31 @@
 
   .controls{
     max-width:1100px;
-    margin:8px auto 30px;
-    padding:0 40px;
+    margin:0 auto 22px;
+    padding:0 52px;
     display:flex;
-    justify-content:center;
+    justify-content:flex-end;
+  }
+
+  .sort-toggle{
+    background:none;
+    border:none;
+    padding:0;
+    cursor:pointer;
+    color:var(--muted);
+    font-family:'Patrick Hand',cursive;
+    font-size:.92rem;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    transition:color .18s;
+  }
+
+  .sort-toggle:hover{ color:var(--bord); }
+
+  .sort-arrow{
+    font-size:1.05rem;
+    line-height:1;
   }
 
   .main-wrap{
@@ -485,7 +506,10 @@
 </header>
 
 <div class="controls">
-  <button class="btn btn-soft btn-sm" id="sort-toggle">du plus récent au plus vieux</button>
+  <button class="sort-toggle" id="sort-toggle">
+    <span id="sort-text">du plus récent au plus vieux</span>
+    <span class="sort-arrow" id="sort-arrow">&#8595;</span>
+  </button>
 </div>
 
 <main class="main-wrap">
@@ -680,8 +704,9 @@ function initials(name){
 function render(){
   renderColumn(colFr, "fr");
   renderColumn(colBr, "br");
-  document.getElementById("sort-toggle").textContent =
+  document.getElementById("sort-text").textContent =
     sortAsc ? "du plus vieux au plus récent" : "du plus récent au plus vieux";
+  document.getElementById("sort-arrow").textContent = sortAsc ? "\u2191" : "\u2193";
 }
 
 function renderColumn(container, country){
