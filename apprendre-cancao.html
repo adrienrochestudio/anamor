@@ -565,8 +565,8 @@
       </div>
 
       <div class="field full">
-        <label for="a-why">pourquoi il est bien</label>
-        <textarea id="a-why" placeholder="ce qui le rend spécial, pourquoi tu le recommandes..."></textarea>
+        <label for="a-why">pourquoi c'est bien</label>
+        <textarea id="a-why" placeholder="ce qui vaut le détour, pourquoi tu recommandes..."></textarea>
       </div>
 
       <div class="field full">
@@ -759,7 +759,7 @@ function buildCard(artist){
 
   let bodyHTML = '<div class="artist-body">';
   if(artist.description) bodyHTML += '<p>' + escapeHTML(artist.description) + '</p>';
-  if(artist.why) bodyHTML += '<p class="why"><span class="block-label">pourquoi il est bien</span>' + escapeHTML(artist.why) + '</p>';
+  if(artist.why) bodyHTML += '<p class="why"><span class="block-label">pourquoi c\'est bien</span>' + escapeHTML(artist.why) + '</p>';
   if(artist.anecdotes) bodyHTML += '<p class="anecdote"><span class="block-label">anecdote</span>' + escapeHTML(artist.anecdotes) + '</p>';
   bodyHTML += '</div>';
 
@@ -955,7 +955,7 @@ async function saveArtist(){
   if(!name){ showFormError("Il manque le nom de l'artiste."); return; }
   if(decades.length === 0){ showFormError("Coche au moins une décennie."); return; }
   if(!description){ showFormError("Mets une petite description."); return; }
-  if(!why){ showFormError("Dis pourquoi il est bien."); return; }
+  if(!why){ showFormError("Dis pourquoi c'est bien."); return; }
   if(currentPhoto && currentPhoto.length > PHOTO_MAX_CHARS){
     showFormError("Photo trop lourde même après compression. Essaie une image plus petite."); return;
   }
