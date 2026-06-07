@@ -192,7 +192,24 @@
     display:flex;
     gap:15px;
     align-items:flex-start;
+    cursor:pointer;
   }
+
+  .card-arrow{
+    margin-left:auto;
+    align-self:center;
+    color:var(--muted);
+    font-size:1.25rem;
+    line-height:1;
+    flex-shrink:0;
+    transition:transform .2s, color .18s;
+  }
+
+  .artist-head:hover .card-arrow{ color:var(--bord); }
+  .artist-card.open .card-arrow{ transform:rotate(180deg); }
+
+  .artist-collapse{ display:none; }
+  .artist-card.open .artist-collapse{ display:block; }
 
   .artist-photo{
     width:88px;
@@ -770,18 +787,22 @@ function buildCard(artist){
         '<h3>' + escapeHTML(artist.name) + '</h3>' +
         '<div class="artist-era">' + escapeHTML(eraText(artist)) + '</div>' +
       '</div>' +
+      '<span class="card-arrow" aria-hidden="true">\u2193</span>' +
     '</div>' +
-    songsHTML +
-    bodyHTML +
-    '<div class="artist-manage">' +
-      '<span>small options</span>' +
-      '<a class="manage-link" data-edit="' + artist.id + '">edit</a>' +
-      '<span>/</span>' +
-      '<a class="manage-link" data-delete="' + artist.id + '">delete</a>' +
+    '<div class="artist-collapse">' +
+      songsHTML +
+      bodyHTML +
+      '<div class="artist-manage">' +
+        '<span>small options</span>' +
+        '<a class="manage-link" data-edit="' + artist.id + '">edit</a>' +
+        '<span>/</span>' +
+        '<a class="manage-link" data-delete="' + artist.id + '">delete</a>' +
+      '</div>' +
     '</div>';
 
-  card.querySelector("[data-edit]").addEventListener("click", () => openEditModal(artist.id));
-  card.querySelector("[data-delete]").addEventListener("click", () => deleteArtist(artist.id));
+  card.querySelector(".artist-head").addEventListener("click", () => card.classList.toggle("open"));
+  card.querySelector("[data-edit]").addEventListener("click", e => { e.stopPropagation(); openEditModal(artist.id); });
+  card.querySelector("[data-delete]").addEventListener("click", e => { e.stopPropagation(); deleteArtist(artist.id); });
   return card;
 }
 
