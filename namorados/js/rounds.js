@@ -1,24 +1,26 @@
 // ============================================================
-// rounds.js — les 3 manches de l'atelier (step 2)
+// rounds.js : les 3 manches de l'atelier (step 2)
 //
 // Sous-machine a etats SYNCHRONISEE, stockee dans RTDB sous
 //   atelier = { sub:int, ready:{ ana:int, adrien:int } }
 //
-// sub :  0 exquis-dessin   1 exquis-reveal
-//        2 portrait-dessin 3 portrait-reveal
-//        4 devine (adrien dessine) 5 devine (ana dessine)
-//        6 fini -> on rend la main a soiree.js (step 3)
+// sub :  0 exquis-dessin    1 exquis-reveal
+//        2 portrait-dessin  3 portrait-reveal
+//        4..9 devine (6 manches, dessinateur alterne, 3 par personne)
+//        10 fini -> on rend la main a soiree.js (step 3)
 //
 // Manches (cf brief 1.7) :
 //   1. cadavre exquis  : adrien moitie haute, ana moitie basse.
 //      showOwn=true, showOther=false. reveal = superposition.
-//   2. portrait a l'aveugle : showOwn=false, showOther=false, ~75s.
-//      reveal = les deux portraits cote a cote.
-//   3. dessine-devine : un dessine (showOwn), l'autre voit le trait
-//      en direct (showOther) et tape. tolerance Levenshtein.
+//   2. portrait a l'aveugle : chacun dans SA moitie (ana gauche,
+//      adrien droite) pour ne pas se chevaucher. ~75s. reveal superpose.
+//   3. dessine-devine : mot TIRE AU SORT dans un pool de 20, stocke
+//      dans la RTDB (meme mot pour les deux). un dessine (showOwn),
+//      l'autre voit le trait en direct (showOther) et tape. tolerance
+//      articles + Levenshtein. 6 manches, 3 chacun.
 // ============================================================
 
-// distance d'edition (Levenshtein) — reprise de "learn lagagne"
+// distance d'edition (Levenshtein), reprise de "learn lagagne"
 export function editDist(a, b){
   const m = a.length, n = b.length;
   if (Math.abs(m - n) > 1) return 2;
@@ -56,14 +58,18 @@ export function accepts(input, entry){
   });
 }
 
-const DRAWER = { 4: "adrien", 5: "ana" };   // qui dessine a chaque manche devine
-const WORD_IDX = { 4: 0, 5: 1 };            // quel mot de content.guessWords
+// 6 manches de devinette (3 par personne), dessinateur alterne.
+const GUESS_SUBS = [4, 5, 6, 7, 8, 9];
+const DRAWER = { 4:"adrien", 5:"ana", 6:"adrien", 7:"ana", 8:"adrien", 9:"ana" };
+const LAST_SUB = 9;   // au dela -> atelier fini
 
-export function runAtelier({ cvs, me, other, content, room, dom, say }){
+export function runAtelier({ cvs, me, other, content, room, dom, say, fx }){
   const { roomWatch, roomUpdate, roomSet } = room;
   let lastSub = -1;
   let timerId = null;
   let solved = false;
+  let curWords = {};    // sub -> index du mot (tire au sort, partage via RTDB)
+  let assigned = {};    // sub -> j'ai deja demande le tirage (anti-doublon)
 
   cvs.setColors(content.colors);
 
@@ -76,12 +82,14 @@ export function runAtelier({ cvs, me, other, content, room, dom, say }){
   function readyUp(sub){ roomUpdate("atelier/ready", { [me]: sub }); }
 
   // ── rend une manche selon le sub courant ────────────────
+  function showDivider(on){ if (dom.divider) dom.divider.style.display = on ? "" : "none"; }
+
   function render(sub){
     clearTimer(); solved = false;
     dom.role.textContent = "";
-    showSecret(""); showTimer(""); showGuess(false); showSuivant(true);
+    showSecret(""); showTimer(""); showGuess(false); showSuivant(true); showDivider(false);
 
-    if (sub === 0){                                   // cadavre exquis — dessin
+    if (sub === 0){                                   // cadavre exquis, dessin
       say(content.roundIntros.exquis);
       const top = me === "adrien";
       dom.role.textContent = top ? content.atelier.roleTop : content.atelier.roleBottom;
@@ -91,43 +99,44 @@ export function runAtelier({ cvs, me, other, content, room, dom, say }){
       });
       dom.suivant.textContent = "fini, on revele";
     }
-    else if (sub === 1){                              // cadavre exquis — reveal
+    else if (sub === 1){                              // cadavre exquis, reveal
       say(content.atelier.exquisReveal);
       dom.role.textContent = "";
       cvs.reveal("exquis", "overlay");
       dom.suivant.textContent = "suivant →";
     }
-    else if (sub === 2){                              // portrait aveugle — dessin
+    else if (sub === 2){                              // portrait aveugle, dessin
       say(content.roundIntros.portrait);
-      dom.role.textContent = content.atelier.portraitRole;
-      cvs.startRound("portrait", { showOwn:false, showOther:false });
+      const left = me === "ana";                       // ana a gauche, adrien a droite
+      dom.role.textContent = left ? content.atelier.portraitLeft : content.atelier.portraitRight;
+      showDivider(true);                               // trait central = ta zone
+      cvs.startRound("portrait", {
+        showOwn:false, showOther:false,
+        region: left ? { x0:0, x1:0.5 } : { x0:0.5, x1:1 }
+      });
       dom.suivant.textContent = "fini";
-      let left = 75;
-      showTimer(`${left}s`);
+      let left2 = 75;
+      showTimer(`${left2}s`);
       timerId = setInterval(() => {
-        left--; showTimer(left > 0 ? `${left}s` : "time !");
-        if (left <= 0){ clearTimer(); readyUp(sub); }  // le temps fait office de "suivant"
+        left2--; showTimer(left2 > 0 ? `${left2}s` : "time !");
+        if (left2 <= 0){ clearTimer(); readyUp(sub); }  // le temps fait office de "suivant"
       }, 1000);
     }
-    else if (sub === 3){                              // portrait — reveal
+    else if (sub === 3){                              // portrait, reveal
       say(content.atelier.portraitReveal);
-      cvs.reveal("portrait", "side-by-side");
+      cvs.reveal("portrait", "overlay");               // chacun dans sa moitie -> superpose
       dom.suivant.textContent = "suivant →";
     }
-    else if (sub === 4 || sub === 5){                 // dessine-devine
-      const drawer = DRAWER[sub];
-      const entry = content.guessWords[WORD_IDX[sub]] || "?";
-      const word = String(entry).split("/")[0].trim();  // montre la 1re variante
-      const iDraw = me === drawer;
+    else if (GUESS_SUBS.includes(sub)){               // dessine-devine
+      const iDraw = me === DRAWER[sub];
       say(content.roundIntros.guess);
+      showSuivant(false);                              // on avance quand c'est trouve
       if (iDraw){
         dom.role.textContent = content.atelier.drawerRole;
-        showSecret(word);
-        showSuivant(false);                            // le dessinateur n'avance pas seul
+        showSecret("...");                             // le mot tire au sort arrive de la room
         cvs.startRound("guess" + sub, { showOwn:true, showOther:false });
       } else {
         dom.role.textContent = content.atelier.guesserRole;
-        showSuivant(false);
         showGuess(true);
         dom.guessInput.value = "";
         dom.guessFeedback.textContent = "";
@@ -137,21 +146,47 @@ export function runAtelier({ cvs, me, other, content, room, dom, say }){
     }
   }
 
+  // ── mot de la manche : tire au sort UNE fois, ecrit dans la RTDB ──
+  // (source de verite unique -> les deux ecrans ont le meme mot ; et
+  //  comme c'est aleatoire, meme adrien ne sait pas lequel tombe.)
+  function applyWord(sub){
+    const idx = curWords[sub];
+    const iDraw = me === DRAWER[sub];
+    if (idx == null){
+      if (iDraw && !assigned[sub]){
+        assigned[sub] = true;
+        const used = new Set(Object.values(curWords).map(Number));
+        const avail = content.guessWords.map((_, i) => i).filter(i => !used.has(i));
+        const pick = avail.length ? avail[(Math.random() * avail.length) | 0]
+                                  : (Math.random() * content.guessWords.length) | 0;
+        roomUpdate("atelier/words", { [sub]: pick });
+      }
+      return;
+    }
+    if (iDraw){
+      const entry = content.guessWords[idx] || "?";
+      showSecret(String(entry).split("/")[0].trim());  // 1re variante au dessinateur
+    }
+  }
+
   // ── soumission d'une proposition (devineur) ─────────────
   function submitGuess(){
     if (solved) return;
     const sub = lastSub;
-    if (sub !== 4 && sub !== 5) return;
-    const entry = content.guessWords[WORD_IDX[sub]] || "";
-    const val = dom.guessInput.value;
-    if (accepts(val, entry)){
+    if (!GUESS_SUBS.includes(sub)) return;
+    const idx = curWords[sub];
+    if (idx == null) return;                            // mot pas encore tire
+    const entry = content.guessWords[idx] || "";
+    if (accepts(dom.guessInput.value, entry)){
       solved = true;
       dom.guessFeedback.textContent = content.atelier.guessYes;
+      if (fx) fx.celebrate();
       roomSet("atelier/sub", sub + 1);                 // on avance les deux
     } else {
       dom.guessFeedback.textContent = content.atelier.guessNo;
       dom.guessInput.value = "";
       dom.guessInput.focus();
+      if (fx) fx.shake(dom.guessInput);
     }
   }
 
@@ -161,10 +196,12 @@ export function runAtelier({ cvs, me, other, content, room, dom, say }){
       if (!state){ roomSet("atelier", { sub:0, ready:{} }); return; }
       const sub = state.sub | 0;
 
-      if (sub >= 6){ clearTimer(); resolve(); return; }
+      if (sub > LAST_SUB){ clearTimer(); resolve(); return; }
 
       // (re)rendu seulement quand le sub change
       if (sub !== lastSub){ lastSub = sub; render(sub); }
+
+      curWords = state.words || {};
 
       // avancement "les deux prets" pour les manches a bouton.
       // sentinel -1 = "pas encore pret" (sinon le defaut 0 ferait
@@ -175,6 +212,9 @@ export function runAtelier({ cvs, me, other, content, room, dom, say }){
       if (sub <= 3 && ra >= sub && rd >= sub){
         roomSet("atelier/sub", sub + 1);
       }
+
+      // manches de devinette : tirage + affichage du mot
+      if (GUESS_SUBS.includes(sub)) applyWord(sub);
     });
 
     // bouton suivant : j'annonce que je suis pret a quitter le sub courant

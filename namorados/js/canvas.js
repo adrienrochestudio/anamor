@@ -66,7 +66,10 @@ export function createCanvas(canvasEl, me, other){
     let y = (e.clientY - r.top)  / r.height;
     x = Math.max(0, Math.min(1, x));
     y = Math.max(0, Math.min(1, y));
-    if (region){ y = Math.max(region.y0, Math.min(region.y1, y)); }
+    if (region){
+      if (region.y0 != null) y = Math.max(region.y0, Math.min(region.y1, y));
+      if (region.x0 != null) x = Math.max(region.x0, Math.min(region.x1, x));
+    }
     return { x, y };
   }
   function down(e){ if (locked) return; drawing = true; last = pos(e); }

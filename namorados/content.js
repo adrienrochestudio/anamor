@@ -36,6 +36,8 @@ export const content = {
     roleBottom:     "tu as la moitie du bas",
     exquisReveal:   "there. the monstre you made",
     portraitRole:   "draw the face, dont look at your line",
+    portraitLeft:   "you draw on the LEFT side. only the face",
+    portraitRight:  "you draw on the RIGHT side. only the face",
     portraitReveal: "you two, side by side",
     drawerRole:     "you draw. no words no letters",
     guesserRole:    "you guess, type what you see",
@@ -43,10 +45,32 @@ export const content = {
     guessNo:        "nope... again",
   },
 
-  // mots a dessiner. variantes acceptees separees par " / "
+  // POOL de mots a dessiner. on en tire 6 au hasard pendant la soiree
+  // (3 manches par personne), donc meme adrien ne sait pas lesquels
+  // tomberont. chaque entree = plusieurs reponses valides separees par
+  // " / " ; la 1re est celle montree au dessinateur. les articles
+  // (le/la/un/the/o/um...) et une petite faute de frappe sont tolerees.
   guessWords: [
-    "le métro / metro / subway / train / o metro / metrô",
-    "un chat / chat / cat / gato / gatinho / minou",
+    "le métro / metro / subway / metrô",
+    "un chat / chat / cat / gato / gatinho",
+    "la plage / plage / beach / praia",
+    "le soleil / soleil / sun / sol",
+    "une rose / rose / rosa",
+    "un coeur / coeur / cœur / heart / coracao",
+    "la lune / lune / moon / lua",
+    "un parapluie / parapluie / umbrella / guarda-chuva",
+    "un poisson / poisson / fish / peixe",
+    "une étoile / etoile / star / estrela",
+    "une maison / maison / house / casa",
+    "un oiseau / oiseau / bird / passaro",
+    "un gâteau / gateau / cake / bolo",
+    "une fleur / fleur / flower / flor",
+    "un avion / avion / plane / aviao",
+    "une montagne / montagne / mountain / montanha",
+    "un café / cafe / coffee / kawa",
+    "une guitare / guitare / guitar / violao",
+    "un nuage / nuage / cloud / nuvem",
+    "une clé / cle / key / chave",
   ],
 
   // capsule : entrees ecrites par les deux ce soir
