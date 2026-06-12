@@ -170,6 +170,18 @@ function mountGoodbye(){
   document.body.classList.add("night");
   say(content.goodbye);
   $("goodbye-text").textContent = content.goodbye;
+  // quelques coeurs lents qui montent dans le noir
+  const COLORS = [content.colors.ana, content.colors.adrien];
+  let i = 0;
+  const spawn = setInterval(() => {
+    if (++i > 24){ clearInterval(spawn); return; }
+    const h = document.createElement("span");
+    h.className = "bye-heart";
+    h.style.left = (6 + Math.random() * 88) + "vw";
+    h.style.background = COLORS[i % 2];
+    h.style.animationDuration = (6 + Math.random() * 5) + "s";
+    document.body.appendChild(h);
+  }, 900);
 }
 
 // ── boot ────────────────────────────────────────────────────

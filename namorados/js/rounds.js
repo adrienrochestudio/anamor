@@ -35,11 +35,25 @@ function norm(s){
     .normalize("NFD").replace(/[̀-ͯ]/g, "")
     .replace(/[.,!?;:]+$/, "").replace(/\s+/g, " ");
 }
-function accepts(input, target){
-  const i = norm(input), t = norm(target);
-  if (!i) return false;
-  if (i === t) return true;
-  return t.length > 3 && editDist(t, i) <= 1; // tolere une petite faute
+// retire les articles en tete ("le metro" == "metro" == "the metro")
+function stripArticles(s){
+  let out = s.replace(/'/g, " ").replace(/\s+/g, " ").trim();
+  const ART = /^(le|la|les|l|un|une|des|the|a|an|o|os|as|um|uma)\s+/;
+  while (ART.test(out)) out = out.replace(ART, "");
+  return out;
+}
+// une entree guessWords peut contenir plusieurs reponses "a / b / c"
+export function accepts(input, entry){
+  const raw = norm(input);
+  if (!raw) return false;
+  const guesses = [raw, stripArticles(raw)];
+  const variants = String(entry).split("/").map(norm).filter(Boolean);
+  return variants.some(v => {
+    const targets = [v, stripArticles(v)];
+    return targets.some(t => guesses.some(g =>
+      g === t || (t.length > 3 && editDist(t, g) <= 1)   // tolere une petite faute
+    ));
+  });
 }
 
 const DRAWER = { 4: "adrien", 5: "ana" };   // qui dessine a chaque manche devine
@@ -70,7 +84,7 @@ export function runAtelier({ cvs, me, other, content, room, dom, say }){
     if (sub === 0){                                   // cadavre exquis — dessin
       say(content.roundIntros.exquis);
       const top = me === "adrien";
-      dom.role.textContent = top ? "tu as la moitie du haut" : "tu as la moitie du bas";
+      dom.role.textContent = top ? content.atelier.roleTop : content.atelier.roleBottom;
       cvs.startRound("exquis", {
         showOwn:true, showOther:false,
         region: top ? { y0:0, y1:0.5 } : { y0:0.5, y1:1 }
@@ -78,14 +92,14 @@ export function runAtelier({ cvs, me, other, content, room, dom, say }){
       dom.suivant.textContent = "fini, on revele";
     }
     else if (sub === 1){                              // cadavre exquis — reveal
-      say("there. the monster you made.");
+      say(content.atelier.exquisReveal);
       dom.role.textContent = "";
       cvs.reveal("exquis", "overlay");
       dom.suivant.textContent = "suivant →";
     }
     else if (sub === 2){                              // portrait aveugle — dessin
       say(content.roundIntros.portrait);
-      dom.role.textContent = "draw the face. don't look at your line.";
+      dom.role.textContent = content.atelier.portraitRole;
       cvs.startRound("portrait", { showOwn:false, showOther:false });
       dom.suivant.textContent = "fini";
       let left = 75;
@@ -96,22 +110,23 @@ export function runAtelier({ cvs, me, other, content, room, dom, say }){
       }, 1000);
     }
     else if (sub === 3){                              // portrait — reveal
-      say("you two. side by side.");
+      say(content.atelier.portraitReveal);
       cvs.reveal("portrait", "side-by-side");
       dom.suivant.textContent = "suivant →";
     }
     else if (sub === 4 || sub === 5){                 // dessine-devine
       const drawer = DRAWER[sub];
-      const word = content.guessWords[WORD_IDX[sub]] || "?";
+      const entry = content.guessWords[WORD_IDX[sub]] || "?";
+      const word = String(entry).split("/")[0].trim();  // montre la 1re variante
       const iDraw = me === drawer;
       say(content.roundIntros.guess);
       if (iDraw){
-        dom.role.textContent = "you draw. no words, no letters.";
+        dom.role.textContent = content.atelier.drawerRole;
         showSecret(word);
         showSuivant(false);                            // le dessinateur n'avance pas seul
         cvs.startRound("guess" + sub, { showOwn:true, showOther:false });
       } else {
-        dom.role.textContent = "you guess. type what you see.";
+        dom.role.textContent = content.atelier.guesserRole;
         showSuivant(false);
         showGuess(true);
         dom.guessInput.value = "";
@@ -127,14 +142,14 @@ export function runAtelier({ cvs, me, other, content, room, dom, say }){
     if (solved) return;
     const sub = lastSub;
     if (sub !== 4 && sub !== 5) return;
-    const word = content.guessWords[WORD_IDX[sub]] || "";
+    const entry = content.guessWords[WORD_IDX[sub]] || "";
     const val = dom.guessInput.value;
-    if (accepts(val, word)){
+    if (accepts(val, entry)){
       solved = true;
-      dom.guessFeedback.textContent = "yes ! that's it.";
+      dom.guessFeedback.textContent = content.atelier.guessYes;
       roomSet("atelier/sub", sub + 1);                 // on avance les deux
     } else {
-      dom.guessFeedback.textContent = "nope... again";
+      dom.guessFeedback.textContent = content.atelier.guessNo;
       dom.guessInput.value = "";
       dom.guessInput.focus();
     }

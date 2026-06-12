@@ -167,6 +167,26 @@ button:disabled{ opacity:.5; cursor:default; border-style:dashed; }
   opacity:.9;
 }
 
+/* ── coeurs de l'au revoir ── */
+.bye-heart{
+  position:fixed; bottom:-26px; z-index:50;
+  width:14px; height:14px;
+  transform:rotate(45deg);
+  pointer-events:none;
+  animation:bye-rise linear forwards;
+}
+.bye-heart::before,.bye-heart::after{
+  content:""; position:absolute;
+  width:14px; height:14px; border-radius:50%;
+  background:inherit;
+}
+.bye-heart::before{ left:-7px; top:0; }
+.bye-heart::after{ left:0; top:-7px; }
+@keyframes bye-rise{
+  from{ transform:translateY(0) rotate(45deg); opacity:.7; }
+  to{ transform:translateY(-115vh) rotate(45deg); opacity:0; }
+}
+
 /* ── mobile ── */
 @media(max-width:600px){
   #kompiuter{ padding-top:22px; }
