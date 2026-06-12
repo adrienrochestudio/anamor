@@ -84,6 +84,28 @@ export function runAtelier({ cvs, me, other, content, room, dom, say, fx }){
   // ── rend une manche selon le sub courant ────────────────
   function showDivider(on){ if (dom.divider) dom.divider.style.display = on ? "" : "none"; }
 
+  // visage-exemple gris tres grossier (style mumy joe), dans MA moitie.
+  // jitter aleatoire => l'air croquis. il s'efface au 1er trait.
+  function buildGhostFace(left){
+    const cx = left ? 0.25 : 0.75, cy = 0.45, rx = 0.15, ry = 0.27;
+    const segs = [], J = 0.013;
+    const line = (x1, y1, x2, y2) => segs.push({ x1, y1, x2, y2 });
+    let prev = null;
+    for (let i = 0; i <= 13; i++){
+      const a = (i / 13) * Math.PI * 2;
+      const p = [cx + Math.cos(a) * rx + (Math.random()*2-1)*J,
+                 cy + Math.sin(a) * ry + (Math.random()*2-1)*J];
+      if (prev) line(prev[0], prev[1], p[0], p[1]);
+      prev = p;
+    }
+    line(cx-0.06, cy-0.07, cx-0.055, cy-0.02);   // oeil g
+    line(cx+0.06, cy-0.07, cx+0.065, cy-0.02);   // oeil d
+    line(cx, cy-0.01, cx-0.012, cy+0.05);        // nez
+    line(cx-0.055, cy+0.12, cx, cy+0.155);       // bouche
+    line(cx, cy+0.155, cx+0.055, cy+0.12);
+    return segs;
+  }
+
   function render(sub){
     clearTimer(); solved = false;
     dom.role.textContent = "";
@@ -112,7 +134,8 @@ export function runAtelier({ cvs, me, other, content, room, dom, say, fx }){
       showDivider(true);                               // trait central = ta zone
       cvs.startRound("portrait", {
         showOwn:false, showOther:false,
-        region: left ? { x0:0, x1:0.5 } : { x0:0.5, x1:1 }
+        region: left ? { x0:0, x1:0.5 } : { x0:0.5, x1:1 },
+        ghost: buildGhostFace(left)                     // exemple grossier qui s'efface
       });
       dom.suivant.textContent = "fini";
       let left2 = 75;

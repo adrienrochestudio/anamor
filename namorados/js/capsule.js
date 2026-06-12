@@ -1,5 +1,5 @@
 // ============================================================
-// capsule.js — scellement de la capsule (step 3)
+// capsule.js : scellement de la capsule (step 3)
 //
 // Chacun saisit ses entrees (content.capsulePrompts). On ecrit
 //   capsule/entries/{player} = { "<prompt>": "<reponse>", ... }

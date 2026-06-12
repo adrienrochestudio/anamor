@@ -1,5 +1,5 @@
 // ============================================================
-// soiree.js — machine a etats + repliques du kompiuter
+// soiree.js : machine a etats + repliques du kompiuter
 //
 // Le `step` partage (room) pilote l'ecran des DEUX. Toutes les
 // paroles viennent de content.js.
@@ -179,18 +179,10 @@ function mountGoodbye(){
   document.body.classList.add("night");
   say(content.goodbye);
   $("goodbye-text").textContent = content.goodbye;
-  // quelques coeurs lents qui montent dans le noir
-  const COLORS = [content.colors.ana, content.colors.adrien];
-  let i = 0;
-  const spawn = setInterval(() => {
-    if (++i > 24){ clearInterval(spawn); return; }
-    const h = document.createElement("span");
-    h.className = "bye-heart";
-    h.style.left = (6 + Math.random() * 88) + "vw";
-    h.style.background = COLORS[i % 2];
-    h.style.animationDuration = (6 + Math.random() * 5) + "s";
-    document.body.appendChild(h);
-  }, 900);
+  // de vrais coeurs dessines qui montent doucement dans le noir
+  let waves = 0;
+  const tick = setInterval(() => { if (++waves > 4){ clearInterval(tick); return; } fx.rise("heart", 10); }, 4200);
+  fx.rise("heart", 10);
 }
 
 // ── boot ────────────────────────────────────────────────────
@@ -198,11 +190,8 @@ function mountGoodbye(){
 // Permet de tester les deux roles dans deux onglets du MEME navigateur
 // (sinon le localStorage est partage entre onglets et les deux seraient
 // le meme joueur). Sans le parametre : flux normal (localStorage).
+// On demande TOUJOURS qui tu es a la connexion (meme si le cache n'a
+// pas ete vide). ?me=ana / ?me=adrien force le role pour le test solo.
 const forced = new URLSearchParams(location.search).get("me");
-if (forced === "ana" || forced === "adrien"){
-  start(forced, false);
-} else {
-  const saved = localStorage.getItem("namorados-me");
-  if (saved === "ana" || saved === "adrien") start(saved);
-  else chooseIdentity();
-}
+if (forced === "ana" || forced === "adrien") start(forced, false);
+else chooseIdentity();

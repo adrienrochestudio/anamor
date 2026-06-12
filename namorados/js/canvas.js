@@ -1,5 +1,5 @@
 // ============================================================
-// canvas.js — moteur de toile partagee
+// canvas.js : moteur de toile partagee
 //
 // Segments normalises { x1,y1,x2,y2,color } dans [0..1], pousses
 // dans RTDB sous  draw/{round}/{player}  (une cle par manche et par
@@ -24,6 +24,8 @@ export function createCanvas(canvasEl, me, other){
   let flags = { showOwn:true, showOther:true };
   let region = null;          // {y0,y1} pour limiter ma zone (cadavre exquis)
   let locked = false;         // true = je ne peux pas dessiner (le devineur)
+  let ghost = [];             // traits-exemple gris (disparaissent au 1er trait)
+  let ghostGone = false;
   let ownSegs = [];           // mes segments (round courant)
   let otherSegs = [];         // segments de l'autre (round courant)
   let otherUnsub = null;
@@ -40,9 +42,9 @@ export function createCanvas(canvasEl, me, other){
   }
   window.addEventListener("resize", fit);
 
-  function seg(s, color){
+  function seg(s, color, width){
     ctx.strokeStyle = color;
-    ctx.lineWidth = 2.2 * DPR;
+    ctx.lineWidth = (width || 2.2) * DPR;
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
     ctx.beginPath();
@@ -55,6 +57,11 @@ export function createCanvas(canvasEl, me, other){
 
   function redraw(){
     clearScreen();
+    if (ghost.length && !ghostGone){
+      ctx.save(); ctx.globalAlpha = 0.5;
+      ghost.forEach(s => seg(s, "#c7bdb3", 4));   // exemple gris tres grossier
+      ctx.restore();
+    }
     if (flags.showOther) otherSegs.forEach(s => seg(s, otherColor));
     if (flags.showOwn)   ownSegs.forEach(s => seg(s, myColor));
   }
@@ -72,7 +79,11 @@ export function createCanvas(canvasEl, me, other){
     }
     return { x, y };
   }
-  function down(e){ if (locked) return; drawing = true; last = pos(e); }
+  function down(e){
+    if (locked) return;
+    if (ghost.length && !ghostGone){ ghostGone = true; redraw(); }  // l'exemple disparait des qu'on dessine
+    drawing = true; last = pos(e);
+  }
   function move(e){
     if (!drawing) return;
     const p = pos(e);
@@ -104,6 +115,7 @@ export function createCanvas(canvasEl, me, other){
       flags = { showOwn: opts.showOwn !== false, showOther: !!opts.showOther };
       region = opts.region || null;
       locked = !!opts.locked;
+      ghost = opts.ghost || []; ghostGone = false;
       ownSegs = []; otherSegs = [];
       if (otherUnsub){ otherUnsub(); otherUnsub = null; }
       clearScreen();
