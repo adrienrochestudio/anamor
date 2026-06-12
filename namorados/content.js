@@ -99,7 +99,7 @@ export const content = {
   // envoi auto de nos dessins (.png) par email a la toute fin.
   // <<< ADRIEN : colle l'URL du web app Apps Script ici (voir EMAIL_SETUP.md).
   // tant que c'est vide, rien n'est envoye (la soiree marche quand meme).
-  mailEndpoint: "",
+  mailEndpoint: "https://script.google.com/macros/s/AKfycbxSKkKIcldUv3dfSCE_9YPU_gPEoFs3YmAp2o2w4r-nyZj-lVuVFVn21FB0PJsq1TftDQ/exec",
   mailTo: "adrien.etks@gmail.com",
   mailSubject: "nossos desenhos, dia dos namorados",
   mailMessage: "oi bonita! here is our little dia dos namorados drawings uhu",
