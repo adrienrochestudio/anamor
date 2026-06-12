@@ -90,6 +90,12 @@ export const content = {
 
   goodbye: "okae lovebirds, that is all i made. enjoy your nigth. i be here tomorow",
 
+  // au revoir : verif cote ana + bouton d'envoi cote adrien
+  goodbyeAnaConfirm: "u are ana right ?",
+  goodbyeAnaCheck:   "uh... ok. check you e mael",
+  goodbyeAdrienBtn:  "send to ana",
+  goodbyeAdrienSent: "sent. tell her to look uhu",
+
   // envoi auto de nos dessins (.png) par email a la toute fin.
   // <<< ADRIEN : colle l'URL du web app Apps Script ici (voir EMAIL_SETUP.md).
   // tant que c'est vide, rien n'est envoye (la soiree marche quand meme).

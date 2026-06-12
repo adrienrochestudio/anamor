@@ -177,6 +177,13 @@ button:disabled{ opacity:.5; cursor:default; border-style:dashed; }
   max-width:520px;
   opacity:.9;
 }
+#bye-adrien, #bye-ana{ display:flex; flex-direction:column; align-items:center; gap:14px; margin-top:8px; }
+#ana-q{ font-size:1.15rem; }
+#ana-check{ font-size:1.15rem; }
+#send-status{ font-size:.9rem; opacity:.75; }
+/* sur le fond sombre de l'au revoir, boutons clairs */
+body.night button{ color:#e9ddd4; border-color:#e9ddd4; }
+body.night button:hover:not(:disabled){ background:#e9ddd4; color:#1a1115; }
 
 /* ── mobile ── */
 @media(max-width:600px){

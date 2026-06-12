@@ -18,7 +18,7 @@ import { content } from "../content.js";
 import { countMusikArtists } from "./firebase.js";
 import {
   joinPresence, watchPresence, watchState, setReady, setStep,
-  roomWatch, roomUpdate, roomSet, roomGet
+  roomWatch, roomUpdate, roomSet
 } from "./room.js";
 import { createCanvas } from "./canvas.js";
 import { runAtelier } from "./rounds.js";
@@ -184,26 +184,48 @@ function mountGoodbye(){
   let waves = 0;
   const tick = setInterval(() => { if (++waves > 4){ clearInterval(tick); return; } fx.rise("heart", 10); }, 4200);
   fx.rise("heart", 10);
-  maybeSendMail();
+
+  if (me === "adrien"){
+    // adrien decide quand envoyer (anti faux test) avec un bouton
+    $("bye-adrien").style.display = "";
+    $("send-ana").textContent = content.goodbyeAdrienBtn;
+    $("send-ana").onclick = onSendToAna;
+  } else {
+    // ana : on confirme que c'est bien elle avant de dire "regarde tes mails"
+    $("bye-ana").style.display = "";
+    $("ana-q").textContent = content.goodbyeAnaConfirm;
+    $("ana-yes").onclick = () => {
+      $("ana-q").style.display = "none";
+      $("ana-yes").style.display = "none";
+      $("ana-check").textContent = content.goodbyeAnaCheck;
+    };
+  }
 }
 
-// envoi auto des dessins par email, une seule fois (adrien envoie,
-// garde-fou RTDB contre le renvoi si la page est rechargee).
-let mailDone = false;
-async function maybeSendMail(){
-  if (me !== "adrien" || mailDone) return;
-  mailDone = true;
+// adrien clique "send to ana" -> envoie tous les dessins par email
+async function onSendToAna(){
+  const btn = $("send-ana");
+  btn.disabled = true; btn.textContent = "sending...";
   try {
-    const snap = await roomGet("mailSent");
-    if (snap.exists() && snap.val()) return;
-    await roomSet("mailSent", true);
     const res = await sendDrawings({
       endpoint: content.mailEndpoint, to: content.mailTo,
       subject: content.mailSubject, message: content.mailMessage,
       colors: content.colors
     });
-    if (res && res.skipped) await roomSet("mailSent", null); // pas envoye -> on rearme
-  } catch (e){ console.error("mail send failed", e); await roomSet("mailSent", null); }
+    if (res && res.skipped){
+      $("send-status").textContent = res.reason === "no endpoint"
+        ? "pas encore d'endpoint email (voir EMAIL_SETUP.md)"
+        : "aucun dessin a envoyer";
+      btn.disabled = false; btn.textContent = content.goodbyeAdrienBtn;
+    } else {
+      btn.textContent = content.goodbyeAdrienSent;
+      $("send-status").textContent = "ok, " + res.count + " dessins envoyes";
+    }
+  } catch (e){
+    console.error("mail send failed", e);
+    $("send-status").textContent = "rate, reessaie";
+    btn.disabled = false; btn.textContent = content.goodbyeAdrienBtn;
+  }
 }
 
 // ── boot ────────────────────────────────────────────────────
