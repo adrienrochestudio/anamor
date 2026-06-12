@@ -10,7 +10,7 @@
 // ============================================================
 import { db, ROOM } from "./firebase.js";
 import {
-  ref, onValue, set, update, onDisconnect, serverTimestamp
+  ref, onValue, get, set, update, onDisconnect, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 // ── presence ──────────────────────────────────────────────
@@ -40,6 +40,7 @@ export function setStep(step){
 }
 
 // helper generique : pousser une valeur quelconque dans la room
+export function roomGet(path){ return get(ref(db, `${ROOM}/${path}`)); }
 export function roomSet(path, value){ return set(ref(db, `${ROOM}/${path}`), value); }
 export function roomUpdate(path, value){ return update(ref(db, `${ROOM}/${path}`), value); }
 export function roomWatch(path, cb){ return onValue(ref(db, `${ROOM}/${path}`), s => cb(s.val())); }

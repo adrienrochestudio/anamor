@@ -705,12 +705,13 @@ function spinWheel() {
   requestAnimationFrame(frame);
 }
 
-/* ── le moindre clic n'importe ou sur l'accueil declenche la surprise
-   (une seule fois par navigateur). capture = on prend la main avant
-   le clic normal. */
+/* ── le moindre clic n'importe ou sur l'accueil declenche la surprise.
+   se relance a chaque chargement de page (garde-fou seulement contre
+   un double-declenchement dans le meme chargement). capture = on prend
+   la main avant le clic normal. */
 let nmTakeoverDone = false;
 document.addEventListener('click', function (e) {
-  if (nmTakeoverDone || localStorage.getItem('namorados-hacked')) return;
+  if (nmTakeoverDone) return;
   nmTakeoverDone = true;
   e.preventDefault();
   e.stopPropagation();
@@ -721,8 +722,6 @@ document.addEventListener('click', function (e) {
    la roue tombe, des coeurs montent, l'ecran "bug" comme si
    le site etait hacke, puis on bascule sur la soiree. */
 function namoradosTakeover() {
-  localStorage.setItem('namorados-hacked', '1');
-
   // 1) la roue tombe
   document.querySelector('.wheel-container').classList.add('nm-fall');
 

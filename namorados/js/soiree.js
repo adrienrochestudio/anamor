@@ -18,12 +18,13 @@ import { content } from "../content.js";
 import { countMusikArtists } from "./firebase.js";
 import {
   joinPresence, watchPresence, watchState, setReady, setStep,
-  roomWatch, roomUpdate, roomSet
+  roomWatch, roomUpdate, roomSet, roomGet
 } from "./room.js";
 import { createCanvas } from "./canvas.js";
 import { runAtelier } from "./rounds.js";
 import { runCapsule } from "./capsule.js";
 import { fx } from "./fx.js";
+import { sendDrawings } from "./mail.js";
 
 const room = { roomWatch, roomUpdate, roomSet };
 const $ = id => document.getElementById(id);
@@ -183,6 +184,26 @@ function mountGoodbye(){
   let waves = 0;
   const tick = setInterval(() => { if (++waves > 4){ clearInterval(tick); return; } fx.rise("heart", 10); }, 4200);
   fx.rise("heart", 10);
+  maybeSendMail();
+}
+
+// envoi auto des dessins par email, une seule fois (adrien envoie,
+// garde-fou RTDB contre le renvoi si la page est rechargee).
+let mailDone = false;
+async function maybeSendMail(){
+  if (me !== "adrien" || mailDone) return;
+  mailDone = true;
+  try {
+    const snap = await roomGet("mailSent");
+    if (snap.exists() && snap.val()) return;
+    await roomSet("mailSent", true);
+    const res = await sendDrawings({
+      endpoint: content.mailEndpoint, to: content.mailTo,
+      subject: content.mailSubject, message: content.mailMessage,
+      colors: content.colors
+    });
+    if (res && res.skipped) await roomSet("mailSent", null); // pas envoye -> on rearme
+  } catch (e){ console.error("mail send failed", e); await roomSet("mailSent", null); }
 }
 
 // ── boot ────────────────────────────────────────────────────
