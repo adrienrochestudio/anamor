@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>namorados — Ana & Adrien</title>
+<link rel="icon" type="image/png" href="../favicon2.png">
+<link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="soiree.css">
+</head>
+<body>
+
+<!-- la voix du kompiuter, partagee par tous les ecrans -->
+<header id="kompiuter">
+  <img id="char" src="../2.png" alt="">
+  <p id="speech"></p>
+</header>
+
+<main id="stage">
+
+  <!-- step 0 — qui es-tu (local) -->
+  <section class="screen active" id="s-identity">
+    <h1 class="q">qui es-tu ?</h1>
+    <div class="id-btns">
+      <button class="id-btn" data-me="ana">je suis ana</button>
+      <button class="id-btn" data-me="adrien">je suis adrien</button>
+    </div>
+  </section>
+
+  <!-- step 1 — ouverture -->
+  <section class="screen" id="s-opening">
+    <div id="presence">
+      <span class="dot" id="dot-ana">ana</span>
+      <span class="dot" id="dot-adrien">adrien</span>
+    </div>
+    <button id="comecar" style="display:none">comecar</button>
+  </section>
+
+  <!-- step 2 — atelier de dessin -->
+  <section class="screen" id="s-atelier">
+    <div class="atelier-top">
+      <span id="role"></span>
+      <span id="timer" style="display:none"></span>
+      <span id="secret" style="display:none"></span>
+    </div>
+    <canvas id="board"></canvas>
+    <div class="atelier-controls">
+      <button id="suivant">suivant →</button>
+      <div id="guess-wrap" style="display:none">
+        <input id="guess-input" type="text" autocomplete="off" placeholder="ton idee...">
+        <button id="guess-btn">dire</button>
+        <span id="guess-feedback"></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- step 3 — capsule -->
+  <section class="screen" id="s-capsule">
+    <h2 class="q">la capsule</h2>
+    <div id="cap-fields"></div>
+    <button id="seal">sceller</button>
+    <p id="cap-status"></p>
+  </section>
+
+  <!-- step 4 — message final -->
+  <section class="screen" id="s-final">
+    <p id="final-intro"></p>
+    <p id="final-msg"></p>
+    <button id="final-next" style="display:none">→</button>
+  </section>
+
+  <!-- step 5 — au revoir -->
+  <section class="screen" id="s-goodbye">
+    <p id="goodbye-text"></p>
+  </section>
+
+</main>
+
+<script type="module" src="js/soiree.js"></script>
+</body>
+</html>

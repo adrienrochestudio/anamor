@@ -5,6 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ana & Adrien</title>
+<link rel="icon" type="image/png" href="favicon2.png">
 <link rel="stylesheet" href="style.css">
 <style>
   body { text-align: center; }
@@ -389,6 +390,50 @@
       height: 30px;
     }
   }
+
+  /* ── prise de controle namorados (la roue "tombe", le site "bug") ── */
+  .wheel-container.nm-fall {
+    transition: transform 1.4s cubic-bezier(.45, 0, .9, .6), opacity 1.4s ease;
+    transform: translateY(130vh) rotate(38deg);
+    opacity: .9;
+  }
+  body.nm-glitch {
+    animation: nm-flicker .38s steps(2) 7;   /* ~2.6 flash/s, juste sous le seuil photosensible */
+  }
+  @keyframes nm-flicker {
+    0%   { filter: none; background: var(--blanc, #FAF8F4); }
+    49%  { filter: none; background: var(--blanc, #FAF8F4); }
+    50%  { filter: invert(1) hue-rotate(160deg); background: #1a1115; }
+    100% { filter: invert(1) hue-rotate(160deg); background: #1a1115; }
+  }
+  #nm-glitch-text {
+    position: fixed; inset: 0; z-index: 9990;
+    display: flex; align-items: center; justify-content: center;
+    pointer-events: none;
+    font-family: 'Patrick Hand', cursive;
+    font-size: clamp(1.6rem, 6vw, 3.4rem);
+    color: #8B1A2B;
+    text-shadow: 2px 0 #2d5fc2, -2px 0 #c2452d;
+    text-align: center; padding: 0 6vw;
+  }
+  .nm-heart {
+    position: fixed; bottom: -30px; z-index: 9980;
+    width: 18px; height: 18px;
+    transform: rotate(45deg);
+    pointer-events: none;
+    animation: nm-rise linear forwards;
+  }
+  .nm-heart::before, .nm-heart::after {
+    content: ""; position: absolute;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: inherit;
+  }
+  .nm-heart::before { left: -9px; top: 0; }
+  .nm-heart::after  { left: 0; top: -9px; }
+  @keyframes nm-rise {
+    from { transform: translateY(0) rotate(45deg); opacity: .95; }
+    to   { transform: translateY(-118vh) rotate(45deg); opacity: 0; }
+  }
 </style>
 </head>
 <body>
@@ -644,6 +689,9 @@ function spinWheel() {
   spinning = true;
   document.getElementById('spin-btn').disabled = true;
 
+  // surprise namorados : le premier spin "casse" le site (une seule fois)
+  const hijack = !localStorage.getItem('namorados-hacked');
+
   const extra = 2 * Math.PI * (7 + Math.random() * 6);
   const dur = 3600 + Math.random() * 1200;
   const t0 = performance.now();
@@ -654,6 +702,11 @@ function spinWheel() {
     const t = Math.min((now - t0) / dur, 1);
     angle = a0 + extra * ease(t);
     drawWheel(angle);
+
+    if (hijack && t >= 0.45) {     // en pleine vitesse, la roue lache
+      namoradosTakeover();
+      return;
+    }
 
     if (t < 1) {
       requestAnimationFrame(frame);
@@ -666,6 +719,50 @@ function spinWheel() {
   }
 
   requestAnimationFrame(frame);
+}
+
+/* ── prise de controle namorados ──────────────────────────
+   la roue tombe, des coeurs montent, l'ecran "bug" comme si
+   le site etait hacke, puis on bascule sur la soiree. */
+function namoradosTakeover() {
+  localStorage.setItem('namorados-hacked', '1');
+
+  // 1) la roue tombe
+  document.querySelector('.wheel-container').classList.add('nm-fall');
+
+  // 2) des coeurs partout, de bas en haut
+  const COLORS = ['#8B1A2B', '#c2452d', '#2d5fc2'];
+  for (let i = 0; i < 42; i++) {
+    setTimeout(() => {
+      const h = document.createElement('span');
+      h.className = 'nm-heart';
+      h.style.left = (4 + Math.random() * 92) + 'vw';
+      h.style.background = COLORS[i % COLORS.length];
+      const sc = 0.6 + Math.random() * 1.6;
+      h.style.width = h.style.height = Math.round(18 * sc) + 'px';
+      h.style.animationDuration = (2.6 + Math.random() * 2.4) + 's';
+      document.body.appendChild(h);
+    }, 350 + i * 90);
+  }
+
+  // 3) l'ecran clignote comme un bug
+  setTimeout(() => document.body.classList.add('nm-glitch'), 700);
+
+  // 4) le kompiuter panique puis avoue
+  const lines = [
+    'uuh...',
+    'somethin is wrong',
+    'o no o no',
+    'wait',
+    'is not a bug. is for you'
+  ];
+  const txt = document.createElement('div');
+  txt.id = 'nm-glitch-text';
+  document.body.appendChild(txt);
+  lines.forEach((l, i) => setTimeout(() => { txt.textContent = l; }, 800 + i * 950));
+
+  // 5) on part a la soiree
+  setTimeout(() => { window.location.href = 'namorados/index.html'; }, 800 + lines.length * 950 + 600);
 }
 
 function showResult() {
