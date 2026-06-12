@@ -89,4 +89,12 @@ export const content = {
   capsuleSecret: "ps. he tell me one more secret to keep. every new song you add here, he go listen to it and think of you. so keep adding, i watch",
 
   goodbye: "okae lovebirds, that is all i made. enjoy your nigth. i be here tomorow",
+
+  // envoi auto de nos dessins (.png) par email a la toute fin.
+  // <<< ADRIEN : colle l'URL du web app Apps Script ici (voir EMAIL_SETUP.md).
+  // tant que c'est vide, rien n'est envoye (la soiree marche quand meme).
+  mailEndpoint: "",
+  mailTo: "adrien.etks@gmail.com",
+  mailSubject: "nossos desenhos, dia dos namorados",
+  mailMessage: "oi bonita! here is our little dia dos namorados drawings uhu",
 };
