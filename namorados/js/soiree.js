@@ -51,7 +51,7 @@ function start(who){
   localStorage.setItem("namorados-me", me);
   joinPresence(me);
   cvs = createCanvas($("board"), me, other);
-  cvs.setColors(content.colors[me], content.colors[other]);
+  cvs.setColors(content.colors);
 
   // si la room n'a pas encore d'etat, on l'ouvre a l'etape 1
   watchState(st => {

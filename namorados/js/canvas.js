@@ -14,7 +14,7 @@
 // onChildAdded. Au reveal on rejoue les deux tableaux memorises.
 // ============================================================
 import { db, ROOM } from "./firebase.js";
-import { ref, push, onChildAdded, remove }
+import { ref, push, onChildAdded, remove, get }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 export function createCanvas(canvasEl, me, other){
@@ -28,6 +28,7 @@ export function createCanvas(canvasEl, me, other){
   let otherSegs = [];         // segments de l'autre (round courant)
   let otherUnsub = null;
   let myColor = "#000", otherColor = "#000";
+  let colorByName = { ana:"#000", adrien:"#000" };
   let drawing = false, last = null;
   const DPR = Math.min(window.devicePixelRatio || 1, 2);
 
@@ -87,7 +88,12 @@ export function createCanvas(canvasEl, me, other){
   // ── API ─────────────────────────────────────────────────
   return {
     fit,
-    setColors(meColor, otherC){ myColor = meColor; otherColor = otherC; },
+    // accepte la map complete { ana, adrien } (de content.colors)
+    setColors(map){
+      colorByName = { ana: map.ana, adrien: map.adrien };
+      myColor = colorByName[me];
+      otherColor = colorByName[other];
+    },
 
     // demarre une manche : reset visuel + ecoute du trait de l'autre
     startRound(roundKey, opts = {}){
@@ -108,23 +114,29 @@ export function createCanvas(canvasEl, me, other){
       });
     },
 
-    // reveal : montre TOUT, selon le mode de la manche
+    // reveal : montre TOUT, en RELISANT les deux joueurs depuis la RTDB
+    // (donc reload-safe : meme apres un refresh on reconstruit tout).
     //   "overlay"     -> les deux traits superposes (cadavre exquis)
-    //   "side-by-side"-> moi a gauche, l'autre a droite (portraits)
-    reveal(mode = "overlay"){
+    //   "side-by-side"-> ana a gauche, adrien a droite (portraits)
+    async reveal(roundKey, mode = "overlay"){
       flags = { showOwn:true, showOther:true };
       if (otherUnsub){ otherUnsub(); otherUnsub = null; }
       fit();
       clearScreen();
+      const [aSnap, dSnap] = await Promise.all([
+        get(ref(db, `${ROOM}/draw/${roundKey}/ana`)),
+        get(ref(db, `${ROOM}/draw/${roundKey}/adrien`))
+      ]);
+      const aSegs = snapList(aSnap), dSegs = snapList(dSnap);
       if (mode === "side-by-side"){
         const half = (segs, color, xOff) => segs.forEach(s => seg({
-          x1: s.x1*0.5 + xOff, y1: s.y1, x2: s.x2*0.5 + xOff, y2: s.y2, color
+          x1: s.x1*0.5 + xOff, y1: s.y1, x2: s.x2*0.5 + xOff, y2: s.y2
         }, color));
-        half(meIsLeft() ? ownSegs : otherSegs, meIsLeft() ? myColor : otherColor, 0);
-        half(meIsLeft() ? otherSegs : ownSegs, meIsLeft() ? otherColor : myColor, 0.5);
+        half(aSegs, colorByName.ana, 0);      // ana a gauche
+        half(dSegs, colorByName.adrien, 0.5); // adrien a droite
       } else {
-        otherSegs.forEach(s => seg(s, otherColor));
-        ownSegs.forEach(s => seg(s, myColor));
+        aSegs.forEach(s => seg(s, colorByName.ana));
+        dSegs.forEach(s => seg(s, colorByName.adrien));
       }
     },
 
@@ -134,6 +146,9 @@ export function createCanvas(canvasEl, me, other){
     }
   };
 
-  // ana a gauche, adrien a droite (ordre stable pour le reveal portraits)
-  function meIsLeft(){ return me === "ana"; }
+  // transforme un snapshot RTDB (objet de push) en tableau de segments
+  function snapList(snap){
+    const v = snap.val();
+    return v ? Object.keys(v).map(k => v[k]) : [];
+  }
 }

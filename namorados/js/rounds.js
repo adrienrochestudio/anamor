@@ -51,7 +51,7 @@ export function runAtelier({ cvs, me, other, content, room, dom, say }){
   let timerId = null;
   let solved = false;
 
-  cvs.setColors(content.colors[me], content.colors[other]);
+  cvs.setColors(content.colors);
 
   function clearTimer(){ if (timerId){ clearInterval(timerId); timerId = null; } }
   function showSuivant(on){ dom.suivant.style.display = on ? "" : "none"; }
@@ -80,7 +80,7 @@ export function runAtelier({ cvs, me, other, content, room, dom, say }){
     else if (sub === 1){                              // cadavre exquis — reveal
       say("there. the monster you made.");
       dom.role.textContent = "";
-      cvs.reveal("overlay");
+      cvs.reveal("exquis", "overlay");
       dom.suivant.textContent = "suivant →";
     }
     else if (sub === 2){                              // portrait aveugle — dessin
@@ -97,7 +97,7 @@ export function runAtelier({ cvs, me, other, content, room, dom, say }){
     }
     else if (sub === 3){                              // portrait — reveal
       say("you two. side by side.");
-      cvs.reveal("side-by-side");
+      cvs.reveal("portrait", "side-by-side");
       dom.suivant.textContent = "suivant →";
     }
     else if (sub === 4 || sub === 5){                 // dessine-devine
@@ -151,9 +151,13 @@ export function runAtelier({ cvs, me, other, content, room, dom, say }){
       // (re)rendu seulement quand le sub change
       if (sub !== lastSub){ lastSub = sub; render(sub); }
 
-      // avancement "les deux prets" pour les manches a bouton
+      // avancement "les deux prets" pour les manches a bouton.
+      // sentinel -1 = "pas encore pret" (sinon le defaut 0 ferait
+      // passer sub 0 instantanement, car 0 >= 0).
       const r = state.ready || {};
-      if ((r.ana | 0) >= sub && (r.adrien | 0) >= sub && sub <= 3){
+      const ra = Number.isInteger(r.ana)    ? r.ana    : -1;
+      const rd = Number.isInteger(r.adrien) ? r.adrien : -1;
+      if (sub <= 3 && ra >= sub && rd >= sub){
         roomSet("atelier/sub", sub + 1);
       }
     });
