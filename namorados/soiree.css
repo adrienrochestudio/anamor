@@ -1,0 +1,175 @@
+/* ============================================================
+   soiree.css — vibe kompiuter
+   minimal, typographique, beaucoup de vide, palette douce.
+   ============================================================ */
+:root{
+  --bord:#8B1A2B;
+  --blanc:#FAF8F4;
+  --muted:#9a8f84;
+  --line:#e3d9cf;
+}
+*{ margin:0; padding:0; box-sizing:border-box; }
+html,body{ height:100%; }
+body{
+  font-family:'Patrick Hand', cursive;
+  background:var(--blanc);
+  color:var(--bord);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  min-height:100%;
+  transition:background .9s ease, color .9s ease;
+}
+body.dim{ background:#f2ece6; }
+body.night{ background:#1a1115; color:#e9ddd4; }
+
+/* ── voix du kompiuter ── */
+#kompiuter{
+  width:100%;
+  max-width:640px;
+  text-align:center;
+  padding:34px 22px 8px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:10px;
+}
+#char{
+  width:64px; height:64px;
+  object-fit:contain;
+  opacity:.92;
+}
+#speech{
+  font-size:clamp(1.15rem, 3.4vw, 1.7rem);
+  line-height:1.35;
+  min-height:1.4em;
+  opacity:.92;
+}
+
+/* ── ecrans ── */
+#stage{
+  flex:1;
+  width:100%;
+  max-width:640px;
+  padding:14px 22px 48px;
+  display:flex;
+  align-items:flex-start;
+  justify-content:center;
+}
+.screen{
+  display:none;
+  width:100%;
+  flex-direction:column;
+  align-items:center;
+  gap:22px;
+  text-align:center;
+}
+.screen.active{ display:flex; }
+
+.q{
+  font-size:clamp(1.6rem, 5vw, 2.6rem);
+  font-weight:normal;
+  opacity:.85;
+}
+
+/* ── boutons ── */
+button{
+  font-family:inherit;
+  font-size:1.05rem;
+  color:var(--bord);
+  background:transparent;
+  border:1.5px solid var(--bord);
+  padding:11px 26px;
+  cursor:pointer;
+  transition:all .15s;
+}
+button:hover:not(:disabled){ background:var(--bord); color:var(--blanc); }
+button:disabled{ opacity:.5; cursor:default; border-style:dashed; }
+
+/* ── step 0 identite ── */
+.id-btns{ display:flex; gap:14px; flex-wrap:wrap; justify-content:center; }
+
+/* ── step 1 ouverture ── */
+#presence{ display:flex; gap:26px; }
+.dot{
+  font-size:1rem;
+  color:var(--muted);
+  position:relative;
+  padding-left:18px;
+}
+.dot::before{
+  content:""; position:absolute; left:0; top:50%;
+  width:9px; height:9px; border-radius:50%;
+  transform:translateY(-50%);
+  background:var(--line);
+  transition:background .3s;
+}
+.dot.on{ color:var(--bord); }
+.dot.on::before{ background:var(--bord); }
+
+/* ── step 2 atelier ── */
+.atelier-top{
+  min-height:1.5em;
+  font-size:.95rem;
+  color:var(--muted);
+  display:flex; gap:16px; align-items:center; justify-content:center;
+  flex-wrap:wrap;
+}
+#secret{ color:var(--bord); }
+#timer{ color:var(--bord); }
+#board{
+  width:min(86vw, 560px);
+  height:min(86vw, 560px);
+  max-height:62vh;
+  border:1.5px solid var(--bord);
+  background:var(--blanc);
+  touch-action:none;          /* dessiner au doigt sans scroller */
+  cursor:crosshair;
+}
+.atelier-controls{ display:flex; flex-direction:column; gap:12px; align-items:center; }
+#guess-wrap{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:center; }
+#guess-input{
+  font-family:inherit; font-size:1.05rem;
+  border:none; border-bottom:1.5px solid var(--bord);
+  background:transparent; color:var(--bord);
+  padding:6px 4px; outline:none; min-width:180px;
+}
+#guess-feedback{ color:var(--muted); font-size:.95rem; }
+
+/* ── step 3 capsule ── */
+#cap-fields{ display:flex; flex-direction:column; gap:16px; width:100%; max-width:460px; }
+.cap-field{ display:flex; flex-direction:column; gap:5px; text-align:left; }
+.cap-field span{ font-size:.98rem; color:var(--muted); }
+.cap-field textarea{
+  font-family:inherit; font-size:1.05rem;
+  color:var(--bord); background:transparent;
+  border:1.5px solid var(--line); padding:9px 11px;
+  resize:vertical; outline:none;
+}
+.cap-field textarea:focus{ border-color:var(--bord); }
+#cap-status{ color:var(--muted); }
+
+/* ── step 4 message final ── */
+#s-final{ gap:30px; }
+#final-intro{ color:var(--muted); font-size:1.1rem; }
+#final-msg{
+  font-size:clamp(1.4rem, 4.5vw, 2.2rem);
+  line-height:1.5;
+  white-space:pre-wrap;
+  max-width:560px;
+}
+
+/* ── step 5 au revoir ── */
+#goodbye-text{
+  font-size:clamp(1.3rem, 4vw, 2rem);
+  line-height:1.5;
+  max-width:520px;
+  opacity:.9;
+}
+
+/* ── mobile ── */
+@media(max-width:600px){
+  #kompiuter{ padding-top:22px; }
+  #char{ width:52px; height:52px; }
+  #board{ width:92vw; height:92vw; }
+}
