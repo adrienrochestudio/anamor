@@ -36,7 +36,7 @@ export const content = {
 
   // message final — ECRIT EN AMONT PAR ADRIEN, montre en live ce soir
   revealIntro: "okae. now i go quiet. he has something to say.",
-  finalMessage: "// ton message pour elle ici",
+  finalMessage: "je t'aime, et ce n'est que le début !",
 
   // mot cache optionnel, revele a l'ouverture de la capsule sur musik
   capsuleSecret: "",

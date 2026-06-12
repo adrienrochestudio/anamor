@@ -45,10 +45,10 @@ function chooseIdentity(){
   });
 }
 
-function start(who){
+function start(who, persist = true){
   me = who;
   other = me === "ana" ? "adrien" : "ana";
-  localStorage.setItem("namorados-me", me);
+  if (persist) localStorage.setItem("namorados-me", me);
   joinPresence(me);
   cvs = createCanvas($("board"), me, other);
   cvs.setColors(content.colors);
@@ -173,6 +173,15 @@ function mountGoodbye(){
 }
 
 // ── boot ────────────────────────────────────────────────────
-const saved = localStorage.getItem("namorados-me");
-if (saved === "ana" || saved === "adrien") start(saved);
-else chooseIdentity();
+// ?me=ana / ?me=adrien : force le role SANS toucher au localStorage.
+// Permet de tester les deux roles dans deux onglets du MEME navigateur
+// (sinon le localStorage est partage entre onglets et les deux seraient
+// le meme joueur). Sans le parametre : flux normal (localStorage).
+const forced = new URLSearchParams(location.search).get("me");
+if (forced === "ana" || forced === "adrien"){
+  start(forced, false);
+} else {
+  const saved = localStorage.getItem("namorados-me");
+  if (saved === "ana" || saved === "adrien") start(saved);
+  else chooseIdentity();
+}
