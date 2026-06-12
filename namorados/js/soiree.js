@@ -23,9 +23,16 @@ import {
 import { createCanvas } from "./canvas.js";
 import { runAtelier } from "./rounds.js";
 import { runCapsule } from "./capsule.js";
+import { fx } from "./fx.js";
 
 const room = { roomWatch, roomUpdate, roomSet };
 const $ = id => document.getElementById(id);
+
+// petite animation a chaque clic sur un bouton (partout)
+document.addEventListener("click", e => {
+  const b = e.target.closest("button, .id-btn");
+  if (b && !b.disabled) fx.tap(e.clientX, e.clientY);
+});
 
 let me = null, other = null, cvs = null;
 let mountedStep = -1;
@@ -126,12 +133,12 @@ function mountAtelier(){
   atelierStarted = true;
   const dom = {
     role: $("role"), timer: $("timer"), secret: $("secret"),
-    suivant: $("suivant"),
+    suivant: $("suivant"), divider: $("board-divider"),
     guessWrap: $("guess-wrap"), guessInput: $("guess-input"),
     guessBtn: $("guess-btn"), guessFeedback: $("guess-feedback")
   };
   cvs.fit();
-  runAtelier({ cvs, me, other, content, room, dom, say }).then(() => setStep(3));
+  runAtelier({ cvs, me, other, content, room, dom, say, fx }).then(() => setStep(3));
 }
 
 // ── step 3 : capsule ────────────────────────────────────────
@@ -142,7 +149,7 @@ function mountCapsule(){
   const dom = {
     fields: $("cap-fields"), sealBtn: $("seal"), status: $("cap-status")
   };
-  runCapsule({ me, other, content, room, countMusikArtists, dom, say }).then(() => setStep(4));
+  runCapsule({ me, other, content, room, countMusikArtists, dom, say }).then(() => { fx.rose(); setStep(4); });
 }
 
 // ── step 4 : message final ──────────────────────────────────
@@ -156,6 +163,8 @@ function mountFinal(){
   setTimeout(() => {
     $("final-msg").textContent = content.finalMessage;
     $("final-next").style.display = "";
+    fx.rose();                       // une rose eclot avec le message
+    setTimeout(() => fx.rise("petal", 18), 600);
   }, 2600);
   $("final-next").onclick = () => {
     $("final-next").disabled = true;

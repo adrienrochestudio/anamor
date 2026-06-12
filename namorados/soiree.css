@@ -117,14 +117,25 @@ button:disabled{ opacity:.5; cursor:default; border-style:dashed; }
 }
 #secret{ color:var(--bord); }
 #timer{ color:var(--bord); }
-#board{
+.board-wrap{
+  position:relative;
   width:min(86vw, 560px);
   height:min(86vw, 560px);
   max-height:62vh;
+}
+#board{
+  width:100%;
+  height:100%;
   border:1.5px solid var(--bord);
   background:var(--blanc);
   touch-action:none;          /* dessiner au doigt sans scroller */
   cursor:crosshair;
+}
+/* trait central : montre ta moitie pendant le portrait a l'aveugle */
+#board-divider{
+  position:absolute; top:0; bottom:0; left:50%;
+  width:0; border-left:2px dashed var(--line);
+  pointer-events:none;
 }
 .atelier-controls{ display:flex; flex-direction:column; gap:12px; align-items:center; }
 #guess-wrap{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:center; }
@@ -191,5 +202,5 @@ button:disabled{ opacity:.5; cursor:default; border-style:dashed; }
 @media(max-width:600px){
   #kompiuter{ padding-top:22px; }
   #char{ width:52px; height:52px; }
-  #board{ width:92vw; height:92vw; }
+  .board-wrap{ width:92vw; height:92vw; }
 }
