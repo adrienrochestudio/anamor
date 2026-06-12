@@ -1,5 +1,5 @@
 // ============================================================
-// fx.js — petites animations (univers mumy joe + style du site)
+// fx.js : petites animations (univers mumy joe + style du site)
 //
 // Dessin a la main, traits bordeaux, rose poudre, vert sauge.
 // Tout est ephemere : chaque element se nettoie tout seul.
@@ -64,16 +64,34 @@ function starSVG(c, s = 22){
     <path d="M12 2 L14 9 L21 9 L15.5 13.5 L17.5 21 L12 16.5 L6.5 21 L8.5 13.5 L3 9 L10 9Z"
       fill="${c}" stroke="${BORD}" stroke-width="1.2" stroke-linejoin="round"/></svg>`;
 }
-// rose dessinee main : tige + feuille + bouton (cercle + spirale + petales)
-function roseSVG(s = 74){
-  return `<svg width="${s}" height="${s*1.3}" viewBox="0 0 64 84">
-    <path d="M32 40 C33 54 31 66 32 80" fill="none" stroke="${SAGE}" stroke-width="3" stroke-linecap="round"/>
-    <path d="M32 60 C41 53 51 57 49 66 C42 69 35 67 32 60Z" fill="${LEAF}" stroke="${SAGE}" stroke-width="2"/>
-    <path d="M16 22 C10 14 22 9 27 16" fill="${PINK}" stroke="${BORD}" stroke-width="2" stroke-linecap="round"/>
-    <path d="M48 22 C54 14 42 9 37 16" fill="${PINK}" stroke="${BORD}" stroke-width="2" stroke-linecap="round"/>
-    <circle cx="32" cy="27" r="17" fill="${PINK}" stroke="${BORD}" stroke-width="2"/>
-    <path d="M32 27 m-9 0 a9 9 0 1 1 9 9 a6 6 0 1 1 -6 -6 a3.5 3.5 0 1 1 4 3"
-      fill="none" stroke="${BORD}" stroke-width="1.8" stroke-linecap="round"/>
+// la fleur d'adrien : tulipe a tete tracee main, yeux + nez coeur,
+// tige qui crochete a gauche, feuille verte enroulee. head = couleur
+// du contour de la tete (variantes possibles).
+const GREEN = "#1b6b2f", INK = "#161015";
+export function flowerSVG(s = 80, head = BORD){
+  return `<svg width="${s}" height="${s * 2}" viewBox="0 0 300 600" fill="none"
+      stroke-linecap="round" stroke-linejoin="round">
+    <!-- tige + crochet a gauche -->
+    <path d="M178 300 C182 372 179 442 176 492 C172 536 150 566 118 566"
+      stroke="${head}" stroke-width="13"/>
+    <!-- feuille verte enroulee -->
+    <path d="M176 360 C236 350 250 410 192 414 C152 416 158 372 210 386"
+      stroke="${GREEN}" stroke-width="15"/>
+    <!-- contour de la tete (tulipe a sommet festonne) -->
+    <path d="M92 178 C84 122 96 90 126 84 Q142 60 160 88 Q178 60 196 88
+             Q214 60 232 86 C260 94 270 126 260 180
+             C270 252 232 306 176 306 C120 306 82 252 92 178 Z"
+      stroke="${head}" stroke-width="13"/>
+    <!-- ligne interieure des petales -->
+    <path d="M116 100 C146 104 162 142 178 138 C196 142 214 104 244 100"
+      stroke="${head}" stroke-width="11"/>
+    <!-- yeux -->
+    <ellipse cx="145" cy="182" rx="9" ry="14" fill="${INK}" stroke="none"/>
+    <ellipse cx="212" cy="186" rx="9" ry="14" fill="${INK}" stroke="none"/>
+    <!-- nez coeur -->
+    <path d="M178 250 C171 240 159 239 157 249 C155 257 166 264 178 274
+             C190 264 201 257 199 249 C197 239 185 240 178 250 Z"
+      fill="${INK}" stroke="none"/>
   </svg>`;
 }
 
@@ -97,11 +115,16 @@ export const fx = {
     }
   },
 
-  // une rose qui eclot au centre (+ quelques petales autour)
+  // la fleur d'adrien qui eclot au centre (+ quelques petales autour)
+  // variantes : taille, petit angle, et de temps en temps la couleur
   rose(){
     ensureStyles();
     const c = center();
-    spawn(roseSVG(rnd(64, 88)), c.x, c.y, "fx-bloom", 2400);
+    const head = Math.random() < 0.35 ? [ANA, ADR][(Math.random()*2)|0] : BORD;
+    const tilt = rnd(-9, 9);
+    const el = spawn(flowerSVG(rnd(78, 104), head), c.x, c.y + 40, "fx-bloom", 2600);
+    el.firstElementChild.style.transformOrigin = "50% 90%";   // pousse depuis la tige
+    el.firstElementChild.style.rotate = tilt + "deg";
     for (let i = 0; i < 10; i++){
       setTimeout(() => spawn(petalSVG([PINK, ANA][i % 2], rnd(12, 20)),
         c.x + rnd(-90, 90), c.y + rnd(-30, 50), "fx-rise", rnd(2200, 3600),

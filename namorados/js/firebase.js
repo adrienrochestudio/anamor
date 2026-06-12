@@ -1,5 +1,5 @@
 // ============================================================
-// firebase.js — init + refs partagés
+// firebase.js : init + refs partagés
 //
 // Une seule app Firebase pour toute la soirée.
 //  - Realtime Database : la room temps réel (présence, état, dessins, capsule)

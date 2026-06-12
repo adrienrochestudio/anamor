@@ -1,5 +1,5 @@
 // ============================================================
-// room.js — presence + avancement d'etape SYNCHRONISE
+// room.js : presence + avancement d'etape SYNCHRONISE
 //
 // state = { step:0, ready:{ ana:n, adrien:n } }
 //  - on n'avance a l'etape suivante que quand LES DEUX ont
