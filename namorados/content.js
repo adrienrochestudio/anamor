@@ -79,7 +79,7 @@ export const content = {
     "une promesse",
     "une envie pour la prochaine fois qu'on se voit",
   ],
-  capsuleLocked: "i keep this safe. it opens when ana put 10 new artistes on the musik page",
+  capsuleLocked: "ana ! add 10 new musiks here, one by one. i count them for you. when you reach 10, the capsule open and show what you two wrote that night uhu",
 
   // message final : ECRIT EN AMONT PAR ADRIEN, montre en live ce soir
   revealIntro: "okae. now i go quiet, he has somethin to say",

@@ -391,41 +391,18 @@
     }
   }
 
-  /* ── prise de controle namorados (la roue "tombe", le site "bug") ── */
-  .wheel-container.nm-fall {
-    transition: transform 1.4s cubic-bezier(.45, 0, .9, .6), opacity 1.4s ease;
-    transform: translateY(130vh) rotate(38deg);
-    opacity: .9;
+  /* ── bouton souvenir namorados (nos dessins) ── */
+  .souvenir-wrap { text-align:center; margin: 8px 0 28px; }
+  .souvenir-btn {
+    display:inline-flex; align-items:center; gap:10px;
+    font-family:'Patrick Hand', cursive; font-size:1rem;
+    color:#8B1A2B; text-decoration:none;
+    border:1.5px solid #8B1A2B; padding:8px 16px;
+    transition: all .15s;
   }
-  body.nm-glitch {
-    animation: nm-flicker .38s steps(2) 7;   /* ~2.6 flash/s, juste sous le seuil photosensible */
-  }
-  @keyframes nm-flicker {
-    0%   { filter: none; background: var(--blanc, #FAF8F4); }
-    49%  { filter: none; background: var(--blanc, #FAF8F4); }
-    50%  { filter: invert(1) hue-rotate(160deg); background: #1a1115; }
-    100% { filter: invert(1) hue-rotate(160deg); background: #1a1115; }
-  }
-  #nm-glitch-text {
-    position: fixed; inset: 0; z-index: 9990;
-    display: flex; align-items: center; justify-content: center;
-    pointer-events: none;
-    font-family: 'Patrick Hand', cursive;
-    font-size: clamp(1.6rem, 6vw, 3.4rem);
-    color: #8B1A2B;
-    text-shadow: 2px 0 #2d5fc2, -2px 0 #c2452d;
-    text-align: center; padding: 0 6vw;
-  }
-  .nm-heart {
-    position: fixed; bottom: -40px; z-index: 9980;
-    pointer-events: none;
-    animation: nm-rise linear forwards;
-  }
-  .nm-heart svg { display: block; }
-  @keyframes nm-rise {
-    from { transform: translateY(0) rotate(var(--r, 0deg)); opacity: .95; }
-    to   { transform: translateY(-118vh) rotate(var(--r, 0deg)); opacity: 0; }
-  }
+  .souvenir-btn:hover { background:#8B1A2B; color:#FAF8F4; }
+  .souvenir-btn:hover .souvenir-flower path[stroke="#8B1A2B"] { stroke:#FAF8F4; }
+  .souvenir-flower { width:18px; height:34px; flex:none; }
 </style>
 </head>
 <body>
@@ -484,6 +461,17 @@
 
   <button class="btn btn-full" onclick="spinWheel()" id="spin-btn">spim it</button>
 </section>
+
+<div class="souvenir-wrap">
+  <a class="souvenir-btn" href="namorados/souvenir.html">
+    <svg class="souvenir-flower" viewBox="0 0 300 600" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M178 300 C182 372 179 442 176 492 C172 536 150 566 118 566" stroke="#8B1A2B" stroke-width="16"/>
+      <path d="M176 360 C236 350 250 410 192 414 C152 416 158 372 210 386" stroke="#1b6b2f" stroke-width="18"/>
+      <path d="M92 178 C84 122 96 90 126 84 Q142 60 160 88 Q178 60 196 88 Q214 60 232 86 C260 94 270 126 260 180 C270 252 232 306 176 306 C120 306 82 252 92 178 Z" stroke="#8B1A2B" stroke-width="16"/>
+    </svg>
+    nos dessins du dia dos namorados
+  </a>
+</div>
 
 <div class="cards-wrap" id="cards-wrap"></div>
 
@@ -703,63 +691,6 @@ function spinWheel() {
   }
 
   requestAnimationFrame(frame);
-}
-
-/* ── le moindre clic n'importe ou sur l'accueil declenche la surprise.
-   se relance a chaque chargement de page (garde-fou seulement contre
-   un double-declenchement dans le meme chargement). capture = on prend
-   la main avant le clic normal. */
-let nmTakeoverDone = false;
-document.addEventListener('click', function (e) {
-  if (nmTakeoverDone) return;
-  nmTakeoverDone = true;
-  e.preventDefault();
-  e.stopPropagation();
-  namoradosTakeover();
-}, true);
-
-/* ── prise de controle namorados ──────────────────────────
-   la roue tombe, des coeurs montent, l'ecran "bug" comme si
-   le site etait hacke, puis on bascule sur la soiree. */
-function namoradosTakeover() {
-  // 1) la roue tombe
-  document.querySelector('.wheel-container').classList.add('nm-fall');
-
-  // 2) de vrais coeurs dessines qui montent du bas
-  const COLORS = ['#8B1A2B', '#c2452d', '#2d5fc2'];
-  const heartSVG = (c, s) => '<svg width="' + s + '" height="' + s + '" viewBox="0 0 32 30">' +
-    '<path d="M16 27 C8 20 2 15 2 9 C2 4 6 1 10 3 C13 4 15 7 16 9 C17 7 19 4 22 3 C26 1 30 4 30 9 C30 15 24 20 16 27Z"' +
-    ' fill="' + c + '" stroke="#8B1A2B" stroke-width="1.6" stroke-linejoin="round"/></svg>';
-  for (let i = 0; i < 46; i++) {
-    setTimeout(() => {
-      const h = document.createElement('span');
-      h.className = 'nm-heart';
-      h.style.left = (4 + Math.random() * 92) + 'vw';
-      h.style.setProperty('--r', (Math.random() * 50 - 25) + 'deg');
-      h.style.animationDuration = (2.6 + Math.random() * 2.6) + 's';
-      h.innerHTML = heartSVG(COLORS[i % COLORS.length], Math.round(18 + Math.random() * 26));
-      document.body.appendChild(h);
-    }, 300 + i * 85);
-  }
-
-  // 3) l'ecran clignote comme un bug
-  setTimeout(() => document.body.classList.add('nm-glitch'), 700);
-
-  // 4) le kompiuter panique puis avoue
-  const lines = [
-    'uuh...',
-    'somethin is wrong',
-    'o no o no',
-    'wait',
-    'is not a bug. is for you'
-  ];
-  const txt = document.createElement('div');
-  txt.id = 'nm-glitch-text';
-  document.body.appendChild(txt);
-  lines.forEach((l, i) => setTimeout(() => { txt.textContent = l; }, 800 + i * 950));
-
-  // 5) on part a la soiree
-  setTimeout(() => { window.location.href = 'namorados/index.html'; }, 800 + lines.length * 950 + 600);
 }
 
 function showResult() {
