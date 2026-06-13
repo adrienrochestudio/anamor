@@ -391,18 +391,16 @@
     }
   }
 
-  /* ── bouton souvenir namorados (nos dessins) ── */
-  .souvenir-wrap { text-align:center; margin: 8px 0 28px; }
+  /* ── lien souvenir namorados (nos dessins) : pas d'encadre, grosse fleur ── */
+  .souvenir-wrap { text-align:center; margin: 18px 0 34px; }
   .souvenir-btn {
-    display:inline-flex; align-items:center; gap:10px;
-    font-family:'Patrick Hand', cursive; font-size:1rem;
+    display:inline-flex; flex-direction:column; align-items:center; gap:8px;
+    font-family:'Patrick Hand', cursive; font-size:1.2rem;
     color:#8B1A2B; text-decoration:none;
-    border:1.5px solid #8B1A2B; padding:8px 16px;
-    transition: all .15s;
+    transition: transform .15s;
   }
-  .souvenir-btn:hover { background:#8B1A2B; color:#FAF8F4; }
-  .souvenir-btn:hover .souvenir-flower path[stroke="#8B1A2B"] { stroke:#FAF8F4; }
-  .souvenir-flower { width:18px; height:34px; flex:none; }
+  .souvenir-btn:hover { transform: scale(1.06); }
+  .souvenir-flower { width:84px; height:auto; flex:none; }
 </style>
 </head>
 <body>
@@ -465,9 +463,13 @@
 <div class="souvenir-wrap">
   <a class="souvenir-btn" href="namorados/souvenir.html">
     <svg class="souvenir-flower" viewBox="0 0 300 600" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-      <path d="M178 300 C182 372 179 442 176 492 C172 536 150 566 118 566" stroke="#8B1A2B" stroke-width="16"/>
-      <path d="M176 360 C236 350 250 410 192 414 C152 416 158 372 210 386" stroke="#1b6b2f" stroke-width="18"/>
-      <path d="M92 178 C84 122 96 90 126 84 Q142 60 160 88 Q178 60 196 88 Q214 60 232 86 C260 94 270 126 260 180 C270 252 232 306 176 306 C120 306 82 252 92 178 Z" stroke="#8B1A2B" stroke-width="16"/>
+      <path d="M178 300 C182 372 179 442 176 492 C172 536 150 566 118 566" stroke="#8B1A2B" stroke-width="13"/>
+      <path d="M176 360 C236 350 250 410 192 414 C152 416 158 372 210 386" stroke="#1b6b2f" stroke-width="15"/>
+      <path d="M92 178 C84 122 96 90 126 84 Q142 60 160 88 Q178 60 196 88 Q214 60 232 86 C260 94 270 126 260 180 C270 252 232 306 176 306 C120 306 82 252 92 178 Z" stroke="#8B1A2B" stroke-width="13"/>
+      <path d="M116 100 C146 104 162 142 178 138 C196 142 214 104 244 100" stroke="#8B1A2B" stroke-width="11"/>
+      <ellipse cx="145" cy="182" rx="9" ry="14" fill="#161015"/>
+      <ellipse cx="212" cy="186" rx="9" ry="14" fill="#161015"/>
+      <path d="M178 250 C171 240 159 239 157 249 C155 257 166 264 178 274 C190 264 201 257 199 249 C197 239 185 240 178 250 Z" fill="#161015"/>
     </svg>
     nos dessins du dia dos namorados
   </a>
