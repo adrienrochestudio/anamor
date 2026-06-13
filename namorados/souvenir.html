@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>nos dessins — dia dos namorados</title>
+<link rel="icon" type="image/png" href="../favicon2.png">
+<link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet">
+<style>
+  :root{ --bord:#8B1A2B; --blanc:#FAF8F4; --muted:#9a8f84; --line:#e3d9cf; }
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  body{
+    font-family:'Patrick Hand', cursive;
+    background:var(--blanc); color:var(--bord);
+    min-height:100vh; padding:28px 20px 60px;
+    display:flex; flex-direction:column; align-items:center;
+  }
+  .back{ position:fixed; top:16px; left:18px; color:var(--bord); text-decoration:none;
+    border:1.5px solid var(--bord); padding:6px 12px; font-size:.9rem; }
+  .back:hover{ background:var(--bord); color:var(--blanc); }
+  header{ text-align:center; max-width:600px; margin:14px 0 26px; display:flex; flex-direction:column; align-items:center; gap:12px; }
+  .flower{ width:90px; height:auto; }
+  h1{ font-weight:normal; font-size:clamp(1.8rem,6vw,2.8rem); }
+  .msg{ font-size:clamp(1.1rem,3vw,1.4rem); opacity:.9; line-height:1.4; }
+  .save-all{ font-family:inherit; font-size:1rem; color:var(--bord); background:transparent;
+    border:1.5px solid var(--bord); padding:9px 18px; cursor:pointer; margin-top:4px; }
+  .save-all:hover{ background:var(--bord); color:var(--blanc); }
+  #status{ color:var(--muted); margin-top:18px; }
+  .grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(240px,1fr));
+    gap:22px; width:100%; max-width:840px; margin-top:8px; }
+  .card{ display:flex; flex-direction:column; align-items:center; gap:8px; }
+  .card img{ width:100%; aspect-ratio:1; object-fit:contain; border:1.5px solid var(--line); background:#fff; }
+  .cap{ color:var(--muted); font-size:.95rem; text-align:center; }
+  .dl{ color:var(--bord); text-decoration:underline; font-size:.92rem; }
+</style>
+</head>
+<body>
+<a class="back" href="../home.html">← retour</a>
+
+<header>
+  <svg class="flower" viewBox="0 0 300 600" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M178 300 C182 372 179 442 176 492 C172 536 150 566 118 566" stroke="#8B1A2B" stroke-width="13"/>
+    <path d="M176 360 C236 350 250 410 192 414 C152 416 158 372 210 386" stroke="#1b6b2f" stroke-width="15"/>
+    <path d="M92 178 C84 122 96 90 126 84 Q142 60 160 88 Q178 60 196 88 Q214 60 232 86 C260 94 270 126 260 180 C270 252 232 306 176 306 C120 306 82 252 92 178 Z" stroke="#8B1A2B" stroke-width="13"/>
+    <path d="M116 100 C146 104 162 142 178 138 C196 142 214 104 244 100" stroke="#8B1A2B" stroke-width="11"/>
+    <ellipse cx="145" cy="182" rx="9" ry="14" fill="#161015"/>
+    <ellipse cx="212" cy="186" rx="9" ry="14" fill="#161015"/>
+    <path d="M178 250 C171 240 159 239 157 249 C155 257 166 264 178 274 C190 264 201 257 199 249 C197 239 185 240 178 250 Z" fill="#161015"/>
+  </svg>
+  <h1>nos dessins</h1>
+  <p class="msg" id="msg"></p>
+  <button class="save-all" id="save-all" style="display:none">tout télécharger</button>
+</header>
+
+<p id="status">uuh... i look for our drawings...</p>
+<div class="grid" id="grid"></div>
+
+<script type="module" src="js/souvenir.js"></script>
+</body>
+</html>
