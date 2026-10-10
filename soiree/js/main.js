@@ -62,7 +62,7 @@ function askWho(){
 }
 
 function askCode(){
-  const urlCode = params.get("code") || content.secretWord;
+  const urlCode = params.get("code") || content.secretWord || (saved.me === me && saved.code);
   if (urlCode) return join(urlCode);
   k.say(L.code);
   const input = h("input", { type:"text", class:"keep-case", placeholder:"the secret word", autocomplete:"off" });
