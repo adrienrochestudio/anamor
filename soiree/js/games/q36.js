@@ -55,7 +55,6 @@ export const SETS = [
     "tell a problem you have now and ask the other what they would do. then the other tell you how you seem to feel about it",
   ],
 ];
-const LEVELS = ["a bit light", "more deep", "the deepest"];
 const FIRST = ["ana", "adrien", "ana"];
 const otherOf = n => (n === "ana" ? "adrien" : "ana");
 
@@ -69,15 +68,14 @@ export function mount(ctx){
   const cards = picks.map((q, k) => {
     const face = h("div", { class:"q36-face q36-down" },
       h("span", { class:"q36-heart" }),
-      h("p", { class:"q36-num", text:String(k + 1) }),
-      h("p", { class:"q36-level", text:LEVELS[k] }));
+      h("p", { class:"q36-num", text:String(k + 1) }));
     const btn = h("button", { text:"flip", onclick:() => ctx.set(`flip.${k}`, true) });
     const hint = h("p", { class:"small muted q36-hint" });
     const wrap = h("div", { class:"q36-card" }, face, btn, hint);
     return { wrap, face, btn, hint, open:false };
   });
   const end = h("div", { class:"panel center q36-end", style:"display:none" },
-    h("p", { text:"that was the three cards. when you finish to talk, click done" }));
+    h("p", { text:"click done when you finish" }));
   ctx.el.append(h("div", { class:"q36-grid" }, cards.map(c => c.wrap)), end);
 
   const clicked = (who, k) => !!ctx.get(who, `flip.${k}`);
@@ -91,7 +89,6 @@ export function mount(ctx){
   function showQuestion(c, k){
     c.face.classList.remove("q36-down");
     c.face.replaceChildren(
-      h("p", { class:"q36-level", text:`card ${k + 1} · ${LEVELS[k]}` }),
       h("p", { class:"q36-q", text:picks[k] }),
       h("p", { class:"q36-who", text:`you both answer, ${FIRST[k]} first` }));
   }
@@ -124,13 +121,13 @@ export function mount(ctx){
     });
     end.style.display = n === cards.length ? "" : "none";
     if (live && n > shown){
-      if (n === cards.length) timers.push(setTimeout(() => ctx.say("three questions, two hearts, and one kompiuter a bit jealous. click done when you are ready"), 1800));
-      else ctx.say(`${FIRST[n - 1]} answer first, then ${otherOf(FIRST[n - 1])}. no rush`);
+      if (n === cards.length) timers.push(setTimeout(() => ctx.say("click done when you are ready"), 1800));
+      else ctx.say(`${FIRST[n - 1]} answer first`);
     }
     if (!live){
-      ctx.say(n === 0 ? "three cards, face down. you both click flip, then it open. a bit more deep each time"
-        : n === cards.length ? "all cards are open. click done when you finish to talk"
-        : "we continue where we was. next card when you are ready");
+      ctx.say(n === 0 ? "flip together"
+        : n === cards.length ? "click done when you finish"
+        : "next card when you are ready");
     }
     shown = n;
   }
