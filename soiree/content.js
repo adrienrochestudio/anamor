@@ -9,11 +9,19 @@
 // ============================================================
 export const content = {
 
-  // <<< ADRIEN : les 2 videos musee de l'etape 1 (lien youtube complet)
+  // <<< ADRIEN : l'etape 1. A : la visite 360 (page web). B : la video.
+  // video : lien youtube, ou lien direct vers un fichier .mp4 ;
+  // vide = chacun choisit le fichier video sur son ordinateur
   museums: [
-    { url: "", label: "museum one" },
-    { url: "", label: "museum two" },
+    { url: "https://www.timographie360.fr/visites/visite-virtuelle/grotte-lascaux/", label: "the lascaux cave" },
+    { url: "", label: "philomena cunk" },
   ],
+
+  // <<< ADRIEN : les videos de la finale (lien youtube). vide = celle de la prepa
+  videos: {
+    adrien: "https://www.youtube.com/watch?v=9Hb0A6NEXjY",
+    ana: "",
+  },
 
   // <<< ADRIEN : le mot secret de la salle. vide = chacun le tape a l'arrivee
   secretWord: "test",
@@ -59,6 +67,7 @@ export const content = {
     swap:  "now you swap",
     win:   "you saved the oil",
     timeout: "too slow. donald took the oil. again !",
+    again: "play again",
   },
 
   // ── les etapes ────────────────────────────────────────────
@@ -68,8 +77,8 @@ export const content = {
       id: "escape", guide: "waiter", title: "escape",
       intro: "bon appetit",
       pick:  "the waiter put the plate on...",
-      A: { title: "museum one" },
-      B: { title: "museum two" },
+      A: { title: "the lascaux cave" },
+      B: { title: "philomena cunk" },
     },
     {
       id: "geo", guide: "pigeon", title: "geography",
