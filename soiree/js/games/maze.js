@@ -45,24 +45,24 @@ const DIRS = [
 ];
 const KEYS = { arrowup:0, w:0, z:0, arrowright:1, d:1, arrowdown:2, s:2, arrowleft:3, a:3, q:3 };
 
-const PAL = { k:"#0b0f22", w:"#FAF8F4", r:"#d0697c", y:"#fff1b8", g:"#9aa0c2", G:"#5d6391", b:"#9a6a48", o:"#4a4d6e" };
+const PAL = { k:"#0b0f22", w:"#FAF8F4", r:"#d0697c", y:"#fff1b8", g:"#9aa0c2", G:"#5d6391", b:"#9a6a48", o:"#4a4d6e", Y:"#f0c75e" };
 const BARON = [
-  "....oooooo....",
-  "....oooooo....",
-  "....oooooo....",
-  "....orrrro....",
-  "..oooooooooo..",
-  "....wwwwww....",
-  "....wkwwkw....",
-  "....wwwwww....",
-  "...gggwwggg...",
-  "....wwwwww....",
-  "...GGGrrGGG...",
-  "..GGGGrrGGGG..",
-  ".wGGGGrrGGGGw.",
-  ".w.GGGGGGGG.b.",
-  "...GG....GG.bb",
-  "...oo....oo.bb",
+  "....YYYYYYY.....",
+  "...YYYYYYYYY....",
+  "..YYYYYYYYYYY...",
+  "..YYwwwwwwwYY...",
+  "...wwkwwwkww....",
+  "...wwwwwwwww....",
+  "...wwwrrrwww....",
+  "....wwwwwww.....",
+  "..GGGGGGGGGGG...",
+  ".GGGGGGGGGGGGG..",
+  "GGGGGGGGGGGGGGG.",
+  "GGGGGGGGGGGGGGGw",
+  "GGGGGGGGGGGGGGGb",
+  ".GGGGGGGGGGGGGbb",
+  "..GGG.....GGG.bb",
+  "..oo.......oo...",
 ];
 const BOMB = [
   "....y..",
