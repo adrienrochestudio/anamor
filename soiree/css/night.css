@@ -9,13 +9,6 @@
 .head{ display:flex; align-items:flex-start; gap:12px; }
 .head #kompiuter{ flex:1; }
 #topbar{ display:flex; flex-direction:column; align-items:flex-end; gap:8px; padding-top:10px; }
-.dot{ margin-left:12px; color:var(--muted); }
-.dot::before{
-  content:""; display:inline-block; width:9px; height:9px; margin-right:5px;
-  border:2px solid var(--muted); background:transparent; vertical-align:1px;
-}
-.dot.on{ color:var(--cream); }
-.dot.on::before{ background:var(--ok); border-color:var(--ok); }
 
 /* frise des 8 arrets */
 #frise{ display:flex; gap:8px; justify-content:center; margin:6px 0 10px; flex-wrap:wrap; }
@@ -52,7 +45,8 @@
 .opt.faded{ opacity:.35; transform:scale(.94); }
 .opt.also{ border-style:dashed; }
 .step.playing .opt{ min-height:0; padding:8px 14px; }
-.step.playing .opt p{ display:none; }
+.step.playing .opt p, .step.playing .opt-thumb{ display:none; }
+.opt-thumb{ display:block; width:100%; aspect-ratio:16/9; object-fit:cover; border-radius:10px; margin-bottom:8px; }
 .step.playing .guide-slot{ height:70px; }
 
 .activity{ margin:18px 0; }
