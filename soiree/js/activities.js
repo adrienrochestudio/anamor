@@ -8,7 +8,7 @@
 // ============================================================
 export const ACTIVITIES = {
   "escape:A":  { load:() => import("./steps/tour.js"),      params:{ index:0 } },
-  "escape:B":  { load:() => import("./steps/video.js"),     params:{ source:"museum", index:1 } },
+  "escape:B":  { load:() => import("./steps/tour.js"),      params:{ index:1, url:"https://we.tl/t-rrSPqJpx0avr57ym" } },
   "geo:A":     { load:() => import("./steps/links.js"),     params:{ service:"worldguessr" } },
   "geo:B":     { load:() => import("./games/flags.js") },
   "draw:A":    { load:() => import("./steps/links.js"),     params:{ service:"skribbl" } },
