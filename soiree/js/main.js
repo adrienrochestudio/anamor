@@ -73,7 +73,6 @@ function askCode(){
   input.addEventListener("keydown", e => { if (e.key === "Enter") go(); });
   clear(stage).append(h("section", { class:"card narrow" },
     h("h2", { text:"the secret word" }),
-    h("p", { class:"muted", text:L.codeHelp }),
     h("div", { class:"row" }, h("div", { class:"grow" }, input), h("button", { text:"enter", onclick:go })),
     msg,
   ));
