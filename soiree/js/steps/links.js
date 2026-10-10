@@ -10,32 +10,17 @@ const SERVICES = {
   worldguessr: {
     name:"worldguessr", url:"https://www.worldguessr.com/",
     hosts:["worldguessr.com", "www.worldguessr.com"], code:true,
-    what:"the party code (or the link)",
-    how:[
-      "one of you open worldguessr, go in multiplayer and create a private party",
-      "paste the party code here, i send it to the other",
-      "the other join with the code. play, then come back and click done",
-    ],
+    what:"party code"
   },
   skribbl: {
     name:"skribbl", url:"https://skribbl.io/",
     hosts:["skribbl.io", "www.skribbl.io"], code:false,
-    what:"the invite link",
-    how:[
-      "one of you open skribbl, choose a name, click create private room",
-      "copy the invite link and paste it here",
-      "the other open the link. play some rounds, then click done",
-    ],
+    what:"invite link"
   },
   codenames: {
     name:"codenames", url:"https://codenames.game/",
     hosts:["codenames.game", "www.codenames.game"], code:false,
-    what:"the room link",
-    how:[
-      "one of you open codenames, create a room and choose duet",
-      "paste the room link here",
-      "the other open it. win together, then click done",
-    ],
+    what:"room link"
   },
 };
 
@@ -62,7 +47,7 @@ export function mount(ctx){
 
   const send = () => {
     const p = parseShared(ctx.params.service, input.value);
-    if (!p){ msg.className = "small warn"; msg.textContent = `this is not ${s.what} from ${s.name}`; return; }
+    if (!p){ msg.className = "small warn"; msg.textContent = `not a ${s.name} ${s.what}`; return; }
     ctx.set("shared", { ...p, t:Date.now() });
     msg.className = "small ok"; msg.textContent = "sent";
     input.value = "";
@@ -71,8 +56,7 @@ export function mount(ctx){
   input.addEventListener("keydown", e => { if (e.key === "Enter") send(); });
 
   ctx.el.append(h("div", { class:"panel" },
-    ...s.how.map(t => h("p", { text:"- " + t })),
-    h("div", { class:"row", style:"margin-top:10px" },
+    h("div", { class:"row" },
       h("button", { text:`open ${s.name}`, onclick:() => window.open(s.url, "_blank", "noopener") }),
     ),
     h("div", { class:"row", style:"margin-top:10px" }, h("div", { class:"grow" }, input), h("button", { text:"send", onclick:send })),
@@ -88,12 +72,11 @@ export function mount(ctx){
     const p = parseShared(ctx.params.service, cur.v);
     if (!p) return;
     const fromOther = cur === theirs;
-    if (fromOther){ ctx.sfx.good(); ctx.say(`the other send you ${s.what}`); }
+    if (fromOther) ctx.sfx.good();
     const copy = h("button", { text:"copy", onclick:() => {
       navigator.clipboard && navigator.clipboard.writeText(p.v).then(() => { copy.textContent = "copied"; });
     }});
     clear(shown).append(h("div", { class:"panel" },
-      h("p", { class:"muted", text:fromOther ? "from the other :" : "you sent :" }),
       p.kind === "code"
         ? h("p", { class:"big-code", text:p.v })
         : h("p", { class:"keep-case small", text:p.v }),
@@ -105,5 +88,4 @@ export function mount(ctx){
   }
   ctx.onChange(update);
   update();
-  ctx.say(`one of you make the room on ${s.name}. i pass the message`);
 }
