@@ -26,7 +26,6 @@ export const content = {
     yawn:        "*yaaaawn* ... sorry. it is late for a kompiuter",
     who:         "who are you ?",
     code:        "type the secret word of tonight. the same word on both sides",
-    waiting:     "i waite for the other one...",
     opening: [
       "i am tino, the little brother of tina. tonigth i organise your evening",
       "eight stops for you two",
@@ -46,7 +45,6 @@ export const content = {
     nextBtn:     "next",
     disagree:    "you two dont agree. talk on the phone and decide",
     goodbye:     "that was all the stops. thank you for coming in my little trip. good nigth you two",
-    offline:     "the other one is not here... i wait",
     reconnect:   "connection is wobbly, i try again",
   },
 
