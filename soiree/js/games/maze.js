@@ -14,7 +14,9 @@
 //    Le guide voit ou elles vont tomber avant l'impact. Explosion en
 //    croix ; si tino est dedans, retour au depart.
 //
-// Etat, dans le couloir de celui qui marche :
+// Parties : on rejoue autant qu'on veut (bouton "again" a la fin).
+//   round = numero de partie (le plus grand des deux couloirs)
+// Etat de la partie n, dans le couloir de celui qui marche, sous p<n>. :
 //   start.<niveau> = ms      horloge commune du niveau
 //   pos.<niveau>   = { x, y, n, t }   (au plus toutes les 80 ms)
 //   dead.<niveau>  = nombre d'explosions subies
@@ -28,8 +30,8 @@ import { seeded } from "../draw.js";
 // step : ms accordees par case du plus court chemin ; au-dela du chrono,
 // retour au depart avec un nouveau labyrinthe
 const LEVELS = [
-  { size:21, walker:"ana",    every:1200, warn:1250, gates:46, period:1500, braid:0.04, hunt:0.65, step:900, min:70000 },
-  { size:25, walker:"adrien", every:950,  warn:1050, gates:70, period:1250, braid:0.04, hunt:0.75, step:800, min:80000 },
+  { size:21, walker:"ana",    every:1900, warn:1700, gates:20, period:2400, braid:0.04, hunt:0.45, step:1100, min:80000 },
+  { size:25, walker:"adrien", every:1600, warn:1500, gates:30, period:2100, braid:0.04, hunt:0.55, step:1000, min:90000 },
 ];
 const GRACE = 3000;        // ms avant la premiere bombe
 const BLAST = 700;         // duree d'une explosion
@@ -272,26 +274,28 @@ export function mount(ctx){
 
   // ── etat ─────────────────────────────────────────────────
   let level = 0, local = null;
-  const streamPos = {};
+  let streamPos = {};
+  const roundNow = () => Math.max(ctx.get("ana", "round") | 0, ctx.get("adrien", "round") | 0, 1);
+  let round = roundNow();
   let lastWrite = 0, writeTimer = null, fxTimer = null, raf = 0, lastFrame = 0;
   let deaths = 0, seenDead = 0, killedBy = -1, boomSeen = -1, safeUntil = 0;
   let cell = 30, Wpx = 0, Hpx = 0, dpr = 1;
 
   const levelNow = () => {
-    for (let i = 0; i < NL; i++) if (!ctx.get(LEVELS[i].walker, `won.${i + 1}`)) return i + 1;
+    for (let i = 0; i < NL; i++) if (!ctx.get(LEVELS[i].walker, `p${round}.won.${i + 1}`)) return i + 1;
     return NL + 1;
   };
   const finished = () => level > NL;
   const lv = () => LEVELS[Math.min(level, NL) - 1];          // reglages du niveau
   const iWalk = () => !finished() && lv().walker === ctx.me;
-  const startOf = () => { const s = ctx.get(lv().walker, `start.${level}`); return Number.isFinite(s) ? s : null; };
+  const startOf = () => { const s = ctx.get(lv().walker, `p${round}.start.${level}`); return Number.isFinite(s) ? s : null; };
   const elapsed = () => { const s = startOf(); return s == null ? null : Date.now() - s; };
   const lay = () => { const s = startOf(); return finished() || s == null ? null : layout(level - 1, s); };
 
   function walkerPos(){
     if (iWalk()) return local;
     const size = lv().size;
-    const lane = validPos(ctx.get(lv().walker, `pos.${level}`), size);
+    const lane = validPos(ctx.get(lv().walker, `p${round}.pos.${level}`), size);
     return newest(lane, validPos(streamPos[level], size)) || { x:0, y:0, n:0, t:0 };
   }
 
@@ -314,24 +318,24 @@ export function mount(ctx){
   const hunts = {};
   function huntedAt(k){
     if (iWalk()) return hunts[k] || null;
-    const H = ctx.get(lv().walker, `hunt.${level}`);
+    const H = ctx.get(lv().walker, `p${round}.hunt.${level}`);
     return H && H.s === startOf() && H.b && H.b[k] ? H.b[k] : null;
   }
   function publishHunts(){
     const ks = Object.keys(hunts).map(Number).sort((a, b) => a - b).slice(-10);
     const b = {};
     ks.forEach(k => { b[k] = hunts[k]; });
-    ctx.set(`hunt.${level}`, { s:startOf(), b });
+    ctx.set(`p${round}.hunt.${level}`, { s:startOf(), b });
   }
   function bombAt(k){
     const L = lay();
-    const r = seeded(ctx.seed, "bomb", level, k);
+    const r = seeded(ctx.seed, "bomb", round, level, k);
     const land = GRACE + k * L.every;
     if (r() < L.hunt){
       let t = huntedAt(k);
       const el = elapsed();
       if (!t && iWalk() && local && el != null && el >= land - L.warn){
-        const rr = seeded(ctx.seed, "hunt", level, k);
+        const rr = seeded(ctx.seed, "hunt", round, level, k);
         t = hunts[k] = {
           x:Math.min(L.size - 1, Math.max(0, local.x + Math.floor(rr() * 3) - 1)),
           y:Math.min(L.size - 1, Math.max(0, local.y + Math.floor(rr() * 3) - 1)),
@@ -380,16 +384,16 @@ export function mount(ctx){
     clearTimeout(writeTimer); writeTimer = null;
     local = null; killedBy = -1; boomSeen = -1;
     if (finished()) return finish(live);
-    seenDead = ctx.get(lv().walker, `dead.${level}`) | 0;
+    seenDead = ctx.get(lv().walker, `p${round}.dead.${level}`) | 0;
     for (const k in hunts) delete hunts[k];
     if (iWalk()){
-      const H = ctx.get(ctx.me, `hunt.${level}`);
+      const H = ctx.get(ctx.me, `p${round}.hunt.${level}`);
       if (H && H.s === startOf() && H.b) Object.assign(hunts, H.b);
-      const saved = validPos(ctx.get(ctx.me, `pos.${level}`), lv().size);
+      const saved = validPos(ctx.get(ctx.me, `p${round}.pos.${level}`), lv().size);
       local = { x:saved ? saved.x : 0, y:saved ? saved.y : 0, n:saved ? saved.n : 0, t:Date.now() };
-      deaths = ctx.get(ctx.me, `dead.${level}`) | 0;
-      if (startOf() == null) ctx.set(`start.${level}`, Date.now());
-      ctx.send("move", { l:level, ...local });
+      deaths = ctx.get(ctx.me, `p${round}.dead.${level}`) | 0;
+      if (startOf() == null) ctx.set(`p${round}.start.${level}`, Date.now());
+      ctx.send("move", { r:round, l:level, ...local });
     }
     if (live) ctx.sfx.good();
     ctx.say(level === 1 ? (lines.intro || "") : (lines.swap || ""));
@@ -398,10 +402,11 @@ export function mount(ctx){
   }
 
   function finish(live){
-    const d = LEVELS.map((l, i) => ctx.get(l.walker, `dead.${i + 1}`) | 0);
+    const d = LEVELS.map((l, i) => ctx.get(l.walker, `p${round}.dead.${i + 1}`) | 0);
     clear(end).append(
       h("p", { class:"maze-big", text:lines.win || "you saved the oil" }),
-      h("p", { class:"muted", text:`boom : ana ${d[0]}, adrien ${d[1]}` }),
+      h("p", { class:"muted", text:`game ${round} · boom : ana ${d[0]}, adrien ${d[1]}` }),
+      h("button", { class:"big", text:lines.again || "again", onclick:() => ctx.set("round", round + 1) }),
     );
     if (live){ ctx.sky.shower(20); ctx.sfx.fanfare(); }
     frame.hidden = true;
@@ -409,8 +414,16 @@ export function mount(ctx){
   }
 
   function update(){
+    if (roundNow() !== round){                     // nouvelle partie
+      round = roundNow();
+      streamPos = {};
+      level = 0;
+      clear(end);
+      frame.hidden = false;
+      return enterLevel(true);
+    }
     if (levelNow() !== level) return enterLevel(true);
-    const dead = ctx.get(lv().walker, `dead.${level}`) | 0;
+    const dead = ctx.get(lv().walker, `p${round}.dead.${level}`) | 0;
     if (!iWalk() && dead > seenDead){ seenDead = dead; boomFx(); }
     updateHud();
   }
@@ -428,10 +441,10 @@ export function mount(ctx){
     }
     local = { x:nx, y:ny, n:local.n + 1, t:Date.now() };
     ctx.sfx.tick();
-    ctx.send("move", { l:level, ...local });
+    ctx.send("move", { r:round, l:level, ...local });
     const won = nx === L.exit.x && ny === L.exit.y;
     writePos(won);
-    if (won){ ctx.set(`won.${level}`, true); return; }
+    if (won){ ctx.set(`p${round}.won.${level}`, true); return; }
     checkBlast();
   }
 
@@ -449,9 +462,9 @@ export function mount(ctx){
     safeUntil = Date.now() + 2000;
     deaths++;
     local = { x:0, y:0, n:local.n, t:Date.now() };
-    ctx.set(`dead.${level}`, deaths);
+    ctx.set(`p${round}.dead.${level}`, deaths);
     writePos(true);
-    ctx.send("move", { l:level, ...local });
+    ctx.send("move", { r:round, l:level, ...local });
     boomFx();
   }
 
@@ -461,10 +474,10 @@ export function mount(ctx){
     safeUntil = Date.now() + 2000;
     local = { x:0, y:0, n:local.n, t:Date.now() };
     killedBy = -1; boomSeen = -1;
-    ctx.set(`start.${level}`, Date.now());
-    ctx.set(`hunt.${level}`, { s:0, b:{} });
+    ctx.set(`p${round}.start.${level}`, Date.now());
+    ctx.set(`p${round}.hunt.${level}`, { s:0, b:{} });
     writePos(true);
-    ctx.send("move", { l:level, ...local });
+    ctx.send("move", { r:round, l:level, ...local });
     boomFx();
     if (lines.timeout) ctx.say(lines.timeout);
   }
@@ -485,7 +498,7 @@ export function mount(ctx){
     const left = WRITE_EVERY - (performance.now() - lastWrite);
     if (now || left <= 0){
       lastWrite = performance.now();
-      ctx.set(`pos.${level}`, { x:local.x, y:local.y, n:local.n, t:local.t });
+      ctx.set(`p${round}.pos.${level}`, { x:local.x, y:local.y, n:local.n, t:local.t });
     } else writeTimer = setTimeout(() => writePos(true), left);
   }
   const flush = () => { if (writeTimer) writePos(true); };
@@ -507,11 +520,11 @@ export function mount(ctx){
   function updateHud(){
     if (finished()){ role.textContent = ""; info.textContent = ""; pad.hidden = true; return; }
     role.textContent = iWalk() ? "you walk in the dark" : "you see everything";
-    const d = ctx.get(lv().walker, `dead.${level}`) | 0;
+    const d = ctx.get(lv().walker, `p${round}.dead.${level}`) | 0;
     const el = elapsed(), L = lay();
     const left = !L ? 0 : el == null ? L.time : Math.max(0, L.time - el);
     const sec = Math.ceil(left / 1000);
-    info.textContent = `level ${level}/${NL} · ${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")} · boom ${d}`;
+    info.textContent = `${round > 1 ? `game ${round} · ` : ""}level ${level}/${NL} · ${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")} · boom ${d}`;
     pad.hidden = !iWalk();
   }
 
@@ -650,7 +663,7 @@ export function mount(ctx){
 
   // ── branchements ─────────────────────────────────────────
   ctx.onStream("move", d => {
-    if (!d || !Number.isInteger(d.l) || d.l < 1 || d.l > NL) return;
+    if (!d || d.r !== round || !Number.isInteger(d.l) || d.l < 1 || d.l > NL) return;
     const p = validPos(d, LEVELS[d.l - 1].size);
     if (!p) return;
     streamPos[d.l] = newest(streamPos[d.l], { x:p.x, y:p.y, n:p.n, t:p.t });
@@ -664,6 +677,8 @@ export function mount(ctx){
   if (testHook){
     window.__maze = {
       level:() => level,
+      round:() => round,
+      win:() => { if (iWalk()) ctx.set(`p${round}.won.${level}`, true); },
       size:l => LEVELS[l - 1].size,
       walker:l => LEVELS[l - 1].walker,
       walls:() => (lay() ? Array.from(lay().walls) : null),
@@ -673,7 +688,7 @@ export function mount(ctx){
       start:() => startOf(),
       gates:() => (lay() ? lay().gateList.length : null),
       pos:() => (finished() ? null : { ...walkerPos() }),
-      deaths:() => (finished() ? null : ctx.get(lv().walker, `dead.${level}`) | 0),
+      deaths:() => (finished() ? null : ctx.get(lv().walker, `p${round}.dead.${level}`) | 0),
       elapsed:() => elapsed(),
       bombs:() => activeBombs(elapsed()),
       blocked:(x, y, d) => blocked(x, y, d, elapsed()),
