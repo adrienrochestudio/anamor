@@ -58,6 +58,7 @@ export const content = {
     intro: "donald found oil in your maze, he wants your resources !",
     swap:  "now you swap",
     win:   "you saved the oil",
+    timeout: "too slow. donald took the oil. again !",
   },
 
   // ── les etapes ────────────────────────────────────────────
