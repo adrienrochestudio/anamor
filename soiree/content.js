@@ -23,7 +23,6 @@ export const content = {
     yawn:        "*yaaaawn* ... sorry. it is late for a kompiuter",
     who:         "who are you ?",
     code:        "type the secret word of tonight. the same word on both sides",
-    codeHelp:    "you say it to each other on the phone. i use it to lock everything",
     waiting:     "i waite for the other one...",
     opening: [
       "i am tino, the little brother of tina. tonigth i organise your evening",
