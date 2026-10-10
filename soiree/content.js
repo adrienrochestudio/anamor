@@ -26,8 +26,8 @@ export const content = {
     codeHelp:    "you say it to each other on the phone. i use it to lock everything",
     waiting:     "i waite for the other one...",
     opening: [
-      "oh you both here now",
-      "tonight i made you a little trip. eight stops",
+      "i am tino, the little brother of tina. tonigth i organise your evening",
+      "eight stops for you two",
       "at each stop there is two choices",
       "you dont choose. a little friend choose for you",
       "but after, you can do the other one too. i am not a dictator",
@@ -48,13 +48,9 @@ export const content = {
     reconnect:   "connection is wobbly, i try again",
   },
 
-  // ── prepa ─────────────────────────────────────────────────
+  // ── prepa : tino se presente, c'est tout ───────────────────
   prep: {
-    hello:    "hello. this is the preparashion room",
-    private:  "you fill your part. the other cannot see it, promise. it stay in this computer until tonight",
-    save:     "do the save file too. browsers forget things sometimes. i dont",
-    done:     "all ready. i am proud uhu",
-    sameMac:  "important : do it on the mac and the browser you use tonight",
+    hello: "i am tino, the little brother of tina. tonigth i organise your evening",
   },
 
   // ── les etapes ────────────────────────────────────────────
