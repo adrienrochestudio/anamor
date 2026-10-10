@@ -15,6 +15,9 @@ export const content = {
     { url: "", label: "museum two" },
   ],
 
+  // <<< ADRIEN : le mot secret de la salle. vide = chacun le tape a l'arrivee
+  secretWord: "test",
+
   // <<< ADRIEN : la phrase secrete des 7 clics sur kompiuter
   secret7: "ok ok stop clicking me. secret : he talk about you all the time. all. the. time. dont tell him i said",
 
