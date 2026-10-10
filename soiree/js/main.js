@@ -61,7 +61,7 @@ function askWho(){
 }
 
 function askCode(){
-  const urlCode = params.get("code");
+  const urlCode = params.get("code") || content.secretWord;
   if (urlCode) return join(urlCode);
   k.say(L.code);
   const input = h("input", { type:"text", class:"keep-case", placeholder:"the secret word", autocomplete:"off" });
@@ -481,5 +481,5 @@ const forced = params.get("me");
 let saved = {};
 try { saved = { me:sessionStorage.getItem("soiree-me"), code:sessionStorage.getItem("soiree-code") }; } catch {}
 if (forced === "ana" || forced === "adrien"){ me = forced; askCode(); }
-else if ((saved.me === "ana" || saved.me === "adrien") && saved.code){ me = saved.me; join(saved.code); }
+else if ((saved.me === "ana" || saved.me === "adrien") && (content.secretWord || saved.code)){ me = saved.me; join(content.secretWord || saved.code); }
 else askWho();
