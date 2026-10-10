@@ -95,7 +95,6 @@ async function join(code){
   provideContent();
   picks = STEPS.map((_, s) => stepPick(room.seed, s, FORCE));
   await room.ready;
-  $("#presence").style.visibility = "visible";
   if (params.has("reset")){                 // test : repartir de zero
     room.reset();
     params.delete("reset");
@@ -148,7 +147,6 @@ function render(){
   if (!room) return;
   if (busy){ pendingRender = true; return; }
   const pos = derive(room.lane(me), room.lane(other), picks);
-  updatePresence();
   updateFrise(pos);
   checkKonami();
   const key = keyOf(pos);
@@ -186,14 +184,7 @@ function refresh(pos){
   if (pos.phase === "after") refreshAfter(pos);
 }
 
-// ── presence et frise ────────────────────────────────────────
-function updatePresence(){
-  if (!room) return;
-  for (const n of ["ana", "adrien"]){
-    const el = $("#dot-" + n);
-    if (el) el.classList.toggle("on", room.online(n));
-  }
-}
+// ── frise ────────────────────────────────────────────────────
 
 function updateFrise(pos){
   const fr = $("#frise");
@@ -275,9 +266,13 @@ function ensureShell(step){
   destroyActivity();
   if (guide){ guide.destroy(); guide = null; }
   const st = STEPS[step];
-  const card = o => h("div", { class:"opt", "data-opt":o },
-    h("h3", { text:st[o].title }),
-    h("p", { class:"muted", text:st[o].desc }));
+  const card = o => {
+    const vid = st.id === "escape" ? content.museums[o === "A" ? 0 : 1] : null;
+    const id = vid && ytId(vid.url);
+    return h("div", { class:"opt", "data-opt":o },
+      id ? h("img", { class:"opt-thumb", src:`https://i.ytimg.com/vi/${id}/mqdefault.jpg`, alt:"" }) : null,
+      h("h3", { text:(vid && vid.label) || st[o].title }));
+  };
   const cards = { A:card("A"), B:card("B") };
   const slot = h("div", { class:"guide-slot" });
   const activityEl = h("div", { class:"activity" });
