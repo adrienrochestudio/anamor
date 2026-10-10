@@ -70,3 +70,4 @@ button.big{ font-size:1.3rem; padding:8px 28px; }
   .head{ flex-direction:column; }
   #topbar{ align-items:flex-start; }
 }
+.tour-box{ aspect-ratio:4/3; max-height:78vh; }
