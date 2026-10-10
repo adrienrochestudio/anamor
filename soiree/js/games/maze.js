@@ -1,8 +1,8 @@
 // ============================================================
 // maze.js : le labyrinthe dans le noir (etape "play together", A)
 //
-// Tino marche dans le noir (il ne voit ni murs ni etoile), l'autre
-// voit tout et le guide a la voix. Niveau 1 : ana marche. Niveau 2 :
+// Tino marche dans le noir (il ne voit que les murs des cases autour
+// de lui), l'autre voit tout et le guide a la voix. Niveau 1 : ana marche. Niveau 2 :
 // adrien marche. Plus grand, plus rapide.
 // Chaque partie (chaque depart) tire un nouveau labyrinthe et une
 // nouvelle place pour l'etoile, loin du depart.
@@ -33,6 +33,7 @@ const LEVELS = [
 ];
 const GRACE = 3000;        // ms avant la premiere bombe
 const BLAST = 700;         // duree d'une explosion
+const LIGHT = 1;           // celui qui marche voit un carre de 3x3 cases autour de tino
 const WRITE_EVERY = 80;
 const MAX_W = 600;
 const TOP = 54;            // bande du baron au-dessus du labyrinthe
@@ -552,24 +553,29 @@ export function mount(ctx){
     if (!L) return;
     const size = L.size;
 
-    // celui qui marche ne voit que tino : ni murs, ni etoile, ni bombes
+    // celui qui marche voit les cases autour de tino, jamais les bombes qui tombent
     const full = !iWalk();
     const p = walkerPos();
-    const near = (x, y) => x === p.x && y === p.y;
+    const near = (x, y) => Math.abs(x - p.x) <= LIGHT && Math.abs(y - p.y) <= LIGHT;
     const shown = (x, y) => full || near(x, y);
 
     // bande du haut : le baron
     const bx = baronX(el);
     sprite(BARON, X(bx) + cell / 2 - (BARON[0].length * SP) / 2, 4, SP);
 
-    // sol : tout pour le guide, la seule case de tino pour celui qui marche
+    // sol : tout pour le guide, le carre autour de tino pour celui qui marche
     g.fillStyle = "#171d3d";
     if (full) g.fillRect(X(0), Y(0), cell * size, cell * size);
-    else g.fillRect(X(p.x), Y(p.y), cell, cell);
+    else {
+      const x0 = Math.max(0, p.x - LIGHT), y0 = Math.max(0, p.y - LIGHT);
+      const x1 = Math.min(size - 1, p.x + LIGHT), y1 = Math.min(size - 1, p.y + LIGHT);
+      g.fillRect(X(x0), Y(y0), (x1 - x0 + 1) * cell, (y1 - y0 + 1) * cell);
+    }
     // murs fixes
     g.fillStyle = "#FAF8F4";
     const T = 2;
-    if (full) for (let y = 0; y < size; y++) for (let x = 0; x < size; x++){
+    for (let y = 0; y < size; y++) for (let x = 0; x < size; x++){
+      if (!shown(x, y)) continue;
       const w = L.walls[y * size + x];
       const isGate = d => L.gates.has(`${x},${y},${d}`);
       if ((w & N) && !isGate(N)) g.fillRect(X(x) - T / 2, Y(y) - T / 2, cell + T, T);
@@ -578,7 +584,9 @@ export function mount(ctx){
       if ((w & E) && !isGate(E)) g.fillRect(X(x) + cell - T / 2, Y(y) - T / 2, T, cell + T);
     }
     // murs mobiles
-    if (full) for (const gt of L.gateList){
+    for (const gt of L.gateList){
+      const ox = gt.horiz ? gt.x + 1 : gt.x, oy = gt.horiz ? gt.y : gt.y + 1;
+      if (!shown(gt.x, gt.y) && !shown(ox, oy)) continue;
       const closed = gateClosed(gt, el);
       g.fillStyle = closed ? "#d0697c" : "rgba(208,105,124,.28)";
       const th = closed ? 4 : 2;
@@ -586,7 +594,7 @@ export function mount(ctx){
       else g.fillRect(X(gt.x) + 2, Y(gt.y) + cell - th / 2, cell - 4, th);
     }
     // l'etoile d'arrivee (sa place change a chaque partie)
-    if (full){
+    if (shown(L.exit.x, L.exit.y)){
       const s = Math.max(2, Math.floor(cell / 10));
       sprite(STAR, X(L.exit.x) + cell / 2 - 3.5 * s, Y(L.exit.y) + cell / 2 - 3.5 * s, s);
     }
