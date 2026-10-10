@@ -1,5 +1,7 @@
 // ============================================================
-// video.js : lecteur YouTube synchronise (etape 1 et finale)
+// video.js : lecteur synchronise (etape 1 et finale)
+// YouTube, ou fichier video : lien direct .mp4, ou fichier choisi
+// par chacun sur son ordinateur (meme fichier des deux cotes).
 //
 // Pas de controles YouTube natifs (sinon un ecran partirait sans
 // l'autre). Nos boutons ecrivent une commande dans MON couloir :
@@ -34,6 +36,8 @@ export function mount(ctx){
       return m ? ytId(m.url) : null;
     }
     if (params.source === "jdg"){
+      const fixed = content.videos && content.videos[params.owner];
+      if (ytId(fixed)) return ytId(fixed);
       note.textContent = `i ask ${params.owner} for the video...`;
       try { return ytId(await ctx.request(params.owner, "prep:jdg")) || null; }
       catch { return null; }
@@ -58,8 +62,47 @@ export function mount(ctx){
       h("div", { class:"row" }, h("div", { class:"grow" }, input), h("button", { text:"ok", onclick:go }))));
   }
 
+  // ── fichier video (etape 1 quand le lien n'est pas youtube) ──
+  function fileMode(){
+    if (params.source !== "museum" || latest("manual")) return false;
+    const m = content.museums[params.index] || {};
+    return !ytId(m.url);
+  }
+  function startFile(){
+    const url = (content.museums[params.index] || {}).url || "";
+    if (/^https:\/\/\S+\.(mp4|webm|m4v|mov)(\?\S*)?$/i.test(url)) return mountFile(url, false);
+    const pick = h("input", { type:"file", accept:"video/*", style:"display:none" });
+    pick.addEventListener("change", () => { const f = pick.files[0]; if (f) mountFile(URL.createObjectURL(f), true); });
+    clear(box).append(h("div", { class:"center", style:"position:absolute;inset:0;display:flex;align-items:center;justify-content:center" },
+      h("button", { class:"big", text:"choose the video file", onclick:() => pick.click() }), pick));
+    note.textContent = "the same file on both sides";
+  }
+  function mountFile(src, local){
+    const v = h("video", { playsinline:true, preload:"auto" });
+    v.style.cssText = "position:absolute;inset:0;width:100%;height:100%;background:#000";
+    v.src = src;
+    clear(box).append(v);
+    if (local) ctx.onCleanup(() => URL.revokeObjectURL(src));
+    player = {
+      getCurrentTime:() => v.currentTime || 0,
+      seekTo:t => { try { v.currentTime = t; } catch {} },
+      playVideo:() => { const p = v.play(); if (p) p.catch(() => {}); },
+      pauseVideo:() => v.pause(),
+      getPlayerState:() => (v.paused ? 2 : v.readyState < 3 ? 3 : 1),
+      destroy:() => { v.pause(); v.removeAttribute("src"); v.load(); },
+    };
+    v.addEventListener("loadedmetadata", () => {
+      if (ready) return;
+      ready = true; note.textContent = "press play when you are both ready"; buildCtrl(); apply();
+    }, { once:true });
+    v.addEventListener("error", () => { note.textContent = "this video do not work. try another file"; });
+    clearInterval(timer);
+    timer = setInterval(() => apply(true), 3000);
+  }
+
   // ── lecteur ───────────────────────────────────────────────
   async function start(){
+    if (fileMode()) return startFile();
     videoId = await resolveId();
     if (!alive) return;
     if (!videoId){ note.textContent = ""; askManual(); return; }
@@ -189,6 +232,6 @@ export function mount(ctx){
 
   ctx.say(params.source === "jdg"
     ? "lights off. popcorn. press play together"
-    : "take your plate, we go visit. press play when you are ready");
+    : "bon appetit. press play together when you are ready");
   start();
 }
