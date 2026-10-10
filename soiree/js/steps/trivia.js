@@ -1,7 +1,7 @@
 // ============================================================
 // trivia.js : etape "us two", carte A
 //
-// Chacun a ecrit 10 questions sur lui dans sa prepa. Chacun
+// Chacun a ecrit 5 questions sur lui dans sa prepa. Chacun
 // repond aux questions de L'AUTRE, en meme temps.
 //
 // couloirs (espace de noms de l'activite) :
@@ -15,7 +15,7 @@
 import { h, clear } from "../dom.js";
 import { accepts, listAnswers } from "../games/answers.js";
 
-const MAX_Q = 10, MAX_ANSWER = 200;
+const MAX_Q = 5, MAX_ANSWER = 200;
 
 const CSS = `
 .trivia-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:0 18px; align-items:start; }

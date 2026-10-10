@@ -1,6 +1,6 @@
 // ============================================================
-// letters.js : etape "words". params.reader lit son texte de
-// prepa (lettre ou poeme) a voix haute, l'autre ecoute.
+// letters.js : etape "words". params.reader lit son poeme de
+// prepa (le sien, ou un poeme qu'il aime) a voix haute, l'autre ecoute.
 //
 // Lecteur : prompteur de son texte, bouton "i finished reading"
 //   -> setGlobal("share.text", true) (main.js libere prep:text)
@@ -31,6 +31,7 @@ export function mount(ctx){
   // ── lecteur ────────────────────────────────────────────────
   function mountReader(){
     const { kind, body } = ctx.prep.text;
+    const mine = kind !== "loved";
     const text = body.trim() ? body : "";
     let size = 1.6;
     const prompter = text
@@ -45,10 +46,10 @@ export function mount(ctx){
       ctx.set("read", true);
     }});
     const after = h("div", { class:"panel center", style:"display:none" },
-      h("p", { text:text ? `thank you. ${listener} can keep your ${kind} now` : "thank you. it was from the heart, i heard it" }),
+      h("p", { text:text ? `thank you. ${listener} can keep this poem now` : "thank you. it was from the heart, i heard it" }),
       h("p", { class:"muted", text:"click done when you are ready" }));
     root.append(
-      h("p", { class:"center letters-lead", text:text ? `read your ${kind} to ${listener}. slowly, it is not a race` : `your turn to talk to ${listener}` }),
+      h("p", { class:"center letters-lead", text:text ? `read ${mine ? "your poem" : "the poem you love"} to ${listener}. slowly, it is not a race` : `your turn to talk to ${listener}` }),
       text ? h("div", { class:"row center-row letters-zoom" },
         h("button", { class:"small", text:"smaller", onclick:zoom(-0.2) }),
         h("button", { class:"small", text:"bigger", onclick:zoom(0.2) })) : null,
@@ -87,7 +88,7 @@ export function mount(ctx){
       calm.querySelector(".letters-lead").textContent = `${reader} finished. i bring the words...`;
       const data = await ask();
       if (!alive) return;
-      const kind = data && data.kind === "poem" ? "poem" : "letter";
+      const loved = !!(data && data.kind === "loved");
       const body = data && typeof data.body === "string" ? data.body.trim() : "";
       calm.style.display = "none";
       reveal.style.display = "";
@@ -99,8 +100,8 @@ export function mount(ctx){
       }
       const lines = body.split("\n");
       const box = h("div", { class:"letters-paper keep-case" });
-      const title = `a ${kind} from ${reader}`;
-      const dl = h("button", { text:"download", onclick:() => download(title, body, `${kind}-from-${reader}.png`) });
+      const title = loved ? `a poem ${reader} loves` : `a poem from ${reader}`;
+      const dl = h("button", { text:"download", onclick:() => download(title, body, `poem-${reader}.png`) });
       const end = h("div", { class:"center letters-actions", style:"visibility:hidden" },
         dl, h("p", { class:"muted", text:"click done when you are ready" }));
       reveal.append(h("p", { class:"center letters-lead", text:title }), box, end);
@@ -112,7 +113,7 @@ export function mount(ctx){
       }
       if (!alive) return;
       end.style.visibility = "visible";
-      if (live) ctx.say(`this ${kind} is yours now. you can download it. click done when you are ready`);
+      if (live) ctx.say("this poem is yours now. you can download it. click done when you are ready");
     }
 
     async function ask(){

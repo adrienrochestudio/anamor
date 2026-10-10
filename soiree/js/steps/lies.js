@@ -1,7 +1,7 @@
 // ============================================================
 // lies.js : etape "us two", carte B (deux verites un mensonge)
 //
-// Chacun a prepare 3 manches. Ordre alterne, deduit des deux
+// Chacun a prepare 2 manches. Ordre alterne, deduit des deux
 // listes (memes donnees, meme calcul des deux cotes) :
 //   manche 1 d'ana (adrien devine), manche 1 d'adrien (ana
 //   devine), manche 2 d'ana, etc.
@@ -14,7 +14,7 @@
 // ============================================================
 import { h, clear } from "../dom.js";
 
-const N_ROUNDS = 3;
+const N_ROUNDS = 2;
 const PEOPLE = ["ana", "adrien"];
 const otherOf = who => (who === "ana" ? "adrien" : "ana");
 
