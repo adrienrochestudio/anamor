@@ -22,13 +22,15 @@
 import { h, clear } from "../dom.js";
 import { seeded } from "../draw.js";
 
+// hunt : part des bombes qui visent tino (autour de lui au moment du lacher)
+// time : temps pour sortir ; au-dela, retour au depart et chrono relance
 const LEVELS = [
-  { size:13, walker:"ana",    every:3000, warn:2300, gates:9,  period:2800, braid:0.14 },
-  { size:15, walker:"adrien", every:2300, warn:1900, gates:15, period:2300, braid:0.14 },
+  { size:17, walker:"ana",    every:1700, warn:1600, gates:24, period:1900, braid:0.05, hunt:0.5, time:150000 },
+  { size:21, walker:"adrien", every:1300, warn:1400, gates:36, period:1600, braid:0.05, hunt:0.6, time:210000 },
 ];
-const GRACE = 4000;        // ms avant la premiere bombe
+const GRACE = 3000;        // ms avant la premiere bombe
 const BLAST = 700;         // duree d'une explosion
-const LIGHT = 1;           // rayon vu par celui qui marche
+const LIGHT = 0;           // celui qui marche ne voit que sa case
 const WRITE_EVERY = 80;
 const MAX_W = 600;
 const TOP = 54;            // bande du baron au-dessus du labyrinthe
@@ -233,7 +235,7 @@ export function mount(ctx){
   let level = 0, local = null, visited = new Set();
   const streamPos = {};
   let lastWrite = 0, writeTimer = null, fxTimer = null, raf = 0, lastFrame = 0;
-  let deaths = 0, seenDead = 0, killedBy = -1, boomSeen = -1;
+  let deaths = 0, seenDead = 0, killedBy = -1, boomSeen = -1, safeUntil = 0;
   let cell = 30, Wpx = 0, Hpx = 0, dpr = 1;
 
   const levelNow = () => {
@@ -266,9 +268,37 @@ export function mount(ctx){
   }
 
   // ── bombes : meme calendrier des deux cotes ──────────────
+  // les bombes chasseuses visent tino : celui qui marche choisit la
+  // cible au moment du lacher et la publie dans son couloir.
+  const hunts = {};
+  function huntedAt(k){
+    if (iWalk()) return hunts[k] || null;
+    const H = ctx.get(lv().walker, `hunt.${level}`);
+    return H && H.s === startOf() && H.b && H.b[k] ? H.b[k] : null;
+  }
+  function publishHunts(){
+    const ks = Object.keys(hunts).map(Number).sort((a, b) => a - b).slice(-10);
+    const b = {};
+    ks.forEach(k => { b[k] = hunts[k]; });
+    ctx.set(`hunt.${level}`, { s:startOf(), b });
+  }
   function bombAt(k){
     const L = lv();
     const r = seeded(ctx.seed, "bomb", level, k);
+    const land = GRACE + k * L.every;
+    if (r() < L.hunt){
+      let t = huntedAt(k);
+      const el = elapsed();
+      if (!t && iWalk() && local && el != null && el >= land - L.warn){
+        const rr = seeded(ctx.seed, "hunt", level, k);
+        t = hunts[k] = {
+          x:Math.min(L.size - 1, Math.max(0, local.x + Math.floor(rr() * 3) - 1)),
+          y:Math.min(L.size - 1, Math.max(0, local.y + Math.floor(rr() * 3) - 1)),
+        };
+        publishHunts();
+      }
+      if (t) return { k, x:t.x, y:t.y, land, hunt:true };
+    }
     const onPath = r() < 0.7 && L.path.length > 6;
     let c;
     if (onPath){
@@ -279,7 +309,7 @@ export function mount(ctx){
       if (c < 2 || c > L.size * L.size - 3) c = Math.floor(L.size * L.size / 2);
     }
     const x = c % L.size;
-    return { k, x, y:(c - x) / L.size, land:GRACE + k * L.every };
+    return { k, x, y:(c - x) / L.size, land };
   }
   function activeBombs(el){
     if (el == null) return [];
@@ -310,7 +340,10 @@ export function mount(ctx){
     local = null; visited = new Set(); killedBy = -1; boomSeen = -1;
     if (finished()) return finish(live);
     seenDead = ctx.get(lv().walker, `dead.${level}`) | 0;
+    for (const k in hunts) delete hunts[k];
     if (iWalk()){
+      const H = ctx.get(ctx.me, `hunt.${level}`);
+      if (H && H.s === startOf() && H.b) Object.assign(hunts, H.b);
       const saved = validPos(ctx.get(ctx.me, `pos.${level}`), lv().size);
       local = { x:saved ? saved.x : 0, y:saved ? saved.y : 0, n:saved ? saved.n : 0, t:Date.now() };
       deaths = ctx.get(ctx.me, `dead.${level}`) | 0;
@@ -364,7 +397,7 @@ export function mount(ctx){
   }
 
   function checkBlast(){
-    if (!iWalk() || !local) return;
+    if (!iWalk() || !local || Date.now() < safeUntil) return;   // 2 s de repit apres un retour au depart
     const el = elapsed();
     for (const b of activeBombs(el)){
       if (el < b.land || el > b.land + BLAST || b.k === killedBy) continue;
@@ -374,6 +407,7 @@ export function mount(ctx){
 
   function die(k){
     killedBy = k;
+    safeUntil = Date.now() + 2000;
     deaths++;
     local = { x:0, y:0, n:local.n, t:Date.now() };
     visited = new Set(["0,0"]);
@@ -381,6 +415,21 @@ export function mount(ctx){
     writePos(true);
     ctx.send("move", { l:level, ...local });
     boomFx();
+  }
+
+  // trop lent : retour au depart, le chrono et les bombes repartent de zero
+  function timeout(){
+    for (const k in hunts) delete hunts[k];
+    safeUntil = Date.now() + 2000;
+    local = { x:0, y:0, n:local.n, t:Date.now() };
+    visited = new Set(["0,0"]);
+    killedBy = -1; boomSeen = -1;
+    ctx.set(`start.${level}`, Date.now());
+    ctx.set(`hunt.${level}`, { s:0, b:{} });
+    writePos(true);
+    ctx.send("move", { l:level, ...local });
+    boomFx();
+    if (lines.timeout) ctx.say(lines.timeout);
   }
 
   function boomFx(){
@@ -422,7 +471,10 @@ export function mount(ctx){
     if (finished()){ role.textContent = ""; info.textContent = ""; pad.hidden = true; return; }
     role.textContent = iWalk() ? "you walk in the dark" : "you see everything";
     const d = ctx.get(lv().walker, `dead.${level}`) | 0;
-    info.textContent = `level ${level}/${LV.length} · boom ${d}`;
+    const el = elapsed();
+    const left = el == null ? lv().time : Math.max(0, lv().time - el);
+    const sec = Math.ceil(left / 1000);
+    info.textContent = `level ${level}/${LV.length} · ${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")} · boom ${d}`;
     pad.hidden = !iWalk();
   }
 
@@ -517,6 +569,7 @@ export function mount(ctx){
     // bombes
     for (const b of activeBombs(el)){
       if (el < b.land){
+        if (!full) continue;                                  // celui qui marche ne voit rien venir
         const f = 1 - (b.land - el) / L.warn;                 // 0 au lacher, 1 a l'impact
         if (shown(b.x, b.y)){                                   // la cible clignote
           if (Math.floor(el / 180) % 2 === 0){
@@ -525,10 +578,7 @@ export function mount(ctx){
           }
         }
         const by = 4 + f * (Y(b.y) - 4);
-        const cy = Math.floor((by - TOP - PAD) / cell);
-        if (full || (cy >= p.y - LIGHT && cy <= p.y + LIGHT && Math.abs(b.x - p.x) <= LIGHT)){
-          sprite(BOMB, X(b.x) + cell / 2 - 3.5 * SP, by, SP);
-        }
+        sprite(BOMB, X(b.x) + cell / 2 - 3.5 * SP, by, SP);
       } else {
         const f = (el - b.land) / BLAST;
         g.fillStyle = `rgba(255,241,184,${0.85 * (1 - f)})`;
@@ -556,7 +606,12 @@ export function mount(ctx){
     raf = requestAnimationFrame(loop);
     if (t - lastFrame < 33) return;
     lastFrame = t;
-    checkBlast();
+    if (!finished()){
+      const el = elapsed();
+      if (iWalk() && local && el != null && el > lv().time) timeout();
+      checkBlast();
+      if (Math.floor(t / 500) !== loop.tick){ loop.tick = Math.floor(t / 500); updateHud(); }
+    }
     draw();
   }
 
