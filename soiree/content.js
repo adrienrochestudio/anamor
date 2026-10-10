@@ -55,7 +55,7 @@ export const content = {
 
   // ── labyrinthe ────────────────────────────────────────────
   maze: {
-    intro: "the oil baron found oil in your maze. he wants your resources !",
+    intro: "donald found oil in your maze, he wants your resources !",
     swap:  "now you swap",
     win:   "you saved the oil",
   },
