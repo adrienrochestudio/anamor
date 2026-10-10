@@ -1,6 +1,8 @@
 // ============================================================
 // prep.js : page de preparation (une par personne)
-// tout reste dans le navigateur de la personne (prep-store.js)
+// chaque frappe est gardee dans le navigateur (prep-store.js) et,
+// quelques secondes apres, deposee dans la boite de tino
+// (sync/box.js), d'ou le jeu la relit le soir.
 // ============================================================
 import { content } from "../content.js";
 import { h, $, clear, debounce } from "./dom.js";
@@ -8,10 +10,10 @@ import { createSky } from "./sky.js";
 import { createKompiuter } from "./kompiuter.js";
 import { sfx, muteButton } from "./sound.js";
 import { loadYT, EMBED_REFUSED } from "./yt.js";
-import {
-  loadPrep, savePrep, progress, ytId, exportFile, importFile,
-  photoToDataUrl, N_PHOTOS
-} from "./prep-store.js";
+import { loadPrep, savePrep, progress, ytId, photoToDataUrl, N_PHOTOS } from "./prep-store.js";
+import { openBox, verifyBox } from "./sync/box.js";
+
+const TRANSPORT = new URLSearchParams(location.search).get("t") === "local" ? "local" : "mqtt";
 
 createSky($("#sky"));
 const k = createKompiuter($("#kompiuter"), { sfx });
@@ -19,8 +21,9 @@ $("#kompiuter").append(h("div", { style:"margin-left:auto;align-self:flex-start"
 const app = $("#app");
 k.say(content.prep.hello);
 
-let me = null, prep = null;
+let me = null, other = null, prep = null, box = null, touched = false;
 let gaugeFill, gaugeText, savedEl;
+let local = "", cloud = "";             // etat affiche : ici / chez tino
 
 // ── identite ─────────────────────────────────────────────────
 const forced = new URLSearchParams(location.search).get("me");
@@ -38,29 +41,89 @@ function askWho(){
 
 async function start(who){
   me = who;
+  other = me === "ana" ? "adrien" : "ana";
+  touched = false;
   try { localStorage.setItem("soiree-prep-me", me); } catch {}
   prep = await loadPrep(me);
   render();
+  connectBox();
 }
 
-// ── sauvegarde ───────────────────────────────────────────────
-const persist = debounce(async () => {
+// ── la boite de tino ─────────────────────────────────────────
+let boxP = null;
+function ensureBox(){
+  if (!boxP) boxP = openBox({ transport:TRANSPORT }).then(b => {
+    box = b;
+    b.on(() => { if (cloud === "offline" && b.connected()) scheduleUpload(200); });
+    return b;
+  }, e => { console.error(e); boxP = null; return null; });
+  return boxP;
+}
+async function connectBox(){
+  if (!await ensureBox()) return;
+  // une version plus recente chez tino (rempli sur un autre appareil) : on la reprend
+  const r = await box.wait(me, 7000);
+  if (r && !touched && r.prep.updated > prep.updated){
+    r.prep.photos.forEach((ph, i) => { if (!ph.src && r.has[i] && prep.photos[i].src) ph.src = prep.photos[i].src; });
+    prep = r.prep;
+    try { await savePrep(prep, { keep:true }); } catch {}
+    cloud = "ok";
+    render();
+  } else if (!r || r.manifest.updated !== prep.updated){
+    if (progress(prep).done > 0) scheduleUpload(300);
+  } else { cloud = "ok"; showStatus(); }
+}
+
+let upTimer = null, uploading = false;
+function scheduleUpload(ms = 2500){
+  clearTimeout(upTimer);
+  upTimer = setTimeout(uploadNow, ms);
+}
+async function uploadNow(){
+  if (!box){ ensureBox(); return scheduleUpload(5000); }
+  if (uploading) return scheduleUpload(1500);
+  uploading = true;
+  cloud = "sending"; showStatus();
   try {
-    await savePrep(prep);
-    savedEl.textContent = "saved";
-    savedEl.className = "small ok";
+    await box.upload(prep);
+    cloud = "ok";
   } catch (e){
-    console.error(e);
-    savedEl.textContent = "not saved ! download a copy";
-    savedEl.className = "small warn";
+    console.warn("box", e && e.message);
+    cloud = "offline";
+    scheduleUpload(8000);
   }
-}, 400);
+  uploading = false;
+  showStatus();
+}
+
+// ── sauvegarde ici, a chaque frappe ──────────────────────────
+let saveTimer = null;
+async function saveNow(){
+  clearTimeout(saveTimer); saveTimer = null;
+  try { await savePrep(prep); local = "ok"; }
+  catch (e){ console.error(e); local = "fail"; }
+  showStatus();
+}
+const flushSave = () => { if (saveTimer) saveNow(); };
+window.addEventListener("pagehide", flushSave);
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") flushSave(); });
 
 function changed(){
-  savedEl.textContent = "";
-  savedEl.className = "small muted";
+  touched = true;
+  local = "pending"; cloud = cloud === "offline" ? "offline" : "pending";
+  showStatus();
   updateGauge();
-  persist();
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveNow, 300);
+  scheduleUpload();
+}
+
+function showStatus(){
+  if (!savedEl) return;
+  const here = local === "fail" ? "not saved here !" : local === "pending" ? "..." : "saved";
+  const there = cloud === "ok" ? " · tino has it" : cloud === "sending" ? " · sending to tino" : cloud === "offline" ? " · tino offline, i retry" : "";
+  savedEl.textContent = here + there;
+  savedEl.className = "small " + (local === "fail" || cloud === "offline" ? "warn" : cloud === "ok" && local !== "pending" ? "ok" : "muted");
 }
 
 function updateGauge(){
@@ -75,6 +138,7 @@ function render(){
   gaugeFill = h("div", { class:"gauge-fill" });
   gaugeText = h("span");
   savedEl = h("span", { class:"small muted", text:"" });
+  if (!local) local = "ok";
   clear(app).append(
     h("div", { class:"gauge" },
       h("div", { class:"row" }, h("span", { class:"grow" }, `${me} · `, gaugeText), savedEl),
@@ -85,9 +149,10 @@ function render(){
     sectionText(),
     sectionTrivia(),
     sectionLies(),
-    sectionSave(),
+    sectionSend(),
   );
   updateGauge();
+  showStatus();
 }
 
 function card(title, help, ...body){
@@ -98,22 +163,22 @@ function card(title, help, ...body){
 function sectionJdg(){
   const input = h("input", { type:"url", class:"keep-case", placeholder:"https://www.youtube.com/watch?v=...", value:prep.jdg });
   const status = h("p", { class:"small" });
-  const box = h("div", { class:"yt-preview" });
-  box.style.display = "none";
+  const preview = h("div", { class:"yt-preview" });
+  preview.style.display = "none";
   let player = null;
 
   async function check(){
     const id = ytId(input.value);
     clear(status);
-    if (!input.value.trim()){ box.style.display = "none"; return; }
-    if (!id){ status.className = "small warn"; status.textContent = "not a youtube link"; box.style.display = "none"; return; }
+    if (!input.value.trim()){ preview.style.display = "none"; return; }
+    if (!id){ status.className = "small warn"; status.textContent = "not a youtube link"; preview.style.display = "none"; return; }
     status.className = "small muted"; status.textContent = "...";
-    box.style.display = "";
+    preview.style.display = "";
     try {
       const YT = await loadYT();
       if (player){ player.cueVideoById(id); return; }
       const holder = h("div");
-      clear(box).append(holder);
+      clear(preview).append(holder);
       player = new YT.Player(holder, {
         videoId:id, host:"https://www.youtube-nocookie.com",
         playerVars:{ rel:0, playsinline:1 },
@@ -140,7 +205,7 @@ function sectionJdg(){
   }, 500));
   if (prep.jdg) setTimeout(check, 300);
 
-  return card("your joueur du grenier video", null, input, status, box);
+  return card("a video you want to watch tonight", "youtube link. we watch it together at the end", input, status, preview);
 }
 
 // ── 2. photos ────────────────────────────────────────────────
@@ -204,22 +269,26 @@ function sectionPhotos(){
   });
   draw();
 
-  return card("5 photos of us", null, grid, note, picker);
+  return card("5 photos of us", `5 moments with ${other} that you love. tonigth you tell the story of each one : where, when, why this photo`, grid, note, picker);
 }
 
-// ── 3. texte : lettre ou poeme ──────────────────────────────
+// ── 3. un petit poeme : le sien, ou un poeme aime ───────────
 function sectionText(){
   const t = prep.text;
-  const bLetter = h("button", { class:"small", text:"a letter" });
-  const bPoem = h("button", { class:"small", text:"a poem" });
-  const area = h("textarea", { class:"keep-case", placeholder:"write here...", value:t.body, maxLength:8000 });
-  const sync = () => { bLetter.classList.toggle("on", t.kind === "letter"); bPoem.classList.toggle("on", t.kind === "poem"); };
-  bLetter.addEventListener("click", () => { t.kind = "letter"; sync(); changed(); });
-  bPoem.addEventListener("click", () => { t.kind = "poem"; sync(); changed(); });
+  const bMine = h("button", { class:"small", text:"i write it" });
+  const bLoved = h("button", { class:"small", text:"a poem i love" });
+  const area = h("textarea", { class:"keep-case", value:t.body, maxLength:8000 });
+  const sync = () => {
+    bMine.classList.toggle("on", t.kind === "mine");
+    bLoved.classList.toggle("on", t.kind === "loved");
+    area.placeholder = t.kind === "loved" ? "the poem, and who wrote it" : "three little lines...";
+  };
+  bMine.addEventListener("click", () => { t.kind = "mine"; sync(); changed(); });
+  bLoved.addEventListener("click", () => { t.kind = "loved"; sync(); changed(); });
   area.addEventListener("input", () => { t.body = area.value; changed(); });
   sync();
-  return card("a letter or a poem", "you read it out loud tonight",
-    h("div", { class:"row" }, bLetter, bPoem), h("div", { style:"height:10px" }), area);
+  return card("a little poem", "write one yourself, a haiku is enough (3 short lines). or give a poem you love. you read it out loud tonight",
+    h("div", { class:"row" }, bMine, bLoved), h("div", { style:"height:10px" }), area);
 }
 
 // ── 4. trivia ────────────────────────────────────────────────
@@ -231,7 +300,7 @@ function sectionTrivia(){
     h("input", { type:"text", class:"keep-case a", placeholder:"answers i accept : a / b / c", value:t.a,
       oninput:e => { t.a = e.target.value.slice(0, 300); changed(); } }),
   ));
-  return card("10 questions about you", "good answers : separate them with /",
+  return card("5 questions about you", "good answers : separate them with /",
     ...rows);
 }
 
@@ -256,29 +325,42 @@ function sectionLies(){
     ...rounds);
 }
 
-// ── sauvegarde fichier ───────────────────────────────────────
-function sectionSave(){
-  const file = h("input", { type:"file", accept:"application/json,.json", style:"display:none" });
+// ── envoi final a tino ───────────────────────────────────────
+function sectionSend(){
   const msg = h("p", { class:"small" });
-  file.addEventListener("change", async () => {
+  const btn = h("button", { class:"big", text:"send to tino" });
+  btn.addEventListener("click", async () => {
+    btn.disabled = true;
+    clearTimeout(upTimer);
+    msg.className = "small muted"; msg.textContent = "...";
     try {
-      prep = await importFile(file.files[0], me);
-      await savePrep(prep);
-      render();
+      await saveNow();
+      if (!await ensureBox()) throw new Error("offline");
+      for (let i = 0; i < 20 && !box.connected(); i++) await new Promise(r => setTimeout(r, 500));
+      while (uploading) await new Promise(r => setTimeout(r, 300));
+      uploading = true;
+      try {
+        await box.upload(prep, (d, n) => { msg.textContent = `sending ${Math.round(d / n * 100)} %`; });
+      } finally { uploading = false; }
+      msg.textContent = "i check...";
+      const v = await verifyBox(prep, { transport:TRANSPORT });
+      if (v.ok){
+        cloud = "ok"; showStatus();
+        msg.className = "small ok"; msg.textContent = "tino has everything. you can close";
+        sfx.good();
+      } else {
+        msg.className = "small warn"; msg.textContent = `tino did not get : ${v.missing.join(", ")}. press again`;
+      }
     } catch (e){
-      msg.className = "small warn";
-      msg.textContent = e.message === "not your file" ? "this copy is not yours" : "i cannot read this file";
+      console.warn(e);
+      cloud = "offline"; showStatus();
+      msg.className = "small warn"; msg.textContent = "no internet for tino. it is saved here, press again later";
     }
-    file.value = "";
+    btn.disabled = false;
   });
-  return card("a copy, just in case",
-    "everything stays only in this browser. download a copy. if it disappear, load the copy",
-    h("div", { class:"row" },
-      h("button", { text:"download a copy", onclick:() => exportFile(prep) }),
-      h("button", { text:"load a copy", onclick:() => file.click() }),
-    ),
-    msg, file,
+  return card("give it to tino", "when you finish, press the button. after you can still change things, tino get them too",
+    h("div", { class:"row" }, btn), msg,
     h("p", { class:"small muted" }, "not ", me, " ? ",
-      h("a", { href:"#", text:"change", onclick:e => { e.preventDefault(); try { localStorage.removeItem("soiree-prep-me"); } catch {} askWho(); } })),
+      h("a", { href:"#", text:"change", onclick:e => { e.preventDefault(); try { localStorage.removeItem("soiree-prep-me"); } catch {} location.href = location.pathname; } })),
   );
 }

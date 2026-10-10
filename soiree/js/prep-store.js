@@ -1,28 +1,31 @@
 // ============================================================
-// prep-store.js : la preparation de chacun, stockee SEULEMENT
-// dans son navigateur (IndexedDB). Jamais dans le repo.
+// prep-store.js : la preparation de chacun, stockee dans son
+// navigateur (IndexedDB, et les textes en double dans localStorage),
+// puis deposee chiffree dans la boite de tino (sync/box.js).
+// Jamais dans le repo.
 //
 // forme d'une prepa :
 // {
 //   v:1, me:"ana"|"adrien", updated:ms,
-//   jdg:   "https://youtu.be/...",                 // 1 video joueur du grenier
+//   jdg:   "https://youtu.be/...",                 // la video de la fin de soiree
 //   photos:[{ src:"data:image/jpeg...", caption:"" } x5],
-//   text:  { kind:"letter"|"poem", body:"" },
-//   trivia:[{ q:"", a:"rep1 / rep2" } x10],
-//   lies:  [{ s:["","",""], lie:0|1|2|null } x3],
+//   text:  { kind:"mine"|"loved", body:"" },       // son poeme, ou un poeme aime
+//   trivia:[{ q:"", a:"rep1 / rep2" } x5],
+//   lies:  [{ s:["","",""], lie:0|1|2|null } x2],
 // }
 // ============================================================
 const DB = "anamor-soiree";
 const STORE = "prep";
-export const N_PHOTOS = 5, N_TRIVIA = 10, N_LIES = 3;
-const MAX_TEXT = 8000, MAX_LINE = 300, MAX_PHOTO = 900000;
+export const N_PHOTOS = 5, N_TRIVIA = 5, N_LIES = 2;
+const MAX_TEXT = 8000, MAX_LINE = 300, MAX_PHOTO = 900000, NEW_PHOTO = 450000;
+const MIRROR = "soiree-prep-text-";
 
 export function emptyPrep(me){
   return {
     v:1, me, updated:0,
     jdg:"",
     photos: Array.from({ length:N_PHOTOS }, () => ({ src:"", caption:"" })),
-    text: { kind:"letter", body:"" },
+    text: { kind:"mine", body:"" },
     trivia: Array.from({ length:N_TRIVIA }, () => ({ q:"", a:"" })),
     lies: Array.from({ length:N_LIES }, () => ({ s:["", "", ""], lie:null })),
   };
@@ -46,15 +49,20 @@ export async function loadPrep(me){
       q.onsuccess = () => resolve(q.result);
       q.onerror = () => reject(q.error);
     });
-    return sanitizePrep(val, me);
+    const p = sanitizePrep(val, me);
+    const m = readMirror(me);
+    return m && m.updated > p.updated ? mergeMirror(p, m) : p;
   } catch (e){
     console.error("loadPrep", e);
-    return emptyPrep(me);
+    const m = readMirror(me);
+    return m ? mergeMirror(emptyPrep(me), m) : emptyPrep(me);
   }
 }
 
-export async function savePrep(prep){
-  prep.updated = Date.now();
+// keep : garder la date (copie venue de la boite)
+export async function savePrep(prep, { keep = false } = {}){
+  if (!keep) prep.updated = Date.now();
+  writeMirror(prep);
   const db = await openDb();
   await new Promise((resolve, reject) => {
     const tx = db.transaction(STORE, "readwrite");
@@ -62,6 +70,22 @@ export async function savePrep(prep){
     tx.oncomplete = resolve;
     tx.onerror = () => reject(tx.error);
   });
+}
+
+// double des textes (sans les photos) : si IndexedDB lache, rien d'ecrit ne se perd
+function writeMirror(p){
+  try {
+    const { photos, ...rest } = p;
+    localStorage.setItem(MIRROR + p.me, JSON.stringify({ ...rest, captions:photos.map(x => x.caption) }));
+  } catch {}
+}
+function readMirror(me){
+  try { const m = JSON.parse(localStorage.getItem(MIRROR + me) || "null"); return m && typeof m === "object" ? m : null; }
+  catch { return null; }
+}
+function mergeMirror(p, m){
+  const photos = p.photos.map((ph, i) => ({ src:ph.src, caption:Array.isArray(m.captions) ? m.captions[i] : ph.caption }));
+  return sanitizePrep({ ...m, photos }, p.me);
 }
 
 // ── validation stricte (import de fichier, lecture DB) ─────────
@@ -80,7 +104,7 @@ export function sanitizePrep(raw, me){
     };
   });
   if (raw.text){
-    p.text.kind = raw.text.kind === "poem" ? "poem" : "letter";
+    p.text.kind = raw.text.kind === "loved" ? "loved" : "mine";
     p.text.body = str(raw.text.body, MAX_TEXT);
   }
   if (Array.isArray(raw.trivia)) raw.trivia.slice(0, N_TRIVIA).forEach((t, i) => {
@@ -101,7 +125,7 @@ export function progress(p){
   const parts = {
     jdg: ytId(p.jdg) ? 1 : 0,
     photos: p.photos.filter(x => x.src).length,
-    text: p.text.body.trim().length > 20 ? 1 : 0,
+    text: p.text.body.trim().length > 10 ? 1 : 0,
     trivia: p.trivia.filter(t => t.q.trim() && t.a.trim()).length,
     lies: p.lies.filter(l => l.s.every(x => x.trim()) && l.lie !== null).length,
   };
@@ -148,14 +172,14 @@ export async function photoToDataUrl(file){
       im.onerror = () => reject(new Error("unreadable"));
       im.src = url;
     });
-    const max = 1280;
+    const max = 1080;
     const k = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
     const c = document.createElement("canvas");
     c.width = Math.round(img.naturalWidth * k);
     c.height = Math.round(img.naturalHeight * k);
     c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
-    let q = 0.82, out = c.toDataURL("image/jpeg", q);
-    while (out.length > MAX_PHOTO && q > 0.4){ q -= 0.1; out = c.toDataURL("image/jpeg", q); }
+    let q = 0.8, out = c.toDataURL("image/jpeg", q);
+    while (out.length > NEW_PHOTO && q > 0.4){ q -= 0.1; out = c.toDataURL("image/jpeg", q); }
     return out;
   } finally {
     URL.revokeObjectURL(url);

@@ -23,7 +23,8 @@ import { createRoom } from "./sync/room.js";
 import { normCode } from "./sync/crypto.js";
 import { stepPick } from "./draw.js";
 import { derive, stepMarks } from "./flow.js";
-import { loadPrep, ytId } from "./prep-store.js";
+import { loadPrep, savePrep, progress, ytId } from "./prep-store.js";
+import { openBox } from "./sync/box.js";
 import { createGuide } from "./guides.js";
 import { ACTIVITIES } from "./activities.js";
 
@@ -93,6 +94,7 @@ async function join(code){
   }
   prep = await loadPrep(me);
   provideContent();
+  startBox();
   picks = STEPS.map((_, s) => stepPick(room.seed, s, FORCE));
   await room.ready;
   if (params.has("reset")){                 // test : repartir de zero
@@ -100,6 +102,7 @@ async function join(code){
     params.delete("reset");
     history.replaceState(null, "", location.pathname + (params.toString() ? "?" + params : ""));
   }
+  announcePrep();
   if (Number.isInteger(JUMP) && JUMP > 0) devJump(JUMP);
   room.on(render);
   setInterval(render, 2000);
@@ -115,15 +118,57 @@ function onNet(n){
 // ════════════════════════════════════════════════════════════
 // contenus de ma prepa, fournis a l'autre sur demande
 // ════════════════════════════════════════════════════════════
-function localContent(key){
-  if (key === "prep:jdg") return ytId(prep.jdg) || "";
-  if (key === "prep:photos") return prep.photos.map(p => ({ has:!!p.src, caption:p.caption }));
+// has : photos annoncees par la boite (null = prepa locale)
+function contentOf(p, key, has = null){
+  if (key === "prep:jdg") return ytId(p.jdg) || "";
+  if (key === "prep:photos") return p.photos.map((x, i) => ({ has:has ? !!has[i] : !!x.src, caption:x.caption }));
   const m = key.match(/^prep:photo:(\d)$/);
-  if (m){ const p = prep.photos[+m[1]]; return p ? { src:p.src, caption:p.caption } : null; }
-  if (key === "prep:text") return { kind:prep.text.kind, body:prep.text.body };
-  if (key === "prep:trivia") return prep.trivia.filter(t => t.q.trim());
-  if (key === "prep:lies") return prep.lies.filter(l => l.s.some(x => x.trim()));
+  if (m){
+    const x = p.photos[+m[1]];
+    if (!x) return null;
+    return x.src || !has ? { src:x.src, caption:x.caption } : null;
+  }
+  if (key === "prep:text") return { kind:p.text.kind, body:p.text.body };
+  if (key === "prep:trivia") return p.trivia.filter(t => t.q.trim());
+  if (key === "prep:lies") return p.lies.filter(l => l.s.some(x => x.trim()));
   return null;
+}
+const localContent = key => contentOf(prep, key);
+
+// ── la boite de tino : les prepas deposees, quel que soit l'appareil ──
+// la version la plus recente gagne : celle de la boite ou celle du
+// navigateur de l'autre (dont la date est annoncee dans son couloir).
+let boxOther = Promise.resolve(null);
+let mineReady = Promise.resolve();
+function startBox(){
+  const boxP = openBox({ transport:TRANSPORT });
+  boxOther = boxP.then(b => b.wait(other, 12000)).catch(() => null);
+  const mine = boxP.then(async b => {
+    const r = await b.wait(me, 8000);
+    if (r && r.prep.updated > prep.updated){
+      // ma prepa faite ailleurs : on la reprend (meme objet, les activites la voient)
+      r.prep.photos.forEach((ph, i) => { if (!ph.src && r.has[i] && prep.photos[i].src) ph.src = prep.photos[i].src; });
+      Object.assign(prep, r.prep);
+      savePrep(prep, { keep:true }).catch(() => {});
+      announcePrep();
+    } else if ((!r || r.manifest.updated !== prep.updated) && progress(prep).done > 0){
+      b.upload(prep).catch(() => {});        // ma prepa locale, pas encore chez tino
+    }
+  }).catch(e => console.warn("box", e && e.message));
+  mineReady = Promise.race([mine, wait(10000)]);
+}
+
+function announcePrep(){
+  if (room && room.get(me, "prepUpdated") !== prep.updated) room.set("prepUpdated", prep.updated);
+}
+
+// contenu de l'autre : la boite si elle est a jour, sinon en direct
+async function fromOther(key){
+  const r = await boxOther;
+  const live = room.get(other, "prepUpdated");
+  const v = r ? contentOf(r.prep, key, r.has) : null;
+  if (v != null && !(Number.isFinite(live) && live > r.prep.updated)) return v;
+  return room.request(key);
 }
 
 function provideContent(){
@@ -427,7 +472,7 @@ async function mountActivity(pos, sh){
     onChange: cb => { const u = room.on(cb); cleanups.push(u); return u; },
     send: (kind, data) => room.send(`${ns}:${kind}`, data),
     onStream: (kind, cb) => { const u = room.onStream(`${ns}:${kind}`, cb); cleanups.push(u); return u; },
-    request: (owner, key) => (owner === me ? Promise.resolve(localContent(key)) : room.request(key)),
+    request: (owner, key) => (owner === me ? mineReady.then(() => localContent(key)) : fromOther(key)),
     online: who => room.online(who),
     markDone: () => room.set(`flow.s${pos.step}.done.${pos.opt}`, true),
     onCleanup: fn => cleanups.push(fn),
