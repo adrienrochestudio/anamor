@@ -83,7 +83,6 @@ async function join(code){
   other = me === "ana" ? "adrien" : "ana";
   try { sessionStorage.setItem("soiree-me", me); sessionStorage.setItem("soiree-code", code); } catch {}
   clear(stage).append(h("p", { class:"center muted", text:"connecting..." }));
-  k.say("i open the door...");
   try {
     room = await createRoom({ me, code, transport:TRANSPORT, onStatus:onNet });
   } catch (e){
@@ -97,6 +96,11 @@ async function join(code){
   picks = STEPS.map((_, s) => stepPick(room.seed, s, FORCE));
   await room.ready;
   $("#presence").style.visibility = "visible";
+  if (params.has("reset")){                 // test : repartir de zero
+    room.reset();
+    params.delete("reset");
+    history.replaceState(null, "", location.pathname + (params.toString() ? "?" + params : ""));
+  }
   if (Number.isInteger(JUMP) && JUMP > 0) devJump(JUMP);
   room.on(render);
   setInterval(render, 2000);
@@ -251,7 +255,7 @@ async function refreshOpening(){
     status.textContent = L.readyWait;
     return;
   }
-  if (!both){ status.textContent = L.waiting; if (!openingPlayed) k.say(L.waiting); return; }
+  if (!both){ status.textContent = ""; return; }
   status.textContent = "";
   if (!openingPlayed){
     openingPlayed = true;
