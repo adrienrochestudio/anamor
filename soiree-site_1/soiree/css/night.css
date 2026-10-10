@@ -1,0 +1,78 @@
+/* ============================================================
+   night.css : ecrans de la soiree (en plus de soiree.css)
+   ============================================================ */
+.page.wide{ max-width:1080px; }
+.center{ text-align:center; }
+.center-row{ justify-content:center; }
+.narrow{ max-width:520px; margin:40px auto; }
+
+.head{ display:flex; align-items:flex-start; gap:12px; }
+.head #kompiuter{ flex:1; }
+#topbar{ display:flex; flex-direction:column; align-items:flex-end; gap:8px; padding-top:10px; }
+.dot{ margin-left:12px; color:var(--muted); }
+.dot::before{
+  content:""; display:inline-block; width:9px; height:9px; margin-right:5px;
+  border:2px solid var(--muted); background:transparent; vertical-align:1px;
+}
+.dot.on{ color:var(--cream); }
+.dot.on::before{ background:var(--ok); border-color:var(--ok); }
+
+/* frise des 8 arrets */
+#frise{ display:flex; gap:8px; justify-content:center; margin:6px 0 10px; flex-wrap:wrap; }
+#frise .cell{
+  width:34px; height:34px; display:flex; align-items:center; justify-content:center;
+  border:2px solid var(--line); border-radius:8px; color:var(--muted); position:relative;
+}
+#frise .cell.now{ border:3px solid var(--cream); color:var(--cream); }
+#frise .cell.done{ background:var(--cream); color:var(--night); border-color:var(--cream); }
+#frise .cell.double::after{   /* petite etoile pixel */
+  content:""; position:absolute; top:-7px; right:-7px; width:3px; height:3px;
+  background:#fff1b8;
+  box-shadow:3px 0 #fff1b8, -3px 0 #fff1b8, 0 3px #fff1b8, 0 -3px #fff1b8;
+}
+
+/* ouverture / fin */
+.opening{ margin-top:60px; }
+.opening h1{ font-size:2.6rem; }
+
+/* etape */
+.step-title{ text-align:center; font-size:1.8rem; margin:4px 0 0; }
+.stage{ position:relative; min-height:250px; }
+.guide-slot{ position:relative; height:110px; display:flex; justify-content:center; align-items:flex-end; }
+.opts{ display:grid; grid-template-columns:1fr 1fr; gap:22px; margin-top:8px; }
+.opt{
+  border:3px solid var(--cream); border-radius:16px; padding:14px 16px;
+  background:rgba(23,29,61,.94); min-height:120px;
+  transition:transform .35s, opacity .35s, border-color .35s;
+}
+.opt[data-opt=A]{ transform:rotate(-1deg); }
+.opt[data-opt=B]{ transform:rotate(1deg); }
+.opt h3{ font-size:1.5rem; margin:0 0 4px; }
+.opt.chosen{ border-color:var(--rose); transform:rotate(0) scale(1.03); }
+.opt.faded{ opacity:.35; transform:scale(.94); }
+.opt.also{ border-style:dashed; }
+.step.playing .opt{ min-height:0; padding:8px 14px; }
+.step.playing .opt p{ display:none; }
+.step.playing .guide-slot{ height:70px; }
+
+.activity{ margin:18px 0; }
+.act{ min-height:40px; }
+.bar{ display:flex; flex-direction:column; align-items:center; gap:6px; margin:18px 0 40px; }
+button.big{ font-size:1.3rem; padding:8px 28px; }
+
+/* activites : briques communes */
+.panel{
+  border:3px solid var(--cream); border-radius:16px; padding:14px 16px;
+  background:rgba(23,29,61,.94); margin:12px 0;
+}
+.big-code{ font-size:2.2rem; letter-spacing:.08em; text-transform:none; text-align:center; }
+.video-box{ position:relative; width:100%; aspect-ratio:16/9; border:3px solid var(--cream); border-radius:12px; overflow:hidden; background:#000; }
+.video-box > div, .video-box iframe{ position:absolute; inset:0; width:100%; height:100%; border:0; }
+.video-ctrl{ display:flex; gap:10px; justify-content:center; margin-top:10px; flex-wrap:wrap; }
+.countdown{ font-size:4rem; text-align:center; }
+
+@media (max-width:640px){
+  .opts{ grid-template-columns:1fr; }
+  .head{ flex-direction:column; }
+  #topbar{ align-items:flex-start; }
+}
