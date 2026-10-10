@@ -226,6 +226,13 @@ export async function createRoom({ me, code, transport = "mqtt", onStatus }){
     provide(k, fn){ providers.set(k, fn); },
     request,
     forget(k){ cache.delete(k); },
+    // test : vide mon couloir (rev plus haut, donc il remplace l'ancien partout)
+    reset(){
+      lanes[me] = { rev:lanes[me].rev + 1, t:Date.now() };
+      saveLocal();
+      publishLane();
+      emit();
+    },
     online: who => who === me || Date.now() - lastSeen[who] < ONLINE_FOR,
     connected: () => tr.connected(),
     close(){ clearInterval(pinger); tr.close(); },
