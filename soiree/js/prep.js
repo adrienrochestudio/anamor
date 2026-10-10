@@ -17,7 +17,7 @@ createSky($("#sky"));
 const k = createKompiuter($("#kompiuter"), { sfx });
 $("#kompiuter").append(h("div", { style:"margin-left:auto;align-self:flex-start" }, muteButton()));
 const app = $("#app");
-const P = content.prep;
+k.say(content.prep.hello);
 
 let me = null, prep = null;
 let gaugeFill, gaugeText, savedEl;
@@ -31,7 +31,6 @@ else if (stored === "ana" || stored === "adrien") start(stored);
 else askWho();
 
 function askWho(){
-  k.say(content.lines.who);
   clear(app).append(h("div", { class:"who" },
     ["ana", "adrien"].map(n => h("button", { text:`i am ${n}`, onclick:() => start(n) }))
   ));
@@ -42,7 +41,6 @@ async function start(who){
   try { localStorage.setItem("soiree-prep-me", me); } catch {}
   prep = await loadPrep(me);
   render();
-  k.say(P.hello).then(() => setTimeout(() => k.say(P.private), 1600));
 }
 
 // ── sauvegarde ───────────────────────────────────────────────
@@ -53,13 +51,13 @@ const persist = debounce(async () => {
     savedEl.className = "small ok";
   } catch (e){
     console.error(e);
-    savedEl.textContent = "not saved ! use the save file";
+    savedEl.textContent = "not saved ! download a copy";
     savedEl.className = "small warn";
   }
 }, 400);
 
 function changed(){
-  savedEl.textContent = "...";
+  savedEl.textContent = "";
   savedEl.className = "small muted";
   updateGauge();
   persist();
@@ -68,8 +66,8 @@ function changed(){
 function updateGauge(){
   const pr = progress(prep);
   gaugeFill.style.width = pr.pct + "%";
-  gaugeText.textContent = `ready at ${pr.pct} %`;
-  if (pr.pct === 100 && !updateGauge.cheered){ updateGauge.cheered = true; k.say(P.done); sfx.good(); }
+  gaugeText.textContent = `${pr.pct} %`;
+  if (pr.pct === 100 && !updateGauge.cheered){ updateGauge.cheered = true; sfx.good(); }
 }
 
 // ── rendu ────────────────────────────────────────────────────
@@ -79,10 +77,9 @@ function render(){
   savedEl = h("span", { class:"small muted", text:"" });
   clear(app).append(
     h("div", { class:"gauge" },
-      h("div", { class:"row" }, h("span", { class:"grow" }, `${me}'s part · `, gaugeText), savedEl),
+      h("div", { class:"row" }, h("span", { class:"grow" }, `${me} · `, gaugeText), savedEl),
       h("div", { class:"gauge-bar" }, gaugeFill)
     ),
-    h("p", { class:"muted small", text:P.sameMac }),
     sectionJdg(),
     sectionPhotos(),
     sectionText(),
@@ -109,8 +106,8 @@ function sectionJdg(){
     const id = ytId(input.value);
     clear(status);
     if (!input.value.trim()){ box.style.display = "none"; return; }
-    if (!id){ status.className = "small warn"; status.textContent = "this is not a youtube link i understand"; box.style.display = "none"; return; }
-    status.className = "small muted"; status.textContent = "checking the video...";
+    if (!id){ status.className = "small warn"; status.textContent = "not a youtube link"; box.style.display = "none"; return; }
+    status.className = "small muted"; status.textContent = "...";
     box.style.display = "";
     try {
       const YT = await loadYT();
@@ -121,18 +118,18 @@ function sectionJdg(){
         videoId:id, host:"https://www.youtube-nocookie.com",
         playerVars:{ rel:0, playsinline:1 },
         events:{
-          onReady:() => { status.className = "small ok"; status.textContent = "ok, this one works in my player"; },
+          onReady:() => { status.className = "small ok"; status.textContent = "ok"; },
           onStateChange:() => {},
           onError:(e) => {
             status.className = "small warn";
             status.textContent = EMBED_REFUSED.has(e.data)
-              ? "this video refuse to play outside youtube. tonight i open it on youtube for both. or choose another one"
-              : "this video do not work. choose another one";
+              ? "this one plays only on youtube. ok for tonight, or choose another"
+              : "this video do not work, choose another";
           },
         },
       });
     } catch {
-      status.className = "small warn"; status.textContent = "youtube not reachable right now, link is saved anyway";
+      status.className = "small muted"; status.textContent = "saved";
     }
   }
 
@@ -143,9 +140,7 @@ function sectionJdg(){
   }, 500));
   if (prep.jdg) setTimeout(check, 300);
 
-  return card("your joueur du grenier video",
-    "paste the youtube link of one jdg video you want to watch tonight. the other choose one too. at the end, i pick one",
-    input, status, box);
+  return card("your joueur du grenier video", null, input, status, box);
 }
 
 // ── 2. photos ────────────────────────────────────────────────
@@ -157,7 +152,7 @@ function sectionPhotos(){
 
   async function setPhoto(i, file){
     if (!file || !file.type.startsWith("image/")) return;
-    note.className = "small muted"; note.textContent = "reading the photo...";
+    note.className = "small muted"; note.textContent = "...";
     try {
       prep.photos[i].src = await photoToDataUrl(file);
       note.textContent = "";
@@ -166,7 +161,7 @@ function sectionPhotos(){
       draw();
     } catch {
       note.className = "small warn";
-      note.textContent = "i cannot read this photo. export it as jpg and try again (heic from iphone sometimes not work in chrome)";
+      note.textContent = "i cannot read this photo. try a jpg";
     }
   }
 
@@ -209,9 +204,7 @@ function sectionPhotos(){
   });
   draw();
 
-  return card("5 photos of us",
-    "five photos you like. tonight you tell the story of each one. you can also paste a photo",
-    grid, note, picker);
+  return card("5 photos of us", null, grid, note, picker);
 }
 
 // ── 3. texte : lettre ou poeme ──────────────────────────────
@@ -225,8 +218,7 @@ function sectionText(){
   bPoem.addEventListener("click", () => { t.kind = "poem"; sync(); changed(); });
   area.addEventListener("input", () => { t.body = area.value; changed(); });
   sync();
-  return card("your text",
-    "a letter or a poem, you choose. tonight you read it out loud. nobody see it before",
+  return card("a letter or a poem", "you read it out loud tonight",
     h("div", { class:"row" }, bLetter, bPoem), h("div", { style:"height:10px" }), area);
 }
 
@@ -239,8 +231,7 @@ function sectionTrivia(){
     h("input", { type:"text", class:"keep-case a", placeholder:"answers i accept : a / b / c", value:t.a,
       oninput:e => { t.a = e.target.value.slice(0, 300); changed(); } }),
   ));
-  return card("10 questions about you",
-    "the other must answer. put every answer you accept, separated by /. small typos are ok, i am nice",
+  return card("10 questions about you", "good answers : separate them with /",
     ...rows);
 }
 
@@ -261,8 +252,7 @@ function sectionLies(){
     });
     return h("div", { class:"lie-round" }, h("p", { class:"muted", text:`round ${r + 1}` }), ...lines);
   });
-  return card("two truths one lie",
-    "three rounds. each time : two true things, one lie. click which one is the lie",
+  return card("two truths one lie", "click on the lie",
     ...rounds);
 }
 
@@ -275,17 +265,17 @@ function sectionSave(){
       prep = await importFile(file.files[0], me);
       await savePrep(prep);
       render();
-      k.say("ok i load your save file");
     } catch (e){
       msg.className = "small warn";
-      msg.textContent = e.message === "not your file" ? "this save file is not yours" : "i cannot read this file";
+      msg.textContent = e.message === "not your file" ? "this copy is not yours" : "i cannot read this file";
     }
     file.value = "";
   });
-  return card("save file", P.save,
+  return card("a copy, just in case",
+    "everything stays only in this browser. download a copy. if it disappear, load the copy",
     h("div", { class:"row" },
-      h("button", { text:"download my save file", onclick:() => { exportFile(prep); k.say(P.save); } }),
-      h("button", { text:"load a save file", onclick:() => file.click() }),
+      h("button", { text:"download a copy", onclick:() => exportFile(prep) }),
+      h("button", { text:"load a copy", onclick:() => file.click() }),
     ),
     msg, file,
     h("p", { class:"small muted" }, "not ", me, " ? ",
