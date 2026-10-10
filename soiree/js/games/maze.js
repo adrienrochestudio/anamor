@@ -33,9 +33,24 @@ const LEVELS = [
   { size:21, walker:"ana",    every:1900, warn:1700, gates:20, period:2400, braid:0.04, hunt:0.45, step:1100, min:80000 },
   { size:25, walker:"adrien", every:1600, warn:1500, gates:30, period:2100, braid:0.04, hunt:0.55, step:1000, min:90000 },
 ];
+// difficulte choisie au curseur avant chaque partie (3 = reglages ci-dessus)
+const DIFF = [
+  { size:-6, f:1.6,  hunt:-0.25, gates:0.3, period:1.4,  step:1.5,  light:2 },
+  { size:-4, f:1.3,  hunt:-0.12, gates:0.6, period:1.2,  step:1.25, light:1 },
+  { size:0,  f:1,    hunt:0,     gates:1,   period:1,    step:1,    light:1 },
+  { size:2,  f:0.8,  hunt:0.1,   gates:1.5, period:0.85, step:0.85, light:1 },
+  { size:4,  f:0.65, hunt:0.2,   gates:2.2, period:0.7,  step:0.75, light:0 },
+];
+const DIFF_NAMES = ["very easy", "easy", "normal", "hard", "very hard"];
+function cfgFor(i, d){
+  const b = LEVELS[i], k = DIFF[d - 1];
+  return { ...b, d, size:b.size + k.size, light:k.light,
+    every:Math.round(b.every * k.f), warn:Math.max(900, Math.round(b.warn * k.f)),
+    hunt:Math.min(0.85, Math.max(0.15, b.hunt + k.hunt)), gates:Math.round(b.gates * k.gates),
+    period:Math.round(b.period * k.period), step:Math.round(b.step * k.step), min:Math.round(b.min * k.step) };
+}
 const GRACE = 3000;        // ms avant la premiere bombe
 const BLAST = 700;         // duree d'une explosion
-const LIGHT = 1;           // celui qui marche voit un carre de 3x3 cases autour de tino
 const WRITE_EVERY = 80;
 const MAX_W = 600;
 const TOP = 54;            // bande du baron au-dessus du labyrinthe
@@ -108,6 +123,7 @@ const CSS = `
 .maze-right{ grid-column:3; grid-row:2; }
 .maze-end{ text-align:center; }
 .maze-end .maze-big{ font-size:1.6rem; }
+.maze-slider{ width:min(320px, 80%); accent-color:var(--rose); }
 `;
 
 // ── labyrinthe ───────────────────────────────────────────────
@@ -228,9 +244,9 @@ export function mount(ctx){
   // un labyrinthe par partie : tire de la graine et de l'heure du depart
   const layouts = new Map();
   function layout(i, start){
-    const key = i + ":" + start;
+    const d = curDiff(), key = i + ":" + start + ":" + d;
     if (!layouts.has(key)){
-      const c = LEVELS[i];
+      const c = cfgFor(i, d);
       const walls = makeMaze(c.size, seeded(ctx.seed, "maze", i + 1, start), c.braid);
       const exit = pickExit(walls, c.size, seeded(ctx.seed, "exit", i + 1, start));
       const { gates, list } = makeGates(c.size, c.gates, c.period, seeded(ctx.seed, "gates", i + 1, start), exit);
@@ -282,11 +298,24 @@ export function mount(ctx){
   let cell = 30, Wpx = 0, Hpx = 0, dpr = 1;
 
   const levelNow = () => {
+    if (!goOf()) return 0;
     for (let i = 0; i < NL; i++) if (!ctx.get(LEVELS[i].walker, `p${round}.won.${i + 1}`)) return i + 1;
     return NL + 1;
   };
   const finished = () => level > NL;
-  const lv = () => LEVELS[Math.min(level, NL) - 1];          // reglages du niveau
+  // avant la partie : curseur de difficulte (le dernier bouge l'emporte),
+  // puis "start" fige la difficulte dans go = { d, t }
+  const latestOf = path => [ctx.get("ana", path), ctx.get("adrien", path)]
+    .filter(x => x && Number.isFinite(x.t)).sort((a, b) => b.t - a.t)[0] || null;
+  const clampD = v => Math.min(5, Math.max(1, Math.round(Number(v) || 3)));
+  const goOf = () => latestOf(`p${round}.go`);
+  const curDiff = () => {
+    const g = goOf(); if (g) return clampD(g.d);
+    const x = latestOf(`p${round}.diff`); if (x) return clampD(x.v);
+    const prev = latestOf(`p${round - 1}.go`);                 // par defaut : celle de la partie d'avant
+    return clampD(prev ? prev.d : 3);
+  };
+  const lv = () => cfgFor(Math.min(Math.max(level, 1), NL) - 1, curDiff());   // reglages du niveau
   const iWalk = () => !finished() && lv().walker === ctx.me;
   const startOf = () => { const s = ctx.get(lv().walker, `p${round}.start.${level}`); return Number.isFinite(s) ? s : null; };
   const elapsed = () => { const s = startOf(); return s == null ? null : Date.now() - s; };
@@ -383,6 +412,9 @@ export function mount(ctx){
     level = levelNow();
     clearTimeout(writeTimer); writeTimer = null;
     local = null; killedBy = -1; boomSeen = -1;
+    if (level === 0) return showSetup();
+    clear(end);
+    frame.hidden = false;
     if (finished()) return finish(live);
     seenDead = ctx.get(lv().walker, `p${round}.dead.${level}`) | 0;
     for (const k in hunts) delete hunts[k];
@@ -399,6 +431,32 @@ export function mount(ctx){
     ctx.say(level === 1 ? (lines.intro || "") : (lines.swap || ""));
     resize();
     updateHud();
+  }
+
+  // ── reglage avant la partie ───────────────────────────────
+  let slider = null, sliderName = null;
+  function showSetup(){
+    frame.hidden = true;
+    slider = h("input", { type:"range", min:"1", max:"5", step:"1", value:String(curDiff()), class:"maze-slider" });
+    sliderName = h("p", { class:"maze-big", text:DIFF_NAMES[curDiff() - 1] });
+    slider.addEventListener("input", () => {
+      sliderName.textContent = DIFF_NAMES[clampD(slider.value) - 1];
+      ctx.set(`p${round}.diff`, { v:clampD(slider.value), t:Date.now() });
+    });
+    clear(end).append(
+      h("p", { class:"muted", text:`game ${round} · difficulty` }),
+      sliderName, slider,
+      h("div", { style:"margin-top:12px" }, h("button", { class:"big", text:lines.start || "start", onclick:() => {
+        ctx.set(`p${round}.go`, { d:clampD(slider.value), t:Date.now() });
+      }})),
+    );
+    if (round === 1) ctx.say(lines.intro || "");
+    updateHud();
+  }
+  function syncSetup(){
+    if (level !== 0 || !slider || document.activeElement === slider) return;
+    const d = curDiff();
+    if (clampD(slider.value) !== d){ slider.value = String(d); sliderName.textContent = DIFF_NAMES[d - 1]; }
   }
 
   function finish(live){
@@ -423,6 +481,7 @@ export function mount(ctx){
       return enterLevel(true);
     }
     if (levelNow() !== level) return enterLevel(true);
+    if (level === 0) return syncSetup();
     const dead = ctx.get(lv().walker, `p${round}.dead.${level}`) | 0;
     if (!iWalk() && dead > seenDead){ seenDead = dead; boomFx(); }
     updateHud();
@@ -518,13 +577,13 @@ export function mount(ctx){
 
   // ── affichage ────────────────────────────────────────────
   function updateHud(){
-    if (finished()){ role.textContent = ""; info.textContent = ""; pad.hidden = true; return; }
+    if (finished() || level === 0){ role.textContent = ""; info.textContent = ""; pad.hidden = true; return; }
     role.textContent = iWalk() ? "you walk in the dark" : "you see everything";
     const d = ctx.get(lv().walker, `p${round}.dead.${level}`) | 0;
     const el = elapsed(), L = lay();
     const left = !L ? 0 : el == null ? L.time : Math.max(0, L.time - el);
     const sec = Math.ceil(left / 1000);
-    info.textContent = `${round > 1 ? `game ${round} · ` : ""}level ${level}/${NL} · ${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")} · boom ${d}`;
+    info.textContent = `${round > 1 ? `game ${round} · ` : ""}level ${level}/${NL} · ${DIFF_NAMES[curDiff() - 1]} · ${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")} · boom ${d}`;
     pad.hidden = !iWalk();
   }
 
@@ -569,6 +628,7 @@ export function mount(ctx){
     // celui qui marche voit les cases autour de tino, jamais les bombes qui tombent
     const full = !iWalk();
     const p = walkerPos();
+    const LIGHT = L.light;
     const near = (x, y) => Math.abs(x - p.x) <= LIGHT && Math.abs(y - p.y) <= LIGHT;
     const shown = (x, y) => full || near(x, y);
 
@@ -664,7 +724,7 @@ export function mount(ctx){
   // ── branchements ─────────────────────────────────────────
   ctx.onStream("move", d => {
     if (!d || d.r !== round || !Number.isInteger(d.l) || d.l < 1 || d.l > NL) return;
-    const p = validPos(d, LEVELS[d.l - 1].size);
+    const p = validPos(d, cfgFor(d.l - 1, curDiff()).size);
     if (!p) return;
     streamPos[d.l] = newest(streamPos[d.l], { x:p.x, y:p.y, n:p.n, t:p.t });
   });
@@ -679,7 +739,7 @@ export function mount(ctx){
       level:() => level,
       round:() => round,
       win:() => { if (iWalk()) ctx.set(`p${round}.won.${level}`, true); },
-      size:l => LEVELS[l - 1].size,
+      size:l => cfgFor(l - 1, curDiff()).size,
       walker:l => LEVELS[l - 1].walker,
       walls:() => (lay() ? Array.from(lay().walls) : null),
       exit:() => (lay() ? { ...lay().exit } : null),
