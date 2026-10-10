@@ -8,7 +8,7 @@ Site statique (GitHub Pages), modules ES natifs, aucun build. Synchro par broker
 - Deux fenêtres sans réseau : `soiree/index.html?me=ana&code=xyz&t=local` et `...?me=adrien&code=xyz&t=local`.
 - `&jump=n` saute à l'étape n (0 à 7), `&force=A|B` impose la carte tirée.
 - Harness Playwright : `tests/harness.py` (`two_pages(jump, force)` renvoie les pages ana, adrien et la liste d'erreurs console).
-- Prépa : `soiree/prep.html?me=ana`.
+- Prépa : `soiree/prep.html?me=ana`. Chaque frappe est gardée dans le navigateur (IndexedDB + textes en double dans localStorage) puis déposée chiffrée dans la boîte de tino (`js/sync/box.js`, messages retenus sur les brokers, mot fixe `BOX_WORD`). Le soir, le jeu relit la boîte : la prépa peut être faite sur un autre appareil. La version la plus récente gagne (boîte ou navigateur de l'autre, date annoncée dans `prepUpdated`).
 
 ## Contrat d'une activité
 
@@ -26,7 +26,7 @@ Un module ES qui exporte `mount(ctx)` et renvoie éventuellement une fonction de
   - `get(who, path)` : lit le couloir de who
   - `onChange(cb)` : appelé à chaque changement d'un des deux couloirs
 - flux non retenus (rapides, peuvent se perdre) : `send(kind, data)`, `onStream(kind, cb(data, from))`
-- `request(owner, key)` : contenu de prépa de owner (promesse). Clés : `prep:jdg` (id youtube), `prep:photos` (liste {has, caption}), `prep:photo:0..4` ({src, caption}), `prep:text` ({kind, body}, envoyé seulement quand le couloir de l'auteur a `share.text = true`), `prep:trivia` ([{q, a}]), `prep:lies` ([{s:[3], lie}])
+- `request(owner, key)` : contenu de prépa de owner (promesse). Clés : `prep:jdg` (id youtube), `prep:photos` (liste {has, caption}), `prep:photo:0..4` ({src, caption}), `prep:text` ({kind:"mine"|"loved", body}, envoyé seulement quand le couloir de l'auteur a `share.text = true`), `prep:trivia` ([{q, a}]), `prep:lies` ([{s:[3], lie}], 2 manches) ; trivia : 5 questions
 - `setGlobal(path, v)` : écrit hors de l'espace de noms (ex. `share.text`)
 - `online(who)`, `markDone()`, `onCleanup(fn)`
 
