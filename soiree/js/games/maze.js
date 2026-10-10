@@ -285,8 +285,10 @@ export function mount(ctx){
     padBtn("maze-up", "↑", 0), padBtn("maze-left", "←", 3),
     padBtn("maze-down", "↓", 2), padBtn("maze-right", "→", 1));
   const end = h("div", { class:"maze-end" });
+  // recommencer : nouvelle partie, retour au curseur de difficulte
+  const restart = h("button", { class:"small", text:"new game", onclick:() => ctx.set("round", round + 1) });
   ctx.el.append(h("div", { class:"maze" },
-    h("div", { class:"maze-hud" }, role, info), frame, pad, end));
+    h("div", { class:"maze-hud" }, role, info, restart), frame, pad, end));
 
   // ── etat ─────────────────────────────────────────────────
   let level = 0, local = null;
@@ -577,6 +579,7 @@ export function mount(ctx){
 
   // ── affichage ────────────────────────────────────────────
   function updateHud(){
+    restart.hidden = finished() || level === 0;
     if (finished() || level === 0){ role.textContent = ""; info.textContent = ""; pad.hidden = true; return; }
     role.textContent = iWalk() ? "you walk in the dark" : "you see everything";
     const d = ctx.get(lv().walker, `p${round}.dead.${level}`) | 0;
